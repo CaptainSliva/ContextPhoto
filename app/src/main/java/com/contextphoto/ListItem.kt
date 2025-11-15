@@ -1,18 +1,15 @@
 package com.contextphoto
 
-import android.R.attr.text
 import android.graphics.BitmapFactory
-import android.graphics.Paint
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.relocation.bringIntoViewRequester
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,30 +21,35 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import com.contextphoto.ListItem.PictureItem
 import com.contextphoto.data.Album
 import com.contextphoto.data.Picture
 import com.contextphoto.ui.theme.ContextPhotoTheme
 
-object ListItem {
-    @Composable
+@Composable
     fun AlbumItem(album: Album, modifier: Modifier = Modifier) {
         val albumName = remember { mutableStateOf(album.name) }
         val albumItemsCount = remember { mutableIntStateOf(album.itemsCount) }
         val albumMiniature = remember { mutableStateOf(album.miniature) }
+
         Box(
 //            shape = RoundedCornerShape(0.dp),
-            modifier = modifier
+            modifier = modifier.clickable {
+            }
         ) {
             Row(horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically) {
-                Image(bitmap = albumMiniature.value.asImageBitmap(), contentDescription = "a")
+                Image(bitmap = albumMiniature.value.asImageBitmap(), contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(100.dp)
+                )
                 Column(
                     modifier = Modifier.padding(12.dp, 0.dp, 0.dp, 0.dp)
                 ) {
@@ -66,20 +68,23 @@ object ListItem {
         val durationMedia = remember { mutableStateOf(picture.duration) }
         val miniatureMedia = remember { mutableStateOf(picture.thumbnail) }
         var checked by remember { mutableStateOf(picture.checked) }
+        val checkModifier by remember { mutableStateOf(Modifier.alpha(if (picture.checked) 0f else 1f)) }
+
         Box(contentAlignment = Alignment.BottomCenter)
         {
-            Image(bitmap = miniatureMedia.value.asImageBitmap(),
-                contentDescription = "a")
+            Image(bitmap = miniatureMedia.value.asImageBitmap(), contentDescription = null,
+                contentScale = ContentScale.Crop,)
             Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically)
             {
                 Text(text = durationMedia.value,
-                    modifier = Modifier.padding(8.dp, 0.dp, 0.dp, 0.dp),
+                    modifier = Modifier.padding(16.dp, 0.dp, 0.dp, 0.dp),
                     color = colorResource(R.color.white)
                 )
                 Checkbox(checked = checked,
-                    onCheckedChange = { checked = it }
+                    onCheckedChange = { checked = it },
+                    modifier=checkModifier,
                 )
 
                 if (checked) {
@@ -92,19 +97,20 @@ object ListItem {
         }
     }
 
-}
 
 @Preview(showBackground = true)
 @Composable
 fun GreetngPreview() {
     ContextPhotoTheme {
-        PictureItem(Picture(
-            "1",
-            "hru".toUri(),
-            "a.jpg",
-            BitmapFactory.decodeResource(LocalContext.current.resources, R.drawable.recoon),
-            "2:66",
-            false
-        ))
+        PictureItem(
+            Picture(
+                "1",
+                "hru".toUri(),
+                "a.jpg",
+                BitmapFactory.decodeResource(LocalResources.current, R.drawable.recoon),
+                "2:66",
+                false
+            )
+        )
     }
 }

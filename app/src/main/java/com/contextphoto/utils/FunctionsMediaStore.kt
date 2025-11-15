@@ -11,6 +11,8 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import com.contextphoto.data.Album
 import com.contextphoto.data.PERMISSION_DELETE_REQUEST_CODE
 import com.contextphoto.data.Picture
@@ -24,6 +26,7 @@ import kotlinx.coroutines.flow.flow
 import java.io.File
 
 object FunctionsMediaStore {
+
     fun getListAlbums(context: Context): List<Album> {
         val albums = mutableListOf<Album>()
         var itemsCount = hashMapOf<String, Int>()
@@ -123,8 +126,8 @@ object FunctionsMediaStore {
                 .query(
                     contentUri,
                     projection,
-                    selection,
-                    selectionArgs,
+                    if (bucketIdArg!="") selection else null,
+                    if (bucketIdArg!="") selectionArgs else null,
                     sortOrder,
                 )?.use { cursor ->
                     val bucketIdColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_ID)
