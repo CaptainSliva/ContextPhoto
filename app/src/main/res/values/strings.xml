@@ -1,3 +1,47 @@
 <resources>
     <string name="app_name">ContextPhoto</string>
+
+    <!-- Strings used for fragments for menu -->
+    <string name="action_settings">Настройки</string>
+    <string name="action_search_photo">Поиск по комментарию</string>
+
+    <!-- Strings used for fragments for navigation -->
+    <string name="albums">Альбомы</string>
+    <string name="all_photos">Все фотографии</string>
+    <string name="photo_comment">Комментарий</string>
+    <string name="fullscreen_picture"></string>
+
+    <!-- Тосты -->
+    <string name="enter_name">Введите название</string>
+    <string name="cant_rename_album">Невозможно переименовать альбом</string>
+    <string name="cant_move">Медиа других приложений скопированы</string>
+    <string name="require_permissions_message">Для работы приложения необходимо предоставить разрешения</string>
+
+    <!-- Кнопки -->
+    <string name="ok">Ок</string>
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отмена</string>
+    <string name="rename">Переименовать</string>
+    <string name="delete">Удалить</string>
+    <string name="commentate">Комментировать</string>
+    <string name="share">Поделиться</string>
+    <string name="copy">Копировать</string>
+    <string name="move">Переместить</string>
+    <string name="to_album">В альбом</string>
+    <string name="rotate">Повернуть</string>
+
+    <!-- Заголовки -->
+    <string name="require_permissions_title">Требуются разрешения</string>
+    <string name="album_name_title">Имя альбома</string>
+    <string name="add_comment_title">Добавить комментарий</string>
+    <string name="add_photo_dialog_title">Добавление фото</string>
+
+    <!-- Подписи -->
+    <string name="rename_album_text">Переименование альбома</string>
+    <string name="create_album_text">Создание альбома</string>
+
+    <!-- Текста -->
+    <string name="no_comment">Нет комментария</string>
+    <string name="write_comment">Введите комментарий</string>
+    <string name="check_register">Поиск с учётом регистра</string>
 </resources>
