@@ -72,5 +72,5 @@ dependencies {
     implementation("androidx.compose.material:material:${material_version}")
 
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
-    implementation("androidx.activity:activity-compose:1.3.0-alpha06")
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 }

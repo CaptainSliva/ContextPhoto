@@ -11,11 +11,15 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
@@ -58,7 +62,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.contextphoto.RequestPermissions.RequestMultiplePermissions
+import com.contextphoto.RequestPermissions.ComposePermissions
 import com.contextphoto.data.Destination
 import com.contextphoto.data.Picture
 import com.contextphoto.ui.theme.ContextPhotoTheme
@@ -68,49 +72,27 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
 class MainActivity : ComponentActivity() {
-
-    @OptIn(ExperimentalPermissionsApi::class, ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //enableEdgeToEdge()
 
         setContent {
 //            requestPermissions()
-
-            val multiplePermissionsState = rememberMultiplePermissionsState(when {
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
-                    listOf(
-                        READ_MEDIA_IMAGES,
-                        READ_MEDIA_VIDEO
-                    )
-                }
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
-                    listOf(
-                        READ_EXTERNAL_STORAGE,
-                        MANAGE_EXTERNAL_STORAGE,
-                        WRITE_EXTERNAL_STORAGE
-                    )
-                }
-                else ->
-                    listOf(
-                        READ_EXTERNAL_STORAGE,
-                        WRITE_EXTERNAL_STORAGE
-                    )
-            })
+//            RequestPermissionExample()
+            ComposePermissions()
             val navController = rememberNavController()
             val startDestination = Destination.ALBUMS
             var selectedDestination by rememberSaveable { mutableIntStateOf(startDestination.ordinal) }
-
 
             ContextPhotoTheme {
                 Scaffold(
                     topBar = {
                         TopAppBar(
-                            title = { Text(LocalResources.current.getString(R.string.albums)) },
+                            title = { Text(LocalContext.current.resources.getString(R.string.albums)) },
                             navigationIcon = {
-                                IconButton(onClick = { navController.navigateUp() }) {
-                                    Icon(Icons.Default.ArrowBack, contentDescription = null)
-                                }
+                                Icon(Icons.Default.ArrowBack,
+                                    contentDescription = null)
                             }
                         )
                     },
@@ -120,10 +102,8 @@ class MainActivity : ComponentActivity() {
                                 NavigationBarItem(
                                     selected = selectedDestination == index,
                                     onClick = {
-                                        try {
-                                            navController.navigate(route = destination.route)
-                                            selectedDestination = index
-                                        }catch (e: Exception){ }
+                                        navController.navigate(route = destination.route)
+                                        selectedDestination = index
                                     },
                                     icon = {
                                         Icon(
@@ -138,29 +118,22 @@ class MainActivity : ComponentActivity() {
                     },
                     floatingActionButton = {
                         FloatingActionButton(onClick = {}) {
-                            Icon(
-                                Icons.Default.Add,
+                            Icon(Icons.Default.Add,
                                 contentDescription = null)
                         }
                     },
                     content = {
-                        paddingValues ->
-                        if (!multiplePermissionsState.allPermissionsGranted) {
-                            RequestMultiplePermissions(multiplePermissionsState, modifier = Modifier.padding(paddingValues))
-                        }
-                        else {
-                            AppNavHost(navController, startDestination, modifier = Modifier.padding(paddingValues))
-                        }
+                            paddingValues ->
+                        AppNavHost(navController, startDestination, modifier = Modifier.padding(paddingValues))
+//                        AlbumsScreen(
+//                            modifier = Modifier.padding(paddingValues)
+//                        )
                     }
                 )
 
             }
         }
     }
-}
-
-private fun displayToast(context: Context) {
-    Toast.makeText(context, "This is a Sample Toast", Toast.LENGTH_LONG).show()
 }
 
 @Composable
@@ -205,13 +178,13 @@ fun PicturesScreen(modifier: Modifier = Modifier, bID: String="") {
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
         ) {
-        items(content.size) {
-            println("\n\nPRIIIINT\n${content.size}\nIIITT\n$it\n")
-            PictureItem(
-                content[it],
-                Modifier.padding(3.dp)
-            )
-        }
+            items(content.size) {
+                println("\n\nPRIIIINT\n${content.size}\nIIITT\n$it\n")
+                PictureItem(
+                    content[it],
+                    Modifier.padding(3.dp)
+                )
+            }
 //            items(18) {
 //                PictureItem(
 //                    Picture(
@@ -226,7 +199,7 @@ fun PicturesScreen(modifier: Modifier = Modifier, bID: String="") {
 //                )
 //            }
         }
-        Row(modifier = Modifier.background(Color.Black)) {
+        Row(modifier = Modifier.background(Color.Black).fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
             Column(modifier = Modifier.padding(8.dp, 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 Image(Icons.Outlined.Share, contentDescription = null,
