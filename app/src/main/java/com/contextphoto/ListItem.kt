@@ -33,10 +33,11 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.contextphoto.data.Album
 import com.contextphoto.data.Picture
+import com.contextphoto.data.albumBid
 import com.contextphoto.ui.theme.ContextPhotoTheme
 
 @Composable
-    fun AlbumItem(album: Album, onItemClick: (String) -> Unit, modifier: Modifier = Modifier) {
+    fun AlbumItem(album: Album, modifier: Modifier = Modifier, onItemClick: (String) -> Unit) {
         val albumName = remember { mutableStateOf(album.name) }
         val albumItemsCount = remember { mutableIntStateOf(album.itemsCount) }
         val albumMiniature = remember { mutableStateOf(album.miniature) }
@@ -45,6 +46,7 @@ import com.contextphoto.ui.theme.ContextPhotoTheme
 //            shape = RoundedCornerShape(0.dp),
             modifier = modifier.clickable {
                 onItemClick(album.bID)
+                albumBid = album.bID
                 Log.d("click", "album bID - ${album.bID}")
             }
         ) {

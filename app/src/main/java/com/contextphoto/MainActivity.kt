@@ -12,6 +12,13 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -45,6 +52,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -62,10 +70,12 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.contextphoto.RequestPermissions.ComposePermissions
 import com.contextphoto.data.Destination
 import com.contextphoto.data.Picture
+import com.contextphoto.data.albumBid
 import com.contextphoto.ui.theme.ContextPhotoTheme
 import com.contextphoto.utils.FunctionsMediaStore.getAllMedia
 import com.contextphoto.utils.FunctionsMediaStore.getListAlbums
@@ -85,6 +95,7 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             val startDestination = Destination.ALBUMS
             var selectedDestination by rememberSaveable { mutableIntStateOf(startDestination.ordinal) }
+            var visible by remember { mutableStateOf(true) }
 
             ContextPhotoTheme {
                 Scaffold(
@@ -93,29 +104,56 @@ class MainActivity : ComponentActivity() {
                             title = { Text(LocalResources.current.getString(R.string.albums)) },
 //                            title = {Text(startDestination.label)},
                             navigationIcon = {
-                                Icon(Icons.Default.ArrowBack,
-                                    contentDescription = null)
+                                IconButton(onClick = { navController.navigateUp() }) {
+                                    Icon(
+                                        Icons.Default.ArrowBack,
+                                        contentDescription = null
+                                    )
+                                }
                             }
                         )
                     },
                     bottomBar = {
-                        NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
-                            Destination.entries.forEachIndexed { index, destination ->
-                                NavigationBarItem(
-                                    selected = selectedDestination == index,
-                                    onClick = {
-                                        navController.navigate(route = destination.route)
-                                        selectedDestination = index
-                                    },
-                                    icon = {
-                                        Icon(
-                                            destination.icon,
-                                            contentDescription = destination.contentDescription
-                                        )
-                                    },
-                                    label = { Text(destination.label) }
-                                )
+                        val currentDestination = navController.currentBackStackEntryAsState().value?.destination?.route
+                        visible = currentDestination == "albums"
+                        AnimatedVisibility(visible,
+                            enter = slideInVertically()
+                                    + expandVertically(
+                                expandFrom = Alignment.Top
+                            ) + fadeIn(
+                                initialAlpha = 0.3f
+                            ),
+                            exit = slideOutVertically() + shrinkVertically() + fadeOut())
+                        {
+                            NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
+                                Destination.entries.forEachIndexed { index, destination ->
+                                    NavigationBarItem(
+                                        selected = selectedDestination == index,
+                                        onClick = {
+                                            navController.navigate(route = destination.route)
+                                            selectedDestination = index
+                                        },
+                                        icon = {
+                                            Icon(
+                                                destination.icon,
+                                                contentDescription = destination.contentDescription
+                                            )
+                                        },
+                                        label = { Text(destination.label) }
+                                    )
+                                }
                             }
+                        }
+                        AnimatedVisibility(!visible,
+                            enter = slideInVertically()
+                                    + expandVertically(
+                                expandFrom = Alignment.Top
+                            ) + fadeIn(
+                                initialAlpha = 0.3f
+                            ),
+                            exit = slideOutVertically() + shrinkVertically() + fadeOut())
+                        {
+                            bottomMenu()
                         }
                     },
                     floatingActionButton = {
@@ -148,8 +186,8 @@ fun AlbumsScreen(modifier: Modifier = Modifier, navController: NavController) {
     {
         items(albumList.size) {
             AlbumItem(albumList[it],
-                onItemClick = { it -> navController.navigate(Destination.PICTURES)},
-                Modifier.padding(0.dp, 2.dp)
+                Modifier.padding(0.dp, 2.dp),
+                onItemClick = { it -> navController.navigate(Destination.PICTURES.route)}
             )
 //            AlbumItem(
 //                Album(
@@ -168,7 +206,7 @@ fun AlbumsScreen(modifier: Modifier = Modifier, navController: NavController) {
 @Composable
 fun PicturesScreen(modifier: Modifier = Modifier, bID: String="") {
     val content = remember { mutableStateListOf<Picture>() }
-    val listPictures = getAllMedia(LocalContext.current, bID)
+    val listPictures = getAllMedia(LocalContext.current, albumBid)
     LaunchedEffect(Unit) {
         listPictures.collect {
             println(it)
@@ -202,42 +240,48 @@ fun PicturesScreen(modifier: Modifier = Modifier, bID: String="") {
 //                )
 //            }
         }
-        Row(modifier = Modifier.background(Color.Black).fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-            Column(modifier = Modifier.padding(8.dp, 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                Image(Icons.Outlined.Share, contentDescription = null,
-                    colorFilter = ColorFilter.tint(Color.White))
-                Text(text = "Поделиться",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = colorResource(R.color.white))
-            }
-            Column(modifier = Modifier.padding(8.dp, 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                Image(Icons.Outlined.Create, contentDescription = null,
-                    colorFilter = ColorFilter.tint(Color.White))
-                Text(text = "Комментировать",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = colorResource(R.color.white))
-            }
-            Column(modifier = Modifier.padding(8.dp, 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                Image(Icons.Outlined.Add, contentDescription = null,
-                    colorFilter = ColorFilter.tint(Color.White))
-                Text(text = "В альбом",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = colorResource(R.color.white))
-            }
-            Column(modifier = Modifier.padding(8.dp, 16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                Image(Icons.Outlined.Delete, contentDescription = null,
-                    colorFilter = ColorFilter.tint(Color.White))
-                Text(text = "Удалить",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = colorResource(R.color.white))
-            }
-        }
     }
 
+}
+
+@Composable
+fun bottomMenu() {
+    Row(modifier = Modifier
+        .background(Color.Black)
+        .fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
+        Column(modifier = Modifier.padding(8.dp, 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally) {
+            Image(Icons.Outlined.Share, contentDescription = null,
+                colorFilter = ColorFilter.tint(Color.White))
+            Text(text = "Поделиться",
+                style = MaterialTheme.typography.labelSmall,
+                color = colorResource(R.color.white))
+        }
+        Column(modifier = Modifier.padding(8.dp, 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally) {
+            Image(Icons.Outlined.Create, contentDescription = null,
+                colorFilter = ColorFilter.tint(Color.White))
+            Text(text = "Комментировать",
+                style = MaterialTheme.typography.labelSmall,
+                color = colorResource(R.color.white))
+        }
+        Column(modifier = Modifier.padding(8.dp, 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally) {
+            Image(Icons.Outlined.Add, contentDescription = null,
+                colorFilter = ColorFilter.tint(Color.White))
+            Text(text = "В альбом",
+                style = MaterialTheme.typography.labelSmall,
+                color = colorResource(R.color.white))
+        }
+        Column(modifier = Modifier.padding(8.dp, 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally) {
+            Image(Icons.Outlined.Delete, contentDescription = null,
+                colorFilter = ColorFilter.tint(Color.White))
+            Text(text = "Удалить",
+                style = MaterialTheme.typography.labelSmall,
+                color = colorResource(R.color.white))
+        }
+    }
 }
 
 @Composable
@@ -250,14 +294,15 @@ fun AppNavHost(
         navController,
         startDestination = startDestination.route
     ) {
-        Destination.entries.forEach { destination ->
-            composable(destination.route) {
-                when (destination) {
-                    Destination.ALBUMS -> AlbumsScreen(modifier, navController)
-                    Destination.PICTURES -> PicturesScreen(modifier)
-                }
-            }
+
+        composable(Destination.ALBUMS.route) {
+            AlbumsScreen(modifier, navController)
         }
+
+        composable(Destination.PICTURES.route) {
+            PicturesScreen(modifier)
+        }
+
     }
 }
 
