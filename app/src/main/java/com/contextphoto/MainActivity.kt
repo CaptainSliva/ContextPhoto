@@ -58,6 +58,7 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -89,7 +90,8 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     topBar = {
                         TopAppBar(
-                            title = { Text(LocalContext.current.resources.getString(R.string.albums)) },
+                            title = { Text(LocalResources.current.getString(R.string.albums)) },
+//                            title = {Text(startDestination.label)},
                             navigationIcon = {
                                 Icon(Icons.Default.ArrowBack,
                                     contentDescription = null)
@@ -137,7 +139,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AlbumsScreen(modifier: Modifier = Modifier) {
+fun AlbumsScreen(modifier: Modifier = Modifier, navController: NavController) {
     val albumList = getListAlbums(LocalContext.current)
     LazyVerticalGrid(
         columns = GridCells.Fixed(1),
@@ -146,6 +148,7 @@ fun AlbumsScreen(modifier: Modifier = Modifier) {
     {
         items(albumList.size) {
             AlbumItem(albumList[it],
+                onItemClick = { it -> navController.navigate(Destination.PICTURES)},
                 Modifier.padding(0.dp, 2.dp)
             )
 //            AlbumItem(
@@ -250,7 +253,7 @@ fun AppNavHost(
         Destination.entries.forEach { destination ->
             composable(destination.route) {
                 when (destination) {
-                    Destination.ALBUMS -> AlbumsScreen(modifier)
+                    Destination.ALBUMS -> AlbumsScreen(modifier, navController)
                     Destination.PICTURES -> PicturesScreen(modifier)
                 }
             }

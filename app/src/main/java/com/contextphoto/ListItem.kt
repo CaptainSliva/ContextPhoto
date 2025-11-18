@@ -1,6 +1,7 @@
 package com.contextphoto
 
 import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalGraphicsContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,7 +36,7 @@ import com.contextphoto.data.Picture
 import com.contextphoto.ui.theme.ContextPhotoTheme
 
 @Composable
-    fun AlbumItem(album: Album, modifier: Modifier = Modifier) {
+    fun AlbumItem(album: Album, onItemClick: (String) -> Unit, modifier: Modifier = Modifier) {
         val albumName = remember { mutableStateOf(album.name) }
         val albumItemsCount = remember { mutableIntStateOf(album.itemsCount) }
         val albumMiniature = remember { mutableStateOf(album.miniature) }
@@ -42,6 +44,8 @@ import com.contextphoto.ui.theme.ContextPhotoTheme
         Box(
 //            shape = RoundedCornerShape(0.dp),
             modifier = modifier.clickable {
+                onItemClick(album.bID)
+                Log.d("click", "album bID - ${album.bID}")
             }
         ) {
             Row(horizontalArrangement = Arrangement.Center,
