@@ -1,11 +1,15 @@
 <resources>
     <string name="app_name">ContextPhoto</string>
 
+
+
     <!-- Strings used for fragments for menu -->
     <string name="action_settings">Настройки</string>
     <string name="action_search_photo">Поиск по комментарию</string>
 
     <!-- Strings used for fragments for navigation -->
+    <string name="nav_albums">albums</string>
+    <string name="nav_pictures">pictures</string>
     <string name="albums">Альбомы</string>
     <string name="all_photos">Все фотографии</string>
     <string name="photo_comment">Комментарий</string>
