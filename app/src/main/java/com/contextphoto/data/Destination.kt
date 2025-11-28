@@ -1,6 +1,7 @@
 package com.contextphoto.data
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -12,5 +13,6 @@ enum class Destination(
     val contentDescription: String
 ) {
     ALBUMS("albums", "Альбомы", Icons.Default.Build, "Album"),
-    PICTURES("pictures", "Все фото", Icons.Default.Warning, "Playlist")
+    PICTURES("pictures", "Все фото", Icons.Default.Warning, "Picture"),
+    FULLSCREENIMG("full_screen_img", "Картинка", Icons.Default.AccountBox, "Full")
 }
