@@ -2,7 +2,6 @@
     <string name="app_name">ContextPhoto</string>
 
 
-
     <!-- Strings used for fragments for menu -->
     <string name="action_settings">Настройки</string>
     <string name="action_search_photo">Поиск по комментарию</string>
@@ -43,9 +42,12 @@
     <!-- Подписи -->
     <string name="rename_album_text">Переименование альбома</string>
     <string name="create_album_text">Создание альбома</string>
+    <string name="delete_album_text">Удалить альбом</string>
 
     <!-- Текста -->
     <string name="no_comment">Нет комментария</string>
     <string name="write_comment">Введите комментарий</string>
     <string name="check_register">Поиск с учётом регистра</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

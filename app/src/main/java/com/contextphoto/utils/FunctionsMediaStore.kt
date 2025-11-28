@@ -11,7 +11,9 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.contextphoto.data.Album
+import com.contextphoto.data.MainViewModel
 import com.contextphoto.data.PERMISSION_DELETE_REQUEST_CODE
 import com.contextphoto.data.Picture
 import com.contextphoto.data.listpicture
@@ -100,7 +102,7 @@ object FunctionsMediaStore {
 
     fun getAllMedia(
         context: Context,
-        bucketIdArg: String = "",
+        bucketIdArg: String = ""
     ): Flow<Picture> =
         flow {
             val contentUri = MediaStore.Files.getContentUri("external")
@@ -168,7 +170,7 @@ object FunctionsMediaStore {
                                     ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id),
                                 )
                             println("video $n $id $uri, $path $bucketIdArg $dateAdded")
-                            emit(Picture(bucketId, uri, path, thumbnail!!, durationTranslate(duration), false))
+                            emit(Picture(bucketId, uri, path, thumbnail, durationTranslate(duration), false))
                         } else {
                             val thumbnail =
                                 getThumbnailSafe(
@@ -176,7 +178,7 @@ object FunctionsMediaStore {
                                     ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id),
                                 )
                             println("image $n $id $uri, $path $bucketId $dateAdded")
-                            emit(Picture(bucketId, uri, path, thumbnail!!, "", false))
+                            emit(Picture(bucketId, uri, path, thumbnail, "", false))
                         }
 //                        }
 //                        if (n == stop) {
