@@ -25,6 +25,9 @@ object FunctionsDialogs {
             if (!File(baseFilePath).exists()) {
                 File(baseFilePath).mkdir()
             }
+            else {
+                File("$baseFilePath/$albumName").mkdir()
+            }
         } else {
             Toast.makeText(context, context.getString(R.string.enter_name), Toast.LENGTH_SHORT).show()
         }

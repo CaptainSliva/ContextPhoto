@@ -1,14 +1,7 @@
 package com.contextphoto
 
-import android.R.attr.checked
-import android.graphics.BitmapFactory
 import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,11 +9,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.waterfall
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,19 +25,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
-import androidx.compose.ui.platform.LocalGraphicsContext
-import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import com.contextphoto.data.Album
-import com.contextphoto.data.MainViewModel
+import com.contextphoto.data.MediaViewModel
 import com.contextphoto.data.Picture
 import com.contextphoto.data.albumBid
 import com.contextphoto.data.bottomMenuVisible
-import com.contextphoto.data.imageUri
+import com.contextphoto.data.listpicture
 import com.contextphoto.data.openAlbum
 import com.contextphoto.data.selectProcess
 import com.contextphoto.ui.theme.ContextPhotoTheme
@@ -98,24 +84,28 @@ var checkboxVisible = mutableStateOf(false)
     }
 
     @Composable
-    fun PictureItem(picture: Picture, modifier: Modifier = Modifier, onItemClick: (String) -> Unit) {
+    fun PictureItem(mediaPosition: Int, picture: Picture, modifier: Modifier = Modifier, onItemClick: (String) -> Unit, viewModel: MediaViewModel) {
         val durationMedia = remember { mutableStateOf(picture.duration) }
         val miniatureMedia = remember { mutableStateOf(picture.thumbnail) }
         var checked by remember { mutableStateOf(picture.checked) }
         val checkModifier by remember { mutableStateOf(Modifier.alpha(if (picture.checked) 0f else 1f)) }
 
         Box(contentAlignment = Alignment.BottomCenter,
-            modifier = Modifier.combinedClickable (
+            modifier = modifier.combinedClickable (
                 onClick = {
                     onItemClick("")
-                    imageUri = picture.uri
+                    Log.d("POSITION", mediaPosition.toString())
+                    viewModel.updateMediaPosition(mediaPosition)
                 },
                 onLongClick = {
+                    listpicture.clear()
                     bottomMenuVisible.value = !bottomMenuVisible.value
                     selectProcess.value = !selectProcess.value
                     checkboxVisible.value = !checkboxVisible.value
+                    checked = true
+                    listpicture.add(picture)
                 }
-            ).padding(0.2.dp)
+            )
             )
         {
             Image(bitmap = miniatureMedia.value.asImageBitmap(), contentDescription = null,

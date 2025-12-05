@@ -78,4 +78,6 @@ dependencies {
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
 }

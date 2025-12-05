@@ -8,6 +8,9 @@ import android.widget.Toast
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,7 +24,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,9 +40,13 @@ import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat.startIntentSenderForResult
 import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.contextphoto.data.Album
+import com.contextphoto.data.AlbumListViewModel
 import com.contextphoto.data.PERMISSION_DELETE_REQUEST_CODE
+import com.contextphoto.data.Picture
 import com.contextphoto.data.allAlbums
+import com.contextphoto.data.listpicture
 import com.contextphoto.ui.theme.ContextPhotoTheme
 import com.contextphoto.utils.FunctionsDialogs.mediaPicker
 import com.contextphoto.utils.FunctionsDialogs.showCreateAlbumMessage
@@ -48,21 +57,31 @@ import com.contextphoto.utils.FunctionsMediaStore.copyMediaToAlbum
 import com.contextphoto.utils.FunctionsMediaStore.deleteMediaFile
 import com.contextphoto.utils.FunctionsMediaStore.getListAlbums
 import com.contextphoto.utils.FunctionsUri.handleSelectedMedia
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.forEach
+import kotlinx.coroutines.launch
+import java.io.File
 import kotlin.collections.get
 import kotlin.text.get
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateAlbumDialog(onDismissRequest: () -> Unit) {
+fun CreateAlbumDialog(onDismissRequest: () -> Unit, mutableState: MutableState<Boolean>) {
     val context = LocalContext.current
+    val modifier = Modifier.fillMaxWidth()
+    val showCopyMoveDialog = remember { mutableStateOf(false) }
     var albumName by remember { mutableStateOf("") }
     var listUri by remember { mutableStateOf<List<Uri>?>(null) }
     val pickVisualMedia = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
     ) { uris ->
         if (uris.isNotEmpty()) {
-            onDismissRequest()
+            mutableState.value = false
+            showCopyMoveDialog.value = true
             listUri = uris.toList()
+            //onDismissRequest()
         }
     }
     val pickMediaLauncher = rememberLauncherForActivityResult(
@@ -70,26 +89,25 @@ fun CreateAlbumDialog(onDismissRequest: () -> Unit) {
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val data = handleSelectedMedia(result.data)
-            onDismissRequest()
+            mutableState.value = false
+            showCopyMoveDialog.value = true
             listUri = data
+            //onDismissRequest()
         }
     }
-
-    SideEffect {
-        if (listUri?.isNotEmpty() ?: false) {
-            println("ну должно работать")
-            // TODO fixme беда с composable штукой
-            //CopyMoveDialog(listUri!!, albumName, {})
-        }
+    AnimatedVisibility(visible = showCopyMoveDialog.value, enter = slideInVertically(),
+        exit = slideOutVertically()) {
+        CopyMoveDialog(listUri!!, albumName, {}, showCopyMoveDialog)
     }
 
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
-        modifier = Modifier.background(Color.DarkGray)
+        modifier = Modifier.background(Color.DarkGray).fillMaxWidth()
     )
     {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = modifier) {
             Text(text = context.getString(R.string.create_album_text),
                 color = Color.White)
             OutlinedTextField(
@@ -106,13 +124,14 @@ fun CreateAlbumDialog(onDismissRequest: () -> Unit) {
             Row(horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier.fillMaxWidth()) {
                 Button(onClick = {
+                    mutableState.value = false
                     onDismissRequest()
-                }) {
+                })
+                {
                     Text(text = context.getString(R.string.cancel),
                         color = Color.Red)
                 }
-                Button(modifier = Modifier.background(Color.Cyan),
-                    onClick = {
+                Button( onClick = {
                     // запуск диалога
                     if (albumName.isNotEmpty()) {
                         showCreateAlbumMessage(context, albumName)
@@ -122,8 +141,11 @@ fun CreateAlbumDialog(onDismissRequest: () -> Unit) {
                     }
                     Log.i("NEWNAME", "$albumName")
 // TODO add добавить альбом в список
-                    onDismissRequest()
-                }) {
+                    mutableState.value = false
+                    //onDismissRequest()
+                },
+                    modifier = Modifier.background(Color.Cyan))
+                {
                     Text(text = LocalContext.current.getString(R.string.ok),
                         color = Color.White)
                 }
@@ -142,8 +164,17 @@ fun CreateAlbumDialog(onDismissRequest: () -> Unit) {
 @Composable
 fun CopyMoveDialog(listUri: List<Uri>,
                    albumName: String,
-                   onDismissRequest: () -> Unit) {
+                   onDismissRequest: () -> Unit, mutableState: MutableState<Boolean>,
+                   viewModel: AlbumListViewModel = AlbumListViewModel()
+) {
     val context = LocalContext.current
+    val modifier = Modifier.fillMaxWidth()
+    LaunchedEffect({}) {
+        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            getListAlbums(context, viewModel)
+        }
+    }
+    val albumList by viewModel.albumList.collectAsState()
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -162,7 +193,7 @@ fun CopyMoveDialog(listUri: List<Uri>,
                         if (it == listUri[listUri.size - 1]) {
                             val albumsNames = allAlbums.map { it.name }
                             lateinit var newAlbum: Album
-                            getListAlbums(context).forEach { album ->
+                            albumList.forEach { album ->
                                 if (album.name !in albumsNames) newAlbum = album
                             }
                             try {
@@ -176,8 +207,10 @@ fun CopyMoveDialog(listUri: List<Uri>,
                         Toast.makeText(context, "IO ex ${it.path}", Toast.LENGTH_SHORT).show()
                     }
                 }
+                mutableState.value = false
                 onDismissRequest()
-            }) {
+            },
+                modifier = modifier) {
                 Text(text = LocalContext.current.getString(R.string.copy),
                     color = Color.White)
             }
@@ -188,7 +221,7 @@ fun CopyMoveDialog(listUri: List<Uri>,
                         if (it == listUri[listUri.size - 1]) {
                             val albumsNames = allAlbums.map { it.name }
                             lateinit var newAlbum: Album
-                            getListAlbums(context).forEach { album ->
+                            albumList.forEach { album ->
                                 if (album.name !in albumsNames) newAlbum = album
                             }
                             allAlbums.add(newAlbum)
@@ -201,14 +234,20 @@ fun CopyMoveDialog(listUri: List<Uri>,
                     }
                 }
 // TODO add обновить список альбомов и фото
+                mutableState.value = false
                 onDismissRequest()
-            }) {
+            },
+                modifier = modifier)
+            {
                 Text(text = LocalContext.current.getString(R.string.move),
                     color = Color.White)
             }
             Button(onClick = {
+                mutableState.value = false
                 onDismissRequest()
-            }) {
+            },
+                modifier = modifier
+            ) {
                 Text(text = LocalContext.current.getString(R.string.cancel),
                     color = Color.Red)
             }
@@ -225,17 +264,26 @@ fun CopyMoveDialog(listUri: List<Uri>,
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun deleteDialog(onDismissRequest: () -> Unit, album: Album, needDelete: Boolean = true) {
+fun DeleteDialog(onDismissRequest: () -> Unit, album: Album, needDelete: Boolean = true, mutableState: MutableState<Boolean>,
+                 viewModel: AlbumListViewModel = AlbumListViewModel()) {
 
     val context = LocalContext.current
     val activity = LocalActivity.current
+    val modifier = Modifier.fillMaxWidth()
+    LaunchedEffect({}) {
+        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            getListAlbums(context, viewModel)
+        }
+    }
+    val albumList by viewModel.albumList.collectAsState()
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
-        modifier = Modifier.background(Color.DarkGray)
+        modifier = Modifier.background(Color.DarkGray).fillMaxWidth()
     )
     {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = modifier) {
             Text(text = context.getString(R.string.delete),
                 color = Color.White)
             Text(text = "${context.getString(R.string.delete_album_text)} ${album.name}?",
@@ -244,36 +292,41 @@ fun deleteDialog(onDismissRequest: () -> Unit, album: Album, needDelete: Boolean
                 onClick = {
                     if (needDelete) {
                         showDeleteAlbumMessage(context, album)
-                        allAlbums = getListAlbums(context) as MutableList<Album>
+                        allAlbums = albumList as MutableList<Album>
                     }
-//                    else {
-//                        deleteMediaFile(
-//                            context,
-//                            activity,
-//                            { intentSender -> // TODO fixme intent
-//                                startIntentSenderForResult(
-//                                    intentSender,
-//                                    PERMISSION_DELETE_REQUEST_CODE,
-//                                    null,
-//                                    0,
-//                                    0,
-//                                    0,
-//                                    null,
-//                                )
-//                            },
-//                        )
-//                    }
+                    else {
+                        deleteMediaFile(
+                            context,
+                            activity!!,
+                            { intentSender ->
+                                startIntentSenderForResult(
+                                    activity,
+                                    intentSender,
+                                    PERMISSION_DELETE_REQUEST_CODE,
+                                    null,
+                                    0,
+                                    0,
+                                    0,
+                                    null,
+                                )
+                            },
+                        )
+                    }
 // TODO add удалить фото или альбом из списка и обновить список альбомов
+                    mutableState.value = false
                     onDismissRequest()
-                }
+                },
+                modifier = modifier
             ) {
                 Text(text = context.getString(R.string.delete),
                     color = Color.Red)
             }
             Button(
                 onClick = {
+                    mutableState.value = false
                     onDismissRequest()
-                }
+                },
+                modifier = modifier
             ) {
                 Text(text = context.getString(R.string.cancel),
                     color = Color.White)
@@ -285,17 +338,27 @@ fun deleteDialog(onDismissRequest: () -> Unit, album: Album, needDelete: Boolean
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun renameAlbumDialog(onDismissRequest: () -> Unit, album: Album) {
+fun RenameAlbumDialog(onDismissRequest: () -> Unit, album: Album, mutableState: MutableState<Boolean>,
+                      viewModel: AlbumListViewModel = AlbumListViewModel()
+) {
 
     val context = LocalContext.current
     var albumName by remember { mutableStateOf(album.name) }
+    val modifier = Modifier.fillMaxWidth()
+    LaunchedEffect({}) {
+        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            getListAlbums(context, viewModel)
+        }
+    }
+    val albumList by viewModel.albumList.collectAsState()
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
-        modifier = Modifier.background(Color.DarkGray)
+        modifier = Modifier.background(Color.DarkGray).fillMaxWidth()
     )
     {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = modifier) {
             Text(text = context.getString(R.string.create_album_text),
                 color = Color.White)
             OutlinedTextField(
@@ -312,19 +375,19 @@ fun renameAlbumDialog(onDismissRequest: () -> Unit, album: Album) {
             Row(horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()) {
                 Button(onClick = {
+                    mutableState.value = false
                     onDismissRequest()
-                }) {
+                })
+                {
                     Text(text = context.getString(R.string.cancel),
                         color = Color.Red)
                 }
-                Button(modifier = Modifier.background(Color.Cyan),
-                    onClick = {
-                        val newName = albumName
-                        if (newName.isNotEmpty()) {
-                            showRenameAlbumMessage(context, album, newName)
+                Button( onClick = {
+                        if (albumName.isNotEmpty()) {
+                            showRenameAlbumMessage(context, album, albumName)
                             val albumsNames = allAlbums.map { it.name }
                             var newAlbum = allAlbums[0]
-                            getListAlbums(context).forEachIndexed { i, album ->
+                            albumList.forEachIndexed { i, album ->
                                 if (album.name != albumsNames[i]) {
                                     newAlbum = album
                                     allAlbums[i].bID = album.bID
@@ -338,10 +401,13 @@ fun renameAlbumDialog(onDismissRequest: () -> Unit, album: Album) {
                         } else {
                             Toast.makeText(context, context.getString(R.string.enter_name), Toast.LENGTH_SHORT).show()
                         }
-                        Log.i("NEWNAME", "$newName")
+                        Log.i("NEWNAME", "$albumName")
 // TODO add обновить альбом в списке
-                        onDismissRequest()
-                }) {
+                    mutableState.value = false
+                    onDismissRequest()
+                },
+                    modifier = Modifier.background(Color.Cyan))
+                {
                     Text(text = LocalContext.current.getString(R.string.ok),
                         color = Color.White)
                 }
@@ -351,16 +417,57 @@ fun renameAlbumDialog(onDismissRequest: () -> Unit, album: Album) {
 
 }
 
-
-
-
-@Preview(showBackground = true)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GreetngPrevieww() {
-    ContextPhotoTheme {
-        CreateAlbumDialog(
-            {}
-        )
+fun CommentateDialog(onDismissRequest: () -> Unit, mutableState: MutableState<Boolean>) {
 
+    val context = LocalContext.current
+    var commentText by remember { mutableStateOf("") }
+    val modifier = Modifier.fillMaxWidth()
+
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        modifier = Modifier.background(Color.DarkGray).fillMaxWidth()
+    )
+    {
+        Column(horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = modifier) {
+            Text(text = context.getString(R.string.create_album_text),
+                color = Color.White)
+            OutlinedTextField(
+                value = commentText,
+                onValueChange = { commentText = it },
+                label = {"Enter text"},
+                placeholder = {"Hello World"},
+                supportingText = {
+                    Text("Минимум 6 символов",
+                        color = Color.White)
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Row(horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()) {
+                Button(onClick = {
+                    mutableState.value = false
+                    onDismissRequest()
+                })
+                {
+                    Text(text = context.getString(R.string.cancel),
+                        color = Color.Red)
+                }
+                Button( onClick = {
+
+// TODO add обновить или добавить комментарий
+                    mutableState.value = false
+                    onDismissRequest()
+                },
+                    modifier = Modifier.background(Color.Cyan))
+                {
+                    Text(text = LocalContext.current.getString(R.string.ok),
+                        color = Color.White)
+                }
+            }
+        }
     }
+
 }

@@ -33,7 +33,6 @@ const val commentDatabase = "comment_database"
 
 // Новые переменные
 lateinit var listPictures: Flow<Picture>
-lateinit var imageUri: Uri
 lateinit var openAlbum: Album
 var bottomMenuVisible = mutableStateOf(false)
 var selectProcess = mutableStateOf(false)
