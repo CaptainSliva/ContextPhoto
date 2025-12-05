@@ -1,8 +1,7 @@
 package com.contextphoto
 
 import android.content.Intent
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.ViewGroup
@@ -22,8 +21,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -33,6 +35,8 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material.icons.outlined.Delete
@@ -46,32 +50,32 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.DisableContentCapture
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.lerp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -79,14 +83,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import coil.Coil.imageLoader
 import coil.ImageLoader
-import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import coil.request.ImageResult
-import coil.request.SuccessResult
-import com.bumptech.glide.Glide
-import com.bumptech.glide.request.target.CustomTarget
 import com.contextphoto.RequestPermissions.ComposePermissions
 import com.contextphoto.data.Album
 import com.contextphoto.data.AlbumListViewModel
@@ -96,7 +94,6 @@ import com.contextphoto.data.MediaViewModel
 import com.contextphoto.data.albumBid
 import com.contextphoto.data.bottomMenuVisible
 import com.contextphoto.data.dialogVisible
-import com.contextphoto.data.listPictures
 import com.contextphoto.data.listpicture
 import com.contextphoto.data.selectProcess
 import com.contextphoto.ui.theme.ContextPhotoTheme
@@ -106,13 +103,15 @@ import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
 import com.google.android.exoplayer2.ui.StyledPlayerView
+import com.google.android.exoplayer2.video.VideoSize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import java.io.File
-import kotlin.math.absoluteValue
 
 
 class MainActivity() : ComponentActivity() {
@@ -228,7 +227,10 @@ class MainActivity() : ComponentActivity() {
                     },
                     content = { paddingValues ->
                         AppNavHost(navController, startDestination, modifier = Modifier.padding(paddingValues))
-                        if (dialogVisible.value) CreateAlbumDialog({ dialogVisible.value = false}, showCreateAlbumDialog)
+                        if (dialogVisible.value) {
+                            //TODO fixme Нужна viewModel, как правильно её передать?
+                            CreateAlbumDialog({ dialogVisible.value = false}, showCreateAlbumDialog, viewModel)
+                        }
 //                        AlbumsScreen(
 //                            modifier = Modifier.padding(paddingValues)
 //                        )
@@ -291,7 +293,7 @@ fun PicturesScreen(modifier: Modifier = Modifier, navController: NavController, 
                 PictureItem(
                 listMedia.indexOf(media),
                     media,
-                    Modifier.padding(3.dp),
+                    Modifier.padding(1.dp),
                     onItemClick = { navController.navigate(Destination.FULLSCREENIMG.route) },
                     viewModel
                 )
@@ -301,22 +303,7 @@ fun PicturesScreen(modifier: Modifier = Modifier, navController: NavController, 
 }
 
 @Composable
-fun FullScreenImg(modifier: Modifier = Modifier, navController: NavController, viewModel: MediaViewModel) {
-
-
-//    Box(modifier = Modifier.fillMaxSize()) {
-//
-//            AsyncImage(
-//                model = imageUri,
-//                contentScale = ContentScale.Fit,
-//                contentDescription = "Example Image",
-//                modifier = Modifier.background(Color.Black).fillMaxSize(),
-////                placeholder = painterResource(id = R.drawable.placeholder), // Replace with your placeholder drawable
-////                error = painterResource(id = R.drawable.error)  // Replace with your error drawable
-//            )
-//
-//    }
-    // TODO через composableView использовать фрагмент
+fun FullScreenViewPager(modifier: Modifier = Modifier, navController: NavController, viewModel: MediaViewModel) {
 
     val listMedia by viewModel.listPictures.collectAsState()
     val mediaPosotion by viewModel.mediaPosition.collectAsState()
@@ -342,42 +329,189 @@ fun FullScreenImg(modifier: Modifier = Modifier, navController: NavController, v
 ////                error = painterResource(id = R.drawable.error)  // Replace with your error drawable
 //            )
             if (media.path.contains("VID")) {
-                AndroidView(
-                    factory = { ctx ->
-                        StyledPlayerView(ctx).apply {
-                            layoutParams = ViewGroup.LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.MATCH_PARENT
-                            )
+                NewVideoUI(media.uri) // TODO add контроллер и слежка за состоянием https://kotlincodes.com/kotlin/jetpack-compose-kotlin/jetpack-compose-media-player-integration/
 
-                            val player = ExoPlayer.Builder(ctx).build()
-                            player.playWhenReady = false
-                            player.setMediaItem(MediaItem.fromUri(media.uri))
-                            player.prepare()
-                            this.player = player
-                        }
-                    },
-                    modifier = Modifier.fillMaxSize()
-                )
             } else {
-                AndroidView(
-                    factory = { ctx ->
-                        SubsamplingScaleImageView(ctx).apply {
-                            layoutParams = ViewGroup.LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.MATCH_PARENT
-                            )
+                ImageScreenUI(media.uri, media.path)
+            }
+            Text(
+                textAlign = TextAlign.Center,
+                text = "Page: $page",
+                modifier = Modifier.fillMaxSize()
+            )
+        }
+    }
 
-                            // Загрузка изображения через Coil
-                            val imageLoader = ImageLoader(ctx)
-                            val request = ImageRequest.Builder(ctx)
-                                .data(media.uri)
-                                .allowHardware(false) // Отключаем аппаратное ускорение для больших изображений
-                                .build()
+}
 
-                            imageLoader.enqueue(request)
 
-                            // Загрузка изображения через Glide
+@Composable
+fun ExoPlayerView(uri: Uri,
+                  onComplete: () -> Unit = {}) {
+    val isVisible = remember { mutableStateOf(true) }
+    val videoHeight = remember { mutableStateOf(0) }
+    val videoWidth = remember { mutableStateOf(0) }
+    val context = LocalContext.current
+    val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
+    val exoPlayer = remember {
+        ExoPlayer.Builder(context).build().apply {
+            val mediaItem = MediaItem.Builder().setUri(uri).build()
+            setMediaItem(mediaItem)
+            prepare()
+            playWhenReady = true
+        }
+    }
+
+    AndroidView(
+        modifier = Modifier.fillMaxSize(),
+        factory = {
+            StyledPlayerView(context).apply {
+                resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
+                player = exoPlayer
+                setShowBuffering(StyledPlayerView.SHOW_BUFFERING_WHEN_PLAYING)
+                useController = false // Hide playback controls
+                exoPlayer.addListener(object : Player.Listener {
+                    override fun onVideoSizeChanged(videoSize: VideoSize) {
+                        videoWidth.value = videoSize.width
+                        videoHeight.value = videoSize.height
+                    }
+
+                    override fun onPlaybackStateChanged(playbackState: Int) {
+                        if (playbackState == Player.STATE_ENDED) {
+                            onComplete()
+                        }
+                    }
+                })
+            }
+        }
+    )
+}
+
+@Composable // https://gorkemkara.net/responsive-video-playback-jetpack-compose-exoplayer/
+fun NewVideoUI(uri: Uri, onComplete: () -> Unit = {}) {
+
+    val context = LocalContext.current
+    val exoPlayer = remember {
+        ExoPlayer.Builder(context).build().apply {
+            val mediaItem = MediaItem.Builder().setUri(uri).build()
+            setMediaItem(mediaItem)
+            prepare()
+            playWhenReady = false
+        }
+    }
+
+    AndroidView(
+        factory = {
+            StyledPlayerView(context).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+
+                this.player = exoPlayer
+
+                // Автоматическое скрытие контролов
+                setControllerAutoShow(false)
+
+                // Обработка касаний
+                setControllerHideOnTouch(true)
+            }
+        },
+        modifier = Modifier.fillMaxSize(),
+        update = { view ->
+            // Обновление при необходимости
+        }
+    )
+}
+
+@Composable
+fun MediaPlayerControlUI(uri: Uri) {
+    val context = LocalContext.current
+    val exoPlayer = remember {
+        ExoPlayer.Builder(context).build().apply {
+            val mediaItem = MediaItem.fromUri(uri)
+            setMediaItem(mediaItem)
+            prepare()
+        }
+    }
+    var playbackState by remember { mutableStateOf(Player.STATE_IDLE) }
+
+    val playerListener = object : Player.Listener {
+        override fun onPlaybackStateChanged(state: Int) {
+            playbackState = state
+        }
+    }
+
+    var isPlaying by remember { mutableStateOf(false) }
+
+    LaunchedEffect(exoPlayer) {
+        exoPlayer.addListener(playerListener)
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+
+        Text(text = "Playback State: ${
+            when (playbackState) {
+                Player.STATE_IDLE -> "Idle"
+                Player.STATE_BUFFERING -> "Buffering"
+                Player.STATE_READY -> "Ready"
+                Player.STATE_ENDED -> "Ended"
+                else -> "Unknown"
+            }
+        }")
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        IconButton(onClick = {
+            if (isPlaying) {
+                exoPlayer.pause()
+            } else {
+                exoPlayer.play()
+            }
+            isPlaying = !isPlaying
+        }) {
+            Icon( // ExitToApp иконка т.к иконки Pause нету
+                imageVector = if (isPlaying) Icons.Filled.ExitToApp else Icons.Filled.PlayArrow,
+                contentDescription = if (isPlaying) "Pause" else "Play"
+            )
+        }
+
+        DisposableEffect(Unit) {
+            onDispose {
+                exoPlayer.removeListener(playerListener)
+                exoPlayer.release()
+            }
+        }
+    }
+}
+
+@Composable
+fun ImageScreenUI(uri: Uri, path: String) {
+    AndroidView(
+        factory = { ctx ->
+            SubsamplingScaleImageView(ctx).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+
+                // Загрузка изображения через Coil
+//                val imageLoader = ImageLoader(ctx)
+//                val request = ImageRequest.Builder(ctx)
+//                    .data(uri)
+//                    .allowHardware(false)
+//                    .build()
+//
+//                imageLoader.enqueue(request)
+                // Заработает?
+                setImage(ImageSource.uri(Uri.fromFile(File(path)))) // Костыль кажется
+                // Загрузка изображения через Glide
 //                            Glide.with(context)
 //                                .asFile()
 //                                .load(media.uri)
@@ -393,21 +527,10 @@ fun FullScreenImg(modifier: Modifier = Modifier, navController: NavController, v
 //                                        recycle()
 //                                    }
 //                                })
-                        }
-                    },
-                    modifier = Modifier.fillMaxSize()
-                )
             }
-
-
-            Text(
-                textAlign = TextAlign.Center,
-                text = "Page: $page",
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-    }
-
+        },
+        modifier = Modifier.fillMaxSize()
+    )
 }
 
 @Composable
@@ -419,6 +542,9 @@ fun BottomMenu() {
     val toAlbumDialogVisible = remember { mutableStateOf(false) } // заготовка
     val deleteDialogVisible = remember { mutableStateOf(false) }
 
+    // TODO add? ListMedia поделиться, повернуть, комментировать, удалить
+    // TODO add? FullScreen add? поделиться, в альбом, повернуть, комментировать, удалить
+    // TODO add? ListAlbums переименовать, удалить
 
 //    AnimatedVisibility(visible = sendDialogVisible.value, enter = slideInVertically(),
 //        exit = slideOutVertically()) {
@@ -433,7 +559,7 @@ fun BottomMenu() {
 //        deleteDialog({}, Album("", "", 0,listpicture[0].thumbnail, File("")), false, deleteDialogVisible)
 //    }
     AnimatedVisibility(visible = deleteDialogVisible.value, enter = slideInVertically(),
-        exit = slideOutVertically()) {
+        exit = slideOutVertically()) { // TODO fixme не работает удаление фото, видимо нужно их удаление в отдельную функцию вынести
         DeleteDialog({}, Album("", "", 0,listpicture[0].thumbnail, File("")), false, deleteDialogVisible)
     }
 
@@ -522,7 +648,7 @@ fun AppNavHost(
         }
 
         composable(Destination.FULLSCREENIMG.route) {
-            FullScreenImg(modifier, navController, mediaViewModel)
+            com.contextphoto.FullScreenViewPager(modifier, navController, mediaViewModel)
         }
 
     }

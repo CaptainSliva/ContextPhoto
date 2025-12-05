@@ -1,11 +1,9 @@
 package com.contextphoto.utils
 
 import android.app.Activity
-import android.app.RecoverableSecurityException
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
-import android.content.IntentSender
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -14,7 +12,6 @@ import android.util.Log
 import com.contextphoto.data.Album
 import com.contextphoto.data.AlbumListViewModel
 import com.contextphoto.data.MediaViewModel
-import com.contextphoto.data.PERMISSION_DELETE_REQUEST_CODE
 import com.contextphoto.data.Picture
 import com.contextphoto.data.listpicture
 import com.contextphoto.utils.FunctionsApp.durationTranslate
@@ -26,7 +23,7 @@ import java.io.File
 object FunctionsMediaStore {
     fun getListAlbums(context: Context, viewModel: AlbumListViewModel) {
         val albums = mutableListOf<Album>()
-        var itemsCount = hashMapOf<String, Int>()
+        val itemsCount = hashMapOf<String, Int>()
         val contentUri = MediaStore.Files.getContentUri("external")
 
         val projection =
@@ -85,13 +82,87 @@ object FunctionsMediaStore {
 
                         println("name = $name")
                         println("thmb - $thumbnail")
-                        viewModel.addAlbum(Album( // TODO fixme реализовать обновление количества элементов в альбоме
+                        viewModel.addAlbum(Album(
                             bucketId,
                             name,
                             1,
                             thumbnail,
                             File(path),
                             )
+                        )
+                    }
+                }
+            }
+    }
+
+    fun getNewAlbum(context: Context, newAlbumName: String, viewModel: AlbumListViewModel) {
+        val albums = mutableListOf<Album>()
+        val itemsCount = hashMapOf<String, Int>()
+        val contentUri = MediaStore.Files.getContentUri("external")
+
+        val projection =
+            arrayOf(
+                MediaStore.MediaColumns._ID,
+                MediaStore.MediaColumns.BUCKET_ID,
+                MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
+                MediaStore.MediaColumns.DATA,
+            )
+        val sortOrder = "${MediaStore.MediaColumns.BUCKET_DISPLAY_NAME} == $newAlbumName"
+        val uniqueAlbums = mutableListOf<String>()
+
+        context.contentResolver
+            .query(
+                contentUri,
+                projection,
+                null,
+                null,
+                sortOrder,
+            )?.use { cursor ->
+                val bucketIdColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_ID)
+                val bucketNameColumn =
+                    cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
+
+                while (cursor.moveToNext()) {
+                    val bucketId = cursor.getString(bucketIdColumn)
+
+                    var count = 1
+                    if (itemsCount[bucketId] != null) {
+                        count = itemsCount[bucketId]!! + 1
+                        albums.forEach {
+                            if (it.bID == bucketId) it.itemsCount = count
+                        }
+                    }
+                    itemsCount[bucketId] = count
+
+                    if (!uniqueAlbums.contains(bucketId)) {
+                        uniqueAlbums.add(bucketId)
+                        val idColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+                        val trashPath =
+                            cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA))
+                        val path = trashPath.slice(0..trashPath.lastIndexOf("/"))
+                        val id = cursor.getLong(idColumn)
+                        val uri =
+                            ContentUris.withAppendedId(
+                                contentUri,
+                                id,
+                            )
+                        val name = cursor.getString(bucketNameColumn)
+
+                        val thumbnail = getThumbnailSafe(context, uri)
+
+                        println("URI $uri")
+                        println("id - $id\n")
+                        println("bucketId = $bucketId")
+
+                        println("name = $name")
+                        println("thmb - $thumbnail")
+                        viewModel.addAlbum(Album(
+                            bucketId,
+                            name,
+                            1,
+                            thumbnail,
+                            File(path),
+                        )
                         )
                     }
                 }
@@ -279,17 +350,15 @@ object FunctionsMediaStore {
 
         fun deleteMediaFile(
             context: Context,
-            activity: Activity,
-            onNeedPermission: ((IntentSender) -> Unit)? = null,
+            activity: Activity
         ) {
-            try {
+//            try {
                 listpicture.forEach {
                     context.contentResolver.delete(convertUri(it.path, it.uri), null, null)
                 }
-            } catch (e: RecoverableSecurityException) {
-                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
-                    val intentSender = e.userAction.actionIntent.intentSender
-//                onNeedPermission?.invoke(intentSender) ?: run {
+//            } catch (e: RecoverableSecurityException) {
+//                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
+//                    val intentSender = e.userAction.actionIntent.intentSender
 //                    activity.startIntentSenderForResult(
 //                        intentSender,
 //                        PERMISSION_DELETE_REQUEST_CODE,
@@ -299,23 +368,12 @@ object FunctionsMediaStore {
 //                        0,
 //                        null,
 //                    )
-//                }
-                    activity.startIntentSenderForResult(
-                        intentSender,
-                        PERMISSION_DELETE_REQUEST_CODE,
-                        null,
-                        0,
-                        0,
-                        0,
-                        null,
-                    )
-                } else {
-                    val pendingIntent =
-                        MediaStore.createDeleteRequest(
-                            context.contentResolver,
-                            listpicture.map { convertUri(it.path, it.uri) },
-                        )
-//                onNeedPermission?.invoke(pendingIntent.intentSender) ?: run {
+//                } else {
+//                    val pendingIntent =
+//                        MediaStore.createDeleteRequest(
+//                            context.contentResolver,
+//                            listpicture.map { convertUri(it.path, it.uri) },
+//                        )
 //                    activity.startIntentSenderForResult(
 //                        pendingIntent.intentSender,
 //                        PERMISSION_DELETE_REQUEST_CODE,
@@ -326,18 +384,8 @@ object FunctionsMediaStore {
 //                        null,
 //                    )
 //                }
-                    activity.startIntentSenderForResult(
-                        pendingIntent.intentSender,
-                        PERMISSION_DELETE_REQUEST_CODE,
-                        null,
-                        0,
-                        0,
-                        0,
-                        null,
-                    )
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//            }
         }
     }

@@ -5,7 +5,6 @@ import android.view.MenuItem
 import androidx.fragment.app.FragmentManager
 import androidx.room.Room
 import com.contextphoto.data.Album
-import com.contextphoto.data.allAlbums
 import com.contextphoto.data.listpicture
 import org.w3c.dom.Comment
 import kotlin.jvm.java

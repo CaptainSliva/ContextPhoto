@@ -97,13 +97,19 @@ var checkboxVisible = mutableStateOf(false)
                     Log.d("POSITION", mediaPosition.toString())
                     viewModel.updateMediaPosition(mediaPosition)
                 },
-                onLongClick = {
-                    listpicture.clear()
+                onLongClick = { // TODO fixme галочки не сбрасываются при долгом нажатии после их установки
                     bottomMenuVisible.value = !bottomMenuVisible.value
                     selectProcess.value = !selectProcess.value
                     checkboxVisible.value = !checkboxVisible.value
-                    checked = true
-                    listpicture.add(picture)
+
+                    if (listpicture.isEmpty()) {
+                        checked = true
+                        listpicture.add(picture)
+                    }
+                    else {
+                        listpicture.clear()
+                        checked = false
+                    }
                 }
             )
             )
@@ -121,7 +127,12 @@ var checkboxVisible = mutableStateOf(false)
                 )
                     Checkbox(
                         checked = checked,
-                        onCheckedChange = { checked = it },
+                        onCheckedChange =
+                            {
+                                checked = it
+                                if (checked) listpicture.add(picture)
+                                else listpicture.remove(picture)
+                            },
                         modifier = checkModifier.alpha(if (checkboxVisible.value) 1f else 0f),
                     )
 
