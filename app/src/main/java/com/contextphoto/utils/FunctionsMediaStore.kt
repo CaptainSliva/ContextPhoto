@@ -21,7 +21,10 @@ import com.contextphoto.utils.FunctionsUri.getRealPathFromUri
 import java.io.File
 
 object FunctionsMediaStore {
-    fun getListAlbums(context: Context, viewModel: AlbumViewModel) {
+    fun getListAlbums(
+        context: Context,
+        viewModel: AlbumViewModel,
+    ) {
         val albums = mutableListOf<Album>()
         val itemsCount = hashMapOf<String, Int>()
         val contentUri = MediaStore.Files.getContentUri("external")
@@ -82,13 +85,14 @@ object FunctionsMediaStore {
 
                         println("name = $name")
                         println("thmb - $thumbnail")
-                        val album = Album(
-                            bucketId,
-                            name,
-                            1,
-                            thumbnail,
-                            File(path),
-                        )
+                        val album =
+                            Album(
+                                bucketId,
+                                name,
+                                1,
+                                thumbnail,
+                                File(path),
+                            )
                         albums.add(album)
                         viewModel.addAlbum(album)
                     }
@@ -100,7 +104,11 @@ object FunctionsMediaStore {
             }
     }
 
-    fun getNewAlbum(context: Context, newAlbumName: String, viewModel: AlbumViewModel) {
+    fun getNewAlbum(
+        context: Context,
+        newAlbumName: String,
+        viewModel: AlbumViewModel,
+    ) {
         val albums = mutableListOf<Album>()
         val itemsCount = hashMapOf<String, Int>()
         val contentUri = MediaStore.Files.getContentUri("external")
@@ -162,13 +170,14 @@ object FunctionsMediaStore {
 
                         println("name = $name")
                         println("thmb - $thumbnail")
-                        val album = Album(
-                            bucketId,
-                            name,
-                            1,
-                            thumbnail,
-                            File(path),
-                        )
+                        val album =
+                            Album(
+                                bucketId,
+                                name,
+                                1,
+                                thumbnail,
+                                File(path),
+                            )
                         albums.add(album)
                         viewModel.addAlbum(album)
                     }
@@ -182,7 +191,8 @@ object FunctionsMediaStore {
 
     fun getAllMedia(
         context: Context,
-        bucketIdArg: String = "", viewModel: MediaViewModel
+        bucketIdArg: String = "",
+        viewModel: MediaViewModel,
     ) {
         val contentUri = MediaStore.Files.getContentUri("external")
         var n = 0
@@ -248,7 +258,7 @@ object FunctionsMediaStore {
                                 context,
                                 ContentUris.withAppendedId(
                                     MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                                    id
+                                    id,
                                 ),
                             )
                         println("video $n $id $uri, $path $bucketIdArg $dateAdded")
@@ -259,8 +269,8 @@ object FunctionsMediaStore {
                                 path,
                                 thumbnail,
                                 durationTranslate(duration),
-                                false
-                            )
+                                false,
+                            ),
                         )
 //                            emit(Picture(bucketId, uri, path, thumbnail, durationTranslate(duration), false))
                     } else {
@@ -269,7 +279,7 @@ object FunctionsMediaStore {
                                 context,
                                 ContentUris.withAppendedId(
                                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                                    id
+                                    id,
                                 ),
                             )
                         println("image $n $id $uri, $path $bucketId $dateAdded")
@@ -282,92 +292,90 @@ object FunctionsMediaStore {
 //                        }
                 }
 
-
 //        return mediaFiles
             }
         viewModel.changeState(false)
     }
 
-
-        fun copyMediaToAlbum(
-            context: Context,
-            sourceUri: Uri,
-            albumName: String,
-        ): Boolean {
-            Log.d("Soure uri", sourceUri.toString())
-            val contentResolver = context.contentResolver
-            var filePath = File("1")
-            try {
-                filePath = File(getRealPathFromUri(context, sourceUri))
-            } catch (e: Exception) {
-                Log.d("E: copyMediaToAlbum", e.toString())
-                return false
-            }
-
-            try {
-                var mimeType = contentResolver.getType(sourceUri)!!
-                when {
-                    mimeType.startsWith("image/") -> mimeType = "image/*"
-                    mimeType.startsWith("video/") -> mimeType = "video/*"
-                    else -> "file/*"
-                }
-
-                val contentValues =
-                    ContentValues().apply {
-                        put(MediaStore.MediaColumns.DISPLAY_NAME, filePath.name)
-                        put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-                        put(
-                            MediaStore.MediaColumns.RELATIVE_PATH,
-                            Environment.DIRECTORY_PICTURES + "/ContextPhoto/$albumName"
-                        )
-
-                        Log.i(
-                            "Path",
-                            "${MediaStore.MediaColumns.RELATIVE_PATH}, ${Environment.DIRECTORY_PICTURES}/ContextPhoto/$albumName"
-                        )
-
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            put(MediaStore.MediaColumns.IS_PENDING, 1)
-                        }
-                    }
-
-                val collection =
-                    when {
-                        mimeType.startsWith("image/") -> MediaStore.Images.Media.getContentUri("external")
-                        mimeType.startsWith("video/") -> MediaStore.Video.Media.getContentUri("external")
-                        else -> MediaStore.Files.getContentUri("external")
-                    }
-
-                val destinationUri =
-                    contentResolver.insert(collection, contentValues) ?: return false
-
-                contentResolver.openInputStream(sourceUri)?.use { inputStream ->
-                    contentResolver.openOutputStream(destinationUri)?.use { outputStream ->
-                        inputStream.copyTo(outputStream)
-                    }
-                }
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    contentValues.clear()
-                    contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
-                    contentResolver.update(destinationUri, contentValues, null, null)
-                }
-
-                return true
-            } catch (e: Exception) {
-                e.printStackTrace()
-                return false
-            }
+    fun copyMediaToAlbum(
+        context: Context,
+        sourceUri: Uri,
+        albumName: String,
+    ): Boolean {
+        Log.d("Soure uri", sourceUri.toString())
+        val contentResolver = context.contentResolver
+        var filePath = File("1")
+        try {
+            filePath = File(getRealPathFromUri(context, sourceUri))
+        } catch (e: Exception) {
+            Log.d("E: copyMediaToAlbum", e.toString())
+            return false
         }
 
-        fun deleteMediaFile(
-            context: Context,
-            activity: Activity
-        ) {
-//            try {
-                listpicture.forEach {
-                    context.contentResolver.delete(convertUri(it.path, it.uri), null, null)
+        try {
+            var mimeType = contentResolver.getType(sourceUri)!!
+            when {
+                mimeType.startsWith("image/") -> mimeType = "image/*"
+                mimeType.startsWith("video/") -> mimeType = "video/*"
+                else -> "file/*"
+            }
+
+            val contentValues =
+                ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, filePath.name)
+                    put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                    put(
+                        MediaStore.MediaColumns.RELATIVE_PATH,
+                        Environment.DIRECTORY_PICTURES + "/ContextPhoto/$albumName",
+                    )
+
+                    Log.i(
+                        "Path",
+                        "${MediaStore.MediaColumns.RELATIVE_PATH}, ${Environment.DIRECTORY_PICTURES}/ContextPhoto/$albumName",
+                    )
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        put(MediaStore.MediaColumns.IS_PENDING, 1)
+                    }
                 }
+
+            val collection =
+                when {
+                    mimeType.startsWith("image/") -> MediaStore.Images.Media.getContentUri("external")
+                    mimeType.startsWith("video/") -> MediaStore.Video.Media.getContentUri("external")
+                    else -> MediaStore.Files.getContentUri("external")
+                }
+
+            val destinationUri =
+                contentResolver.insert(collection, contentValues) ?: return false
+
+            contentResolver.openInputStream(sourceUri)?.use { inputStream ->
+                contentResolver.openOutputStream(destinationUri)?.use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                contentValues.clear()
+                contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                contentResolver.update(destinationUri, contentValues, null, null)
+            }
+
+            return true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
+        }
+    }
+
+    fun deleteMediaFile(
+        context: Context,
+        activity: Activity,
+    ) {
+//            try {
+        listpicture.forEach {
+            context.contentResolver.delete(convertUri(it.path, it.uri), null, null)
+        }
 //            } catch (e: RecoverableSecurityException) {
 //                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
 //                    val intentSender = e.userAction.actionIntent.intentSender
@@ -399,5 +407,5 @@ object FunctionsMediaStore {
 //            } catch (e: Exception) {
 //                e.printStackTrace()
 //            }
-        }
     }
+}

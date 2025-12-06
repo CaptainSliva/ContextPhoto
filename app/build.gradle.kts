@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
 android {
@@ -24,7 +25,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -81,6 +82,17 @@ dependencies {
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
 
-    //implementation("androidx.media3:media3-exoplayer:1.8.0")
-    //implementation("androidx.media3:media3-ui:1.8.0")
+    // implementation("androidx.media3:media3-exoplayer:1.8.0")
+    // implementation("androidx.media3:media3-ui:1.8.0")
+}
+ktlint {
+    version.set("1.7.1")
+    debug.set(true)
+    enableExperimentalRules.set(true)
+    additionalEditorconfig.set(
+        mapOf(
+            "max_line_length" to "off",
+            "ktlint_function_naming_ignore_when_annotated_with" to "Composable",
+        ),
+    )
 }

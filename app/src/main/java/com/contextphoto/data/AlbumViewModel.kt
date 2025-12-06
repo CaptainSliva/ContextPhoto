@@ -6,12 +6,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.collections.emptyList
 
-class AlbumViewModel: ViewModel() {
+class AlbumViewModel : ViewModel() {
     private val _albumList = MutableStateFlow<List<Album>>(emptyList())
-    private val _loadAlbumsState = MutableStateFlow<Boolean>(true)
+    private val _loadAlbumState = MutableStateFlow<Boolean>(true)
     val albumList = _albumList.asStateFlow()
-    val loadAlbums = _loadAlbumsState.asStateFlow()
-
+    val loadAlbums = _loadAlbumState.asStateFlow()
 
     fun addAlbum(album: Album) {
         if (loadAlbums.value) {
@@ -36,8 +35,7 @@ class AlbumViewModel: ViewModel() {
             currentList.map {
                 if (it.name == album.name) {
                     album
-                }
-                else {
+                } else {
                     it
                 }
             }
@@ -45,8 +43,10 @@ class AlbumViewModel: ViewModel() {
     }
 
     fun changeState(state: Boolean = true) {
-        if (state) _loadAlbumsState.value = true
-        else _loadAlbumsState.value = false
+        if (state) {
+            _loadAlbumState.value = true
+        } else {
+            _loadAlbumState.value = false
+        }
     }
-
 }
