@@ -10,7 +10,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,17 +22,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.contextphoto.data.Album
-import com.contextphoto.data.AlbumListViewModel
+import com.contextphoto.data.AlbumViewModel
 import com.contextphoto.utils.FunctionsDialogs.mediaPicker
 import com.contextphoto.utils.FunctionsDialogs.showCreateAlbumMessage
 import com.contextphoto.utils.FunctionsDialogs.showDeleteAlbumMessage
@@ -51,12 +50,12 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreateAlbumDialog(onDismissRequest: () -> Unit, mutableState: MutableState<Boolean>, viewModel: AlbumListViewModel) {
+fun CreateAlbumDialog(onDismissRequest: () -> Unit, mutableState: MutableState<Boolean>, viewModel: AlbumViewModel) {
     val context = LocalContext.current
     val modifier = Modifier.fillMaxWidth()
-    val showCopyMoveDialog = remember { mutableStateOf(false) }
-    var albumName by remember { mutableStateOf("") }
-    var listUri by remember { mutableStateOf<List<Uri>?>(null) }
+    val showCopyMoveDialog = rememberSaveable { mutableStateOf(false) }
+    var albumName by rememberSaveable { mutableStateOf("") }
+    var listUri by rememberSaveable { mutableStateOf<List<Uri>?>(null) }
     val pickVisualMedia = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
     ) { uris ->
@@ -148,7 +147,7 @@ fun CreateAlbumDialog(onDismissRequest: () -> Unit, mutableState: MutableState<B
 fun CopyMoveDialog(listUri: List<Uri>,
                    albumName: String,
                    onDismissRequest: () -> Unit, mutableState: MutableState<Boolean>,
-                   viewModel: AlbumListViewModel = AlbumListViewModel()
+                   viewModel: AlbumViewModel = AlbumViewModel()
 ) {
     val context = LocalContext.current
     val modifier = Modifier.fillMaxWidth()
@@ -157,12 +156,12 @@ fun CopyMoveDialog(listUri: List<Uri>,
             getListAlbums(context, viewModel)
         }
     }
-    val albumList by viewModel.albumList.collectAsState()
+    val albumList by viewModel.albumList.collectAsStateWithLifecycle()
 
     ModalBottomSheet(
-        onDismissRequest = onDismissRequest,
-        modifier = Modifier.background(Color.DarkGray)
-    )
+        onDismissRequest = onDismissRequest, // onDismissRequest вызывается при нажатии на пустое место, надо лямбду в него передавать то же, что при окончании диалога
+        modifier = Modifier.fillMaxWidth()
+        )
     {
         Column(horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
@@ -180,7 +179,7 @@ fun CopyMoveDialog(listUri: List<Uri>,
                             }
                             try {
                                 viewModel.addAlbum(newAlbum)
-                                //albumList = albumList.sortedBy { it.name } as MutableList<Album> // TODO как это реализовать
+//                                albumList = albumList.sortedBy { it.name } as MutableList<Album> // TODO как это реализовать
                             } catch (e: Exception) {
                                 Toast.makeText(context, "Альбом \"$albumName\" уже создан", Toast.LENGTH_SHORT).show()
                             }
@@ -245,7 +244,7 @@ fun CopyMoveDialog(listUri: List<Uri>,
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeleteDialog(onDismissRequest: () -> Unit, album: Album, needDelete: Boolean = true, mutableState: MutableState<Boolean>,
-                 viewModel: AlbumListViewModel = AlbumListViewModel()) {
+                 viewModel: AlbumViewModel = AlbumViewModel()) {
     // needDelete true - удалить альбом, false - удалить картинку
     val context = LocalContext.current
     val activity = LocalActivity.current
@@ -255,7 +254,7 @@ fun DeleteDialog(onDismissRequest: () -> Unit, album: Album, needDelete: Boolean
             getListAlbums(context, viewModel)
         }
     }
-    val albumList by viewModel.albumList.collectAsState()
+    val albumList by viewModel.albumList.collectAsStateWithLifecycle()
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -301,18 +300,18 @@ fun DeleteDialog(onDismissRequest: () -> Unit, album: Album, needDelete: Boolean
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RenameAlbumDialog(onDismissRequest: () -> Unit, album: Album, mutableState: MutableState<Boolean>,
-                      viewModel: AlbumListViewModel = AlbumListViewModel()
+                      viewModel: AlbumViewModel = AlbumViewModel()
 ) {
 
     val context = LocalContext.current
-    var albumName by remember { mutableStateOf(album.name) }
+    var albumName by rememberSaveable { mutableStateOf(album.name) }
     val modifier = Modifier.fillMaxWidth()
     LaunchedEffect({}) {
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
             getListAlbums(context, viewModel)
         }
     }
-    val albumList by viewModel.albumList.collectAsState()
+    val albumList by viewModel.albumList.collectAsStateWithLifecycle()
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
@@ -381,7 +380,7 @@ fun RenameAlbumDialog(onDismissRequest: () -> Unit, album: Album, mutableState: 
 fun CommentateDialog(onDismissRequest: () -> Unit, mutableState: MutableState<Boolean>) {
 
     val context = LocalContext.current
-    var commentText by remember { mutableStateOf("") }
+    var commentText by rememberSaveable { mutableStateOf("") }
     val modifier = Modifier.fillMaxWidth()
 
     ModalBottomSheet(

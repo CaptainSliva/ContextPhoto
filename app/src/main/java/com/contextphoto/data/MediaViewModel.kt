@@ -7,15 +7,19 @@ import kotlinx.coroutines.flow.update
 
 class MediaViewModel: ViewModel() {
     private val _listPictures = MutableStateFlow<List<Picture>>(emptyList())
-    val _mediaPosition = MutableStateFlow<Int>(0)
+    private val _mediaPosition = MutableStateFlow<Int>(0)
+    private val _loadMediaState = MutableStateFlow<Boolean>(true)
     val listPictures = _listPictures.asStateFlow()
     val mediaPosition = _mediaPosition.asStateFlow()
+    val loadMediaState = _loadMediaState.asStateFlow()
 
 
     fun addPicture(pic: Picture) {
-        _listPictures.update { currentList ->
-            currentList.toMutableList().apply {
-                add(pic)
+        if (loadMediaState.value) {
+            _listPictures.update { currentList ->
+                currentList.toMutableList().apply {
+                    add(pic)
+                }
             }
         }
     }
@@ -46,6 +50,14 @@ class MediaViewModel: ViewModel() {
                 }
             }
         }
+    }
+
+    fun changeState(state: Boolean = true) {
+        if (state) {
+            _loadMediaState.value = true
+            _listPictures.value = emptyList()
+        }
+        else _loadMediaState.value = false
     }
 
 }

@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,11 +35,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -50,13 +52,11 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -68,14 +68,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -83,11 +83,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import coil.ImageLoader
-import coil.request.ImageRequest
 import com.contextphoto.RequestPermissions.ComposePermissions
 import com.contextphoto.data.Album
-import com.contextphoto.data.AlbumListViewModel
+import com.contextphoto.data.AlbumViewModel
 import com.contextphoto.data.Destination
 import com.contextphoto.data.FABVisible
 import com.contextphoto.data.MediaViewModel
@@ -125,7 +123,7 @@ class MainActivity() : ComponentActivity() {
             val navController = rememberNavController()
             val startDestination = Destination.ALBUMS
             var selectedDestination by rememberSaveable { mutableIntStateOf(startDestination.ordinal) }
-            val showCreateAlbumDialog = remember { mutableStateOf(false) }
+            val showCreateAlbumDialog = rememberSaveable { mutableStateOf(false) }
 
 
             ContextPhotoTheme {
@@ -226,16 +224,18 @@ class MainActivity() : ComponentActivity() {
                         }
                     },
                     content = { paddingValues ->
+
                         AppNavHost(navController, startDestination, modifier = Modifier.padding(paddingValues))
                         if (dialogVisible.value) {
                             //TODO fixme Нужна viewModel, как правильно её передать?
-                            CreateAlbumDialog({ dialogVisible.value = false}, showCreateAlbumDialog, viewModel)
+//                            CreateAlbumDialog({ dialogVisible.value = false}, showCreateAlbumDialog, viewModel)
                         }
 //                        AlbumsScreen(
 //                            modifier = Modifier.padding(paddingValues)
 //                        )
                     }
                 )
+                DropdownMenu()
 
             }
         }
@@ -243,15 +243,16 @@ class MainActivity() : ComponentActivity() {
 }
 
 @Composable
-fun AlbumsScreen(modifier: Modifier = Modifier, navController: NavController, viewModel: AlbumListViewModel = AlbumListViewModel()) {
+fun AlbumsScreen(modifier: Modifier = Modifier, navController: NavController, albumViewModel: AlbumViewModel, mediaViewModel: MediaViewModel) {
+    mediaViewModel.changeState()
 
     val context = LocalContext.current
     LaunchedEffect({}) { // TODO fixme при повторном открытии повторно присылает элементы
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-            getListAlbums(context, viewModel)
+            getListAlbums(context, albumViewModel)
         }
     }
-    val albumList by viewModel.albumList.collectAsState()
+    val albumList by albumViewModel.albumList.collectAsStateWithLifecycle()
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(1),
@@ -272,7 +273,6 @@ fun AlbumsScreen(modifier: Modifier = Modifier, navController: NavController, vi
 
 @Composable // TODO fixme При закрытии экрана и быстром нажатии на место где была картинка - открывается картинка, хотя на экране её уже нет
 fun PicturesScreen(modifier: Modifier = Modifier, navController: NavController, viewModel: MediaViewModel) {
-
     val context = LocalContext.current
     LaunchedEffect(Unit) { // TODO fixme при повторном открытии повторно присылает элементы
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
@@ -281,7 +281,7 @@ fun PicturesScreen(modifier: Modifier = Modifier, navController: NavController, 
         }
     }
 
-    val listMedia by viewModel.listPictures.collectAsState()
+    val listMedia by viewModel.listPictures.collectAsStateWithLifecycle()
 
     Column(modifier = modifier) {
         LazyVerticalGrid(
@@ -305,14 +305,14 @@ fun PicturesScreen(modifier: Modifier = Modifier, navController: NavController, 
 @Composable
 fun FullScreenViewPager(modifier: Modifier = Modifier, navController: NavController, viewModel: MediaViewModel) {
 
-    val listMedia by viewModel.listPictures.collectAsState()
-    val mediaPosotion by viewModel.mediaPosition.collectAsState()
+    val listMedia by viewModel.listPictures.collectAsStateWithLifecycle()
+    val mediaPosotion by viewModel.mediaPosition.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(initialPage = mediaPosotion, pageCount = { listMedia.size })
 
     Log.d("POSITION", mediaPosotion.toString())
 
 
-    HorizontalPager(state = pagerState) { page -> // TODO add ViewPager и subsampling-scale-image-view
+    HorizontalPager(state = pagerState) { page ->
         // Our page content
         val media = listMedia[page]
         viewModel.updateMediaPosition(pagerState.settledPage)
@@ -330,7 +330,7 @@ fun FullScreenViewPager(modifier: Modifier = Modifier, navController: NavControl
 //            )
             if (media.path.contains("VID")) {
                 NewVideoUI(media.uri) // TODO add контроллер и слежка за состоянием https://kotlincodes.com/kotlin/jetpack-compose-kotlin/jetpack-compose-media-player-integration/
-
+                // Оно сломалось
             } else {
                 ImageScreenUI(media.uri, media.path)
             }
@@ -348,12 +348,12 @@ fun FullScreenViewPager(modifier: Modifier = Modifier, navController: NavControl
 @Composable
 fun ExoPlayerView(uri: Uri,
                   onComplete: () -> Unit = {}) {
-    val isVisible = remember { mutableStateOf(true) }
-    val videoHeight = remember { mutableStateOf(0) }
-    val videoWidth = remember { mutableStateOf(0) }
+    val isVisible = rememberSaveable { mutableStateOf(true) }
+    val videoHeight = rememberSaveable { mutableStateOf(0) }
+    val videoWidth = rememberSaveable { mutableStateOf(0) }
     val context = LocalContext.current
     val lifecycleOwner = rememberUpdatedState(LocalLifecycleOwner.current)
-    val exoPlayer = remember {
+    val exoPlayer = rememberSaveable {
         ExoPlayer.Builder(context).build().apply {
             val mediaItem = MediaItem.Builder().setUri(uri).build()
             setMediaItem(mediaItem)
@@ -391,7 +391,7 @@ fun ExoPlayerView(uri: Uri,
 fun NewVideoUI(uri: Uri, onComplete: () -> Unit = {}) {
 
     val context = LocalContext.current
-    val exoPlayer = remember {
+    val exoPlayer = rememberSaveable {
         ExoPlayer.Builder(context).build().apply {
             val mediaItem = MediaItem.Builder().setUri(uri).build()
             setMediaItem(mediaItem)
@@ -427,14 +427,14 @@ fun NewVideoUI(uri: Uri, onComplete: () -> Unit = {}) {
 @Composable
 fun MediaPlayerControlUI(uri: Uri) {
     val context = LocalContext.current
-    val exoPlayer = remember {
+    val exoPlayer = rememberSaveable {
         ExoPlayer.Builder(context).build().apply {
             val mediaItem = MediaItem.fromUri(uri)
             setMediaItem(mediaItem)
             prepare()
         }
     }
-    var playbackState by remember { mutableStateOf(Player.STATE_IDLE) }
+    var playbackState by rememberSaveable { mutableStateOf(Player.STATE_IDLE) }
 
     val playerListener = object : Player.Listener {
         override fun onPlaybackStateChanged(state: Int) {
@@ -442,7 +442,7 @@ fun MediaPlayerControlUI(uri: Uri) {
         }
     }
 
-    var isPlaying by remember { mutableStateOf(false) }
+    var isPlaying by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(exoPlayer) {
         exoPlayer.addListener(playerListener)
@@ -537,10 +537,10 @@ fun ImageScreenUI(uri: Uri, path: String) {
 fun BottomMenu() {
     // TODO fixme при отмене диалога нажатием на пустое место (я ни где это не прописывал) - не возвращается исходный вид view
     val context = LocalContext.current
-    val sendDialogVisible = remember { mutableStateOf(false) }
-    val commentateDialogVisible = remember { mutableStateOf(false) }
-    val toAlbumDialogVisible = remember { mutableStateOf(false) } // заготовка
-    val deleteDialogVisible = remember { mutableStateOf(false) }
+    val sendDialogVisible = rememberSaveable { mutableStateOf(false) }
+    val commentateDialogVisible = rememberSaveable { mutableStateOf(false) }
+    val toAlbumDialogVisible = rememberSaveable { mutableStateOf(false) } // заготовка
+    val deleteDialogVisible = rememberSaveable { mutableStateOf(false) }
 
     // TODO add? ListMedia поделиться, повернуть, комментировать, удалить
     // TODO add? FullScreen add? поделиться, в альбом, повернуть, комментировать, удалить
@@ -627,12 +627,46 @@ fun BottomMenu() {
 }
 
 @Composable
+fun DropdownMenu() {
+    var expanded by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.End // Выравниваем контент по правому краю
+    )
+    {
+        Box()
+        {
+            IconButton(onClick = { expanded = !expanded })
+            {
+                Icon(Icons.Default.MoreVert, contentDescription = "More options")
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text(context.getString(R.string.menu_settings)) },
+                    onClick = { expanded = false }
+                )
+                DropdownMenuItem(
+                    text = { Text(context.getString(R.string.menu_search_photo)) },
+                    onClick = { expanded = false }
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun AppNavHost(
     navController: NavHostController,
     startDestination: Destination,
     modifier: Modifier = Modifier,
     mediaViewModel: MediaViewModel = viewModel(),
-    albumViewModel: AlbumListViewModel = viewModel()
+    albumViewModel: AlbumViewModel = viewModel()
 ) {
     NavHost(
         navController,
@@ -640,7 +674,7 @@ fun AppNavHost(
     ) {
 
         composable(Destination.ALBUMS.route) {
-            AlbumsScreen(modifier, navController, albumViewModel)
+            AlbumsScreen(modifier, navController, albumViewModel, mediaViewModel)
         }
 
         composable(Destination.PICTURES.route) {

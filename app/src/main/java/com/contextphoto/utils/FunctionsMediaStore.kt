@@ -10,7 +10,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import com.contextphoto.data.Album
-import com.contextphoto.data.AlbumListViewModel
+import com.contextphoto.data.AlbumViewModel
 import com.contextphoto.data.MediaViewModel
 import com.contextphoto.data.Picture
 import com.contextphoto.data.listpicture
@@ -21,7 +21,7 @@ import com.contextphoto.utils.FunctionsUri.getRealPathFromUri
 import java.io.File
 
 object FunctionsMediaStore {
-    fun getListAlbums(context: Context, viewModel: AlbumListViewModel) {
+    fun getListAlbums(context: Context, viewModel: AlbumViewModel) {
         val albums = mutableListOf<Album>()
         val itemsCount = hashMapOf<String, Int>()
         val contentUri = MediaStore.Files.getContentUri("external")
@@ -82,20 +82,25 @@ object FunctionsMediaStore {
 
                         println("name = $name")
                         println("thmb - $thumbnail")
-                        viewModel.addAlbum(Album(
+                        val album = Album(
                             bucketId,
                             name,
                             1,
                             thumbnail,
                             File(path),
-                            )
                         )
+                        albums.add(album)
+                        viewModel.addAlbum(album)
                     }
                 }
+                albums.forEach {
+                    viewModel.updateAlbum(it)
+                }
+                viewModel.changeState(false)
             }
     }
 
-    fun getNewAlbum(context: Context, newAlbumName: String, viewModel: AlbumListViewModel) {
+    fun getNewAlbum(context: Context, newAlbumName: String, viewModel: AlbumViewModel) {
         val albums = mutableListOf<Album>()
         val itemsCount = hashMapOf<String, Int>()
         val contentUri = MediaStore.Files.getContentUri("external")
@@ -109,6 +114,7 @@ object FunctionsMediaStore {
             )
         val sortOrder = "${MediaStore.MediaColumns.BUCKET_DISPLAY_NAME} == $newAlbumName"
         val uniqueAlbums = mutableListOf<String>()
+        viewModel.changeState()
 
         context.contentResolver
             .query(
@@ -156,16 +162,21 @@ object FunctionsMediaStore {
 
                         println("name = $name")
                         println("thmb - $thumbnail")
-                        viewModel.addAlbum(Album(
+                        val album = Album(
                             bucketId,
                             name,
                             1,
                             thumbnail,
                             File(path),
                         )
-                        )
+                        albums.add(album)
+                        viewModel.addAlbum(album)
                     }
                 }
+                albums.forEach {
+                    viewModel.updateAlbum(it)
+                }
+                viewModel.changeState(false)
             }
     }
 
@@ -274,6 +285,7 @@ object FunctionsMediaStore {
 
 //        return mediaFiles
             }
+        viewModel.changeState(false)
     }
 
 

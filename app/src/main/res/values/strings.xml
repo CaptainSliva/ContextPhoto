@@ -3,8 +3,8 @@
 
 
     <!-- Strings used for fragments for menu -->
-    <string name="action_settings">Настройки</string>
-    <string name="action_search_photo">Поиск по комментарию</string>
+    <string name="menu_settings">Настройки</string>
+    <string name="menu_search_photo">Поиск по комментарию</string>
 
     <!-- Strings used for fragments for navigation -->
     <string name="nav_albums">albums</string>
