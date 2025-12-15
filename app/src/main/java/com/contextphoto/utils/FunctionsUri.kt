@@ -108,12 +108,14 @@ object FunctionsUri {
         uri: Uri,
     ): Uri =
         when {
-            (path.contains("VID")) ->
+            listOf("mp4", "avi", "mkv", "webm", "mov", "wmv", "flv", "m4v", "3gp", "ts", "mpeg", "mpg", "ogv")
+                .any { path.contains(it, ignoreCase = true) } ->
                 ContentUris.withAppendedId(
                     MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
                     ContentUris.parseId(uri),
                 )
-            (path.contains("IMG")) ->
+            listOf("jpg", "jpeg", "png", "gif", "bmp", "webp", "heic", "heif")
+                .any { path.contains(it, ignoreCase = true) } ->
                 ContentUris.withAppendedId(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     ContentUris.parseId(uri),

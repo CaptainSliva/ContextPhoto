@@ -9,5 +9,5 @@ data class Picture(
     val path: String,
     val thumbnail: Bitmap,
     val duration: String,
-    val checked: Boolean
+    //val checked: Boolean
 )

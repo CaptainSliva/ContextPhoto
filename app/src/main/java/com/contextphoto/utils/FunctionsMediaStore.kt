@@ -1,6 +1,8 @@
 package com.contextphoto.utils
 
+import android.R.attr.path
 import android.app.Activity
+import android.app.RecoverableSecurityException
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
@@ -9,19 +11,27 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.core.app.ActivityCompat.startIntentSenderForResult
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.contextphoto.data.Album
-import com.contextphoto.data.AlbumListViewModel
+import com.contextphoto.data.AlbumViewModel
 import com.contextphoto.data.MediaViewModel
+import com.contextphoto.data.PERMISSION_DELETE_REQUEST_CODE
 import com.contextphoto.data.Picture
-import com.contextphoto.data.listpicture
 import com.contextphoto.utils.FunctionsApp.durationTranslate
 import com.contextphoto.utils.FunctionsBitmap.getThumbnailSafe
 import com.contextphoto.utils.FunctionsUri.convertUri
 import com.contextphoto.utils.FunctionsUri.getRealPathFromUri
+import com.davemorrissey.labs.subscaleview.ImageSource.uri
 import java.io.File
 
 object FunctionsMediaStore {
-    fun getListAlbums(context: Context, viewModel: AlbumListViewModel) {
+    fun getListAlbums( // TODO fixme альбомы в памяти и на SD-карте считает за разные альбомы
+        context: Context,
+        viewModel: AlbumViewModel,
+    ) {
         val albums = mutableListOf<Album>()
         val itemsCount = hashMapOf<String, Int>()
         val contentUri = MediaStore.Files.getContentUri("external")
@@ -55,10 +65,15 @@ object FunctionsMediaStore {
                     if (itemsCount[bucketId] != null) {
                         count = itemsCount[bucketId]!! + 1
                         albums.forEach {
-                            if (it.bID == bucketId) it.itemsCount = count
+                            if (it.bID == bucketId) { //TODO fixme работает не пойми как
+                                it.itemsCount = count
+                                // Если не брать каждый раз превью, тогда считает количество медиа в альбоме нормально но если брать, тогда и превью скорее всего не то, и количество медиа на цифре.
+                                it.thumbnail = getThumbnailSafe(context, ContentUris.withAppendedId(contentUri, cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))))
+                            }
                         }
                     }
                     itemsCount[bucketId] = count
+
 
                     if (!uniqueAlbums.contains(bucketId)) {
                         uniqueAlbums.add(bucketId)
@@ -82,23 +97,35 @@ object FunctionsMediaStore {
 
                         println("name = $name")
                         println("thmb - $thumbnail")
-                        viewModel.addAlbum(Album(
-                            bucketId,
-                            name,
-                            1,
-                            thumbnail,
-                            File(path),
+                        val album =
+                            Album(
+                                bucketId,
+                                name,
+                                1,
+                                thumbnail,
+                                File(path),
                             )
-                        )
+                        albums.add(album)
+                        viewModel.addAlbum(album)
                     }
                 }
+                albums.forEach {
+                    viewModel.updateAlbum(it)
+                }
+                viewModel.changeState(false)
             }
     }
 
-    fun getNewAlbum(context: Context, newAlbumName: String, viewModel: AlbumListViewModel) {
+    fun getNewAlbum(
+        context: Context,
+        newAlbumName: String,
+        viewModel: AlbumViewModel,
+    ) {
         val albums = mutableListOf<Album>()
         val itemsCount = hashMapOf<String, Int>()
         val contentUri = MediaStore.Files.getContentUri("external")
+        val selection = "${MediaStore.MediaColumns.BUCKET_DISPLAY_NAME} = ?"
+        val selectionArgs = arrayOf(newAlbumName)
 
         val projection =
             arrayOf(
@@ -107,15 +134,17 @@ object FunctionsMediaStore {
                 MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
                 MediaStore.MediaColumns.DATA,
             )
-        val sortOrder = "${MediaStore.MediaColumns.BUCKET_DISPLAY_NAME} == $newAlbumName"
+//        val sortOrder = "${MediaStore.MediaColumns.BUCKET_DISPLAY_NAME} == $newAlbumName"
+        val sortOrder = "${MediaStore.MediaColumns.BUCKET_DISPLAY_NAME} ASC"
         val uniqueAlbums = mutableListOf<String>()
+        viewModel.changeState()
 
         context.contentResolver
             .query(
                 contentUri,
                 projection,
-                null,
-                null,
+                selection,
+                selectionArgs,
                 sortOrder,
             )?.use { cursor ->
                 val bucketIdColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_ID)
@@ -129,7 +158,9 @@ object FunctionsMediaStore {
                     if (itemsCount[bucketId] != null) {
                         count = itemsCount[bucketId]!! + 1
                         albums.forEach {
-                            if (it.bID == bucketId) it.itemsCount = count
+                            if (it.bID == bucketId) {
+                                it.itemsCount = count
+                            }
                         }
                     }
                     itemsCount[bucketId] = count
@@ -156,22 +187,29 @@ object FunctionsMediaStore {
 
                         println("name = $name")
                         println("thmb - $thumbnail")
-                        viewModel.addAlbum(Album(
-                            bucketId,
-                            name,
-                            1,
-                            thumbnail,
-                            File(path),
-                        )
-                        )
+                        val album =
+                            Album(
+                                bucketId,
+                                name,
+                                1,
+                                thumbnail,
+                                File(path),
+                            )
+                        albums.add(album)
+                        viewModel.addAlbum(album)
                     }
                 }
+                albums.forEach {
+                    viewModel.updateAlbum(it)
+                }
+                viewModel.changeState(false)
             }
     }
 
     fun getAllMedia(
         context: Context,
-        bucketIdArg: String = "", viewModel: MediaViewModel
+        bucketIdArg: String = "",
+        viewModel: MediaViewModel,
     ) {
         val contentUri = MediaStore.Files.getContentUri("external")
         var n = 0
@@ -185,8 +223,12 @@ object FunctionsMediaStore {
                 MediaStore.MediaColumns.DATE_ADDED,
                 MediaStore.MediaColumns.DATA,
             )
-        val selection = "${MediaStore.MediaColumns.BUCKET_ID} = ?"
-        val selectionArgs = arrayOf(bucketIdArg)
+        var selection: String? = null
+        var selectionArgs: Array<String>? = null
+        if (bucketIdArg != "") {
+            selection = "${MediaStore.MediaColumns.BUCKET_ID} = ?"
+            selectionArgs = arrayOf(bucketIdArg)
+        }
         val sortOrder = "${MediaStore.MediaColumns.DATE_ADDED} DESC" // DATE_MODIFIED // DATE_TAKEN
 
         context.applicationContext.contentResolver
@@ -204,25 +246,8 @@ object FunctionsMediaStore {
                 val dateAdded = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED)
 
                 while (cursor.moveToNext()) {
-//                        if (n == stop) break
                     val bucketId = cursor.getString(bucketIdColumn)
-//                if (bucketIdArg != "") {
-//                    if (bucketId == bucketIdArg) {
                     val id = cursor.getLong(idColumn)
-
-//                        when {
-//                            startId == 0L -> {
-//                                startId = id
-//                                n++
-//                            }
-//                            id == startId -> {
-//                                println("startid - $startId end - $n/$stop")
-//                                n++
-//                                continue
-//                            }
-//                        }
-
-//                        if (n in 0..stop) {
                     val path = cursor.getString(pathColumn)
                     val uri =
                         ContentUris.withAppendedId(
@@ -237,126 +262,150 @@ object FunctionsMediaStore {
                                 context,
                                 ContentUris.withAppendedId(
                                     MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                                    id
+                                    id,
                                 ),
                             )
-                        println("video $n $id $uri, $path $bucketIdArg $dateAdded")
-                        viewModel.addPicture(
+                        println("video $n $id $uri, $path $bucketId $dateAdded")
+                        viewModel.addMedia(
                             Picture(
                                 bucketId,
                                 uri,
                                 path,
                                 thumbnail,
                                 durationTranslate(duration),
-                                false
-                            )
+                                //false,
+                            ),
                         )
-//                            emit(Picture(bucketId, uri, path, thumbnail, durationTranslate(duration), false))
                     } else {
                         val thumbnail =
                             getThumbnailSafe(
                                 context,
                                 ContentUris.withAppendedId(
                                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                                    id
+                                    id,
                                 ),
                             )
                         println("image $n $id $uri, $path $bucketId $dateAdded")
-                        viewModel.addPicture(Picture(bucketId, uri, path, thumbnail, "", false))
-//                            emit(Picture(bucketId, uri, path, thumbnail, "", false))
+                        viewModel.addMedia(Picture(bucketId, uri, path, thumbnail, "", ))
                     }
-//                        }
-//                        if (n == stop) {
-//                            startId = id
-//                        }
                 }
-
-
-//        return mediaFiles
             }
+        viewModel.changeState(false)
     }
 
-
-        fun copyMediaToAlbum(
-            context: Context,
-            sourceUri: Uri,
-            albumName: String,
-        ): Boolean {
-            Log.d("Soure uri", sourceUri.toString())
-            val contentResolver = context.contentResolver
-            var filePath = File("1")
-            try {
-                filePath = File(getRealPathFromUri(context, sourceUri))
-            } catch (e: Exception) {
-                Log.d("E: copyMediaToAlbum", e.toString())
-                return false
-            }
-
-            try {
-                var mimeType = contentResolver.getType(sourceUri)!!
-                when {
-                    mimeType.startsWith("image/") -> mimeType = "image/*"
-                    mimeType.startsWith("video/") -> mimeType = "video/*"
-                    else -> "file/*"
-                }
-
-                val contentValues =
-                    ContentValues().apply {
-                        put(MediaStore.MediaColumns.DISPLAY_NAME, filePath.name)
-                        put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
-                        put(
-                            MediaStore.MediaColumns.RELATIVE_PATH,
-                            Environment.DIRECTORY_PICTURES + "/ContextPhoto/$albumName"
-                        )
-
-                        Log.i(
-                            "Path",
-                            "${MediaStore.MediaColumns.RELATIVE_PATH}, ${Environment.DIRECTORY_PICTURES}/ContextPhoto/$albumName"
-                        )
-
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                            put(MediaStore.MediaColumns.IS_PENDING, 1)
-                        }
-                    }
-
-                val collection =
-                    when {
-                        mimeType.startsWith("image/") -> MediaStore.Images.Media.getContentUri("external")
-                        mimeType.startsWith("video/") -> MediaStore.Video.Media.getContentUri("external")
-                        else -> MediaStore.Files.getContentUri("external")
-                    }
-
-                val destinationUri =
-                    contentResolver.insert(collection, contentValues) ?: return false
-
-                contentResolver.openInputStream(sourceUri)?.use { inputStream ->
-                    contentResolver.openOutputStream(destinationUri)?.use { outputStream ->
-                        inputStream.copyTo(outputStream)
-                    }
-                }
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    contentValues.clear()
-                    contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
-                    contentResolver.update(destinationUri, contentValues, null, null)
-                }
-
-                return true
-            } catch (e: Exception) {
-                e.printStackTrace()
-                return false
-            }
+    fun copyMediaToAlbum(
+        context: Context,
+        sourceUri: Uri,
+        albumName: String,
+    ): Boolean {
+        Log.d("Soure uri", sourceUri.toString())
+        val contentResolver = context.contentResolver
+        var filePath = File("1")
+        try {
+            filePath = File(getRealPathFromUri(context, sourceUri))
+        } catch (e: Exception) {
+            Log.d("E: copyMediaToAlbum", e.toString())
+            return false
         }
 
-        fun deleteMediaFile(
-            context: Context,
-            activity: Activity
-        ) {
-//            try {
-                listpicture.forEach {
-                    context.contentResolver.delete(convertUri(it.path, it.uri), null, null)
+        try {
+            var mimeType = contentResolver.getType(sourceUri)!!
+            when {
+                mimeType.startsWith("image/") -> mimeType = "image/*"
+                mimeType.startsWith("video/") -> mimeType = "video/*"
+                else -> "file/*"
+            }
+
+            val contentValues =
+                ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, filePath.name)
+                    put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                    put(
+                        MediaStore.MediaColumns.RELATIVE_PATH,
+                        Environment.DIRECTORY_PICTURES + "/ContextPhoto/$albumName",
+                    )
+
+                    Log.i(
+                        "Path",
+                        "${MediaStore.MediaColumns.RELATIVE_PATH}, ${Environment.DIRECTORY_PICTURES}/ContextPhoto/$albumName",
+                    )
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        put(MediaStore.MediaColumns.IS_PENDING, 1)
+                    }
                 }
-//            } catch (e: RecoverableSecurityException) {
+
+            val collection =
+                when {
+                    mimeType.startsWith("image/") -> MediaStore.Images.Media.getContentUri("external")
+                    mimeType.startsWith("video/") -> MediaStore.Video.Media.getContentUri("external")
+                    else -> MediaStore.Files.getContentUri("external")
+                }
+
+            val destinationUri =
+                contentResolver.insert(collection, contentValues) ?: return false
+
+            contentResolver.openInputStream(sourceUri)?.use { inputStream ->
+                contentResolver.openOutputStream(destinationUri)?.use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                contentValues.clear()
+                contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                contentResolver.update(destinationUri, contentValues, null, null)
+            }
+
+            return true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return false
+        }
+    }
+
+    fun deleteMediaFile(
+        context: Context,
+        activity: Activity,
+        sourceUri: Uri
+    ) {
+
+        try {
+            val path = getRealPathFromUri(context, sourceUri)!!
+            println("URI - $sourceUri")
+            println("PATH - $path")
+            println("URL - ${convertUri(path, sourceUri)}")
+            context.contentResolver.delete(convertUri(path, sourceUri), null, null)
+        }
+        catch (recoverableSecurityException: RecoverableSecurityException ) {
+            val intentSender =
+                recoverableSecurityException.userAction.actionIntent.intentSender
+            intentSender.let {
+                startIntentSenderForResult(activity, it, PERMISSION_DELETE_REQUEST_CODE,
+                    null, 0, 0, 0, null)
+            }
+        }
+//
+//        listSelectedMedia.forEach {
+//            try {
+//                context.contentResolver.delete(convertUri(it.path, it.uri), null, null)
+//            }
+//            catch (e: RecoverableSecurityException ) {
+//                recoverableSecurityException.add(e)
+//            }
+//        }
+//
+//        recoverableSecurityException.forEach {
+//            val intentSender =
+//                it.userAction.actionIntent.intentSender
+//            intentSender.let {
+//                startIntentSenderForResult(activity, it, PERMISSION_DELETE_REQUEST_CODE,
+//                    null, 0, 0, 0, null)
+//            }
+//        }
+
+
+//             catch (e: RecoverableSecurityException) {
 //                if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
 //                    val intentSender = e.userAction.actionIntent.intentSender
 //                    activity.startIntentSenderForResult(
@@ -387,5 +436,5 @@ object FunctionsMediaStore {
 //            } catch (e: Exception) {
 //                e.printStackTrace()
 //            }
-        }
     }
+}

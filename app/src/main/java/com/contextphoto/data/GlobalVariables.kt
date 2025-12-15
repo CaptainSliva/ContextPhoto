@@ -18,21 +18,9 @@ val PERMISSION_REQUEST_CODE = 101
 val OPEN_DOCUMENT_REQUEST_CODE = 102
 val PERMISSION_DELETE_REQUEST_CODE = 103
 val baseFilePath = "${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)}/ContextPhoto/"
-var loadAlbumsFlag = false
-var loadImagesFlag = false
-var listpicture = mutableListOf<Picture>()
-var listpicturefind = mutableListOf<Picture>()
-var albumBid = ""
-var positionDeleteMedia = mutableListOf<Int>()
 
 // Переменные для БД
 const val versionDB = 1
 const val commentDatabase = "comment_database"
 
 // Новые переменные
-lateinit var listPictures: Flow<Picture>
-lateinit var openAlbum: Album
-var bottomMenuVisible = mutableStateOf(false)
-var selectProcess = mutableStateOf(false)
-var dialogVisible = mutableStateOf(false)
-var FABVisible = mutableStateOf(true)

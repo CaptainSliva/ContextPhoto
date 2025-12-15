@@ -7,6 +7,6 @@ data class Album(
     var bID: String,
     val name: String,
     var itemsCount: Int,
-    val miniature: Bitmap,
+    var thumbnail: Bitmap,
     val path: File,
 )
