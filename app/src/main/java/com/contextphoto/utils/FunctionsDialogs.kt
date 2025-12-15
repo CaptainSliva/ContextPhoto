@@ -13,6 +13,7 @@ import com.contextphoto.data.Album
 import com.contextphoto.data.baseFilePath
 import com.contextphoto.utils.FunctionsFiles.deleteAlbum
 import com.contextphoto.utils.FunctionsFiles.renameAlbum
+import okio.Path
 import java.io.File
 
 object FunctionsDialogs {
@@ -35,12 +36,13 @@ object FunctionsDialogs {
 
     fun showDeleteAlbumMessage(
         context: Context,
-        album: Album,
+        albumName: String,
+        albumPath: File,
     ) {
-        if (album.path.exists()) {
-            deleteAlbum(album.path)
+        if (albumPath.exists()) {
+            deleteAlbum(albumPath)
         } else {
-            Toast.makeText(context, "Альбом ${album.name} не найден", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Альбом ${albumName} не найден", Toast.LENGTH_SHORT).show()
         }
     }
 

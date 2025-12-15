@@ -1,9 +1,13 @@
 package com.contextphoto.utils
 
+import android.app.Activity
 import android.content.Context
 import android.net.Uri
-import com.contextphoto.data.listpicture
+import androidx.activity.compose.LocalActivity
+import androidx.compose.ui.platform.LocalContext
+import com.contextphoto.data.Picture
 import com.contextphoto.utils.FunctionsMediaStore.copyMediaToAlbum
+import com.contextphoto.utils.FunctionsMediaStore.deleteMediaFile
 import com.contextphoto.utils.FunctionsUri.convertUri
 import com.contextphoto.utils.FunctionsUri.getRealPathFromUri
 import java.io.File
@@ -12,7 +16,7 @@ object FunctionsFiles {
     fun deleteAlbum(albumPath: File) {
         try {
             albumPath.listFiles().forEach {
-                it.delete()
+                it.delete() // TODO fixme не удаляет альбомы если it не моего приложения
             }
             albumPath.delete()
         } catch (e: Exception) {
@@ -35,14 +39,13 @@ object FunctionsFiles {
 
     fun moveMediaToAlbum(
         context: Context,
+        activity: Activity,
         sourceUri: Uri,
-        albumName: String,
+        albumName: String
     ): String {
         if (copyMediaToAlbum(context, sourceUri, albumName)) {
             try {
-                listpicture.forEach {
-                    context.contentResolver.delete(convertUri(getRealPathFromUri(context, sourceUri)!!, sourceUri), null, null)
-                }
+                deleteMediaFile(context, activity, sourceUri)
                 return "Complete"
             } catch (e: Exception) {
                 return "NoDelete"

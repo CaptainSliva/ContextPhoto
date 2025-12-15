@@ -5,7 +5,6 @@ import android.view.MenuItem
 import androidx.fragment.app.FragmentManager
 import androidx.room.Room
 import com.contextphoto.data.Album
-import com.contextphoto.data.listpicture
 import org.w3c.dom.Comment
 import kotlin.jvm.java
 
@@ -22,39 +21,4 @@ object FunctionsApp {
             else -> "$minutes:${secs.toString().padStart(2, '0')}"
         }
     }
-
-    fun handleMenuItemClick(
-        childFragmentManager: FragmentManager,
-        context: Context,
-        item: MenuItem,
-        album: Album,
-    ) {
-        when (item.itemId) {
-//            R.id.action_rename_album -> RenameAlbumDialogFragment(context, album).show(childFragmentManager, "RENAME_ALBUM")
-//            R.id.action_delete_album -> DeleteDialogFragment(context, album).show(childFragmentManager, "DELETE_ALBUM")
-        }
-    }
-
-//    fun changeAlbumPhotoAmount(
-//        albumName: String,
-//        decr: Boolean = false,
-//    ) {
-//        if (listpicture.isNotEmpty()) {
-//            for (element in allAlbums) {
-//                if (element.name == albumName && decr) element.itemsCount -= listpicture.size
-//                if (element.name == albumName && !decr) element.itemsCount += listpicture.size
-//            }
-//        }
-//    }
-
-//    fun connectToDB(context: Context): CommentsDao {
-//        val db =
-//            Room
-//                .databaseBuilder(
-//                    context.applicationContext,
-//                    AppDatabase::class.java,
-//                    "CommentsDB",
-//                ).build()
-//        return db.commentsDao()
-//    }
 }

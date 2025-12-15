@@ -1,9 +1,8 @@
-package com.contextphoto
+package com.contextphoto.dialog
 
 import android.app.Activity
 import android.net.Uri
 import android.util.Log
-import android.util.Log.v
 import android.widget.Toast
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -32,8 +31,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.contextphoto.R
 import com.contextphoto.data.Album
 import com.contextphoto.data.AlbumViewModel
+import com.contextphoto.data.MediaViewModel
 import com.contextphoto.utils.FunctionsDialogs.mediaPicker
 import com.contextphoto.utils.FunctionsDialogs.showCreateAlbumMessage
 import com.contextphoto.utils.FunctionsDialogs.showDeleteAlbumMessage
@@ -54,7 +55,7 @@ import kotlinx.coroutines.launch
 fun CreateAlbumDialog(
     onDismissRequest: () -> Unit,
     mutableState: MutableState<Boolean>,
-    viewModel: AlbumViewModel,
+    albumViewModel: AlbumViewModel
 ) {
     val context = LocalContext.current
     val modifier = Modifier.fillMaxWidth()
@@ -66,10 +67,9 @@ fun CreateAlbumDialog(
             contract = ActivityResultContracts.PickMultipleVisualMedia(),
         ) { uris ->
             if (uris.isNotEmpty()) {
-                mutableState.value = false
+                //mutableState.value = false
                 showCopyMoveDialog.value = true
                 listUri = uris.toList()
-                // onDismissRequest()
             }
         }
     val pickMediaLauncher =
@@ -78,10 +78,9 @@ fun CreateAlbumDialog(
         ) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 val data = handleSelectedMedia(result.data)
-                mutableState.value = false
+                //mutableState.value = false
                 showCopyMoveDialog.value = true
                 listUri = data
-                // onDismissRequest()
             }
         }
     AnimatedVisibility(
@@ -89,7 +88,8 @@ fun CreateAlbumDialog(
         enter = slideInVertically(),
         exit = slideOutVertically(),
     ) {
-        CopyMoveDialog(listUri!!, albumName, {}, showCopyMoveDialog, viewModel)
+        CopyMoveDialog(onDismissRequest, mutableState, listUri!!, albumName, {}, showCopyMoveDialog, albumViewModel)
+        //onDismissRequest()
     }
 
     ModalBottomSheet(
@@ -136,60 +136,50 @@ fun CreateAlbumDialog(
                     } else {
                         Toast.makeText(context, context.getString(R.string.enter_name), Toast.LENGTH_SHORT).show()
                     }
-                    Log.i("NEWNAME", "$albumName")
-                    CoroutineScope(Dispatchers.IO).launch {
-                        getNewAlbum(context, albumName, viewModel) // TODO Вот сюда viewModel
-                    }
-
-// TODO add добавить альбом в список
-                    mutableState.value = false
-                    // onDismissRequest()
                 }) {
                     Text(text = LocalContext.current.getString(R.string.ok))
                 }
             }
         }
-        // Sheet content
-//        Button(onClick = {
-//            onDismissRequest()
-//        }) {
-//            Text("Hide bottom sheet")
-//        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CopyMoveDialog(
+    createAlbumDismiss: () -> Unit,
+    createAlbumState: MutableState<Boolean>,
     listUri: List<Uri>,
     albumName: String,
     onDismissRequest: () -> Unit,
     mutableState: MutableState<Boolean>,
-    viewModel: AlbumViewModel,
+    albumViewModel: AlbumViewModel,
 ) {
     val context = LocalContext.current
+    val activity = LocalActivity.current!!
     val modifier = Modifier.fillMaxWidth()
-    LaunchedEffect({}) {
-        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-            getListAlbums(context, viewModel)
-        }
-    }
-    val albumList by viewModel.albumList.collectAsStateWithLifecycle()
+    var findNewAlbumFlag = false
+
+//    LaunchedEffect({}) {
+//        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+//            getListAlbums(context, albumViewModel)
+//        }
+//    }
+    val albumList by albumViewModel.albumList.collectAsStateWithLifecycle()
 
     ModalBottomSheet(
         onDismissRequest =
             {
                 mutableState.value = false
                 onDismissRequest()
+                createAlbumState.value = false
+                createAlbumDismiss()
             },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier =
-                Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .fillMaxWidth(),
+            modifier = modifier.align(Alignment.CenterHorizontally)
         ) {
             Text(text = LocalContext.current.getString(R.string.to_album))
             Button(
@@ -197,24 +187,27 @@ fun CopyMoveDialog(
                     listUri.forEach {
                         if (copyMediaToAlbum(context, it, albumName)) {
                             if (it == listUri[listUri.size - 1]) {
-                                val albumsNames = albumList.map { it.name }
-                                lateinit var newAlbum: Album
-                                albumList.forEach { album ->
-                                    if (album.name !in albumsNames) newAlbum = album
+                                if (albumName in albumList.map { it.name }) {
+                                    Toast.makeText(
+                                        context,
+                                        "Альбом \"$albumName\" уже создан",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
-                                try {
-                                    viewModel.addAlbum(newAlbum)
-//                                albumList = albumList.sortedBy { it.name } as MutableList<Album> // TODO как это реализовать
-                                } catch (e: Exception) {
-                                    Toast.makeText(context, "Альбом \"$albumName\" уже создан", Toast.LENGTH_SHORT).show()
-                                }
+                            }
+                            else {
+                                Log.i("NEWNAME", "$albumName")
+                                findNewAlbumFlag = true
                             }
                         } else {
                             Toast.makeText(context, "IO ex ${it.path}", Toast.LENGTH_SHORT).show()
                         }
                     }
+                    if (findNewAlbumFlag) getNewAlbum(context, albumName, albumViewModel)
                     mutableState.value = false
                     onDismissRequest()
+                    createAlbumState.value = false
+                    createAlbumDismiss()
                 },
                 modifier = modifier,
             ) {
@@ -223,16 +216,20 @@ fun CopyMoveDialog(
             Button(
                 onClick = {
                     listUri.forEach {
-                        val result = moveMediaToAlbum(context, it, albumName)
+                        val result = moveMediaToAlbum(context, activity,it, albumName)
                         if (result == "Complete") {
                             if (it == listUri[listUri.size - 1]) {
-                                val albumsNames = albumList.map { it.name }
-                                lateinit var newAlbum: Album
-                                albumList.forEach { album ->
-                                    if (album.name !in albumsNames) newAlbum = album
+                                if (albumName in albumList.map { it.name }) {
+                                    Toast.makeText(
+                                        context,
+                                        "Альбом \"$albumName\" уже создан",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
-                                viewModel.addAlbum(newAlbum)
-                                // albumList = albumList.sortedBy { it.name } as MutableList<Album> TODO
+                                else {
+                                    Log.i("NEWNAME", "$albumName")
+                                    findNewAlbumFlag = true
+                                }
                             }
                         } else if (result == "NoDelete") {
                             Toast.makeText(context, context.getString(R.string.cant_move), Toast.LENGTH_SHORT).show()
@@ -240,9 +237,11 @@ fun CopyMoveDialog(
                             Toast.makeText(context, "IO ex ${it.path}", Toast.LENGTH_SHORT).show()
                         }
                     }
-// TODO add обновить список альбомов и фото
+                    if (findNewAlbumFlag) getNewAlbum(context, albumName, albumViewModel)
                     mutableState.value = false
                     onDismissRequest()
+                    createAlbumState.value = false
+                    createAlbumDismiss()
                 },
                 modifier = modifier,
             ) {
@@ -252,6 +251,8 @@ fun CopyMoveDialog(
                 onClick = {
                     mutableState.value = false
                     onDismissRequest()
+                    createAlbumState.value = false
+                    createAlbumDismiss()
                 },
                 modifier = modifier,
             ) {
@@ -274,20 +275,17 @@ fun CopyMoveDialog(
 @Composable
 fun DeleteAlbumDialog(
     onDismissRequest: () -> Unit,
-    album: Album,
     mutableState: MutableState<Boolean>,
     viewModel: AlbumViewModel,
 ) {
     // needDelete true - удалить альбом, false - удалить картинку
     val context = LocalContext.current
-    val activity = LocalActivity.current
     val modifier = Modifier.fillMaxWidth()
-    LaunchedEffect({}) {
-        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-            getListAlbums(context, viewModel)
-        }
-    }
-    val albumList by viewModel.albumList.collectAsStateWithLifecycle()
+
+    val selectAlbum by viewModel.selectedAlbum.collectAsStateWithLifecycle()
+    val album = selectAlbum?.copy()
+    val albumName = selectAlbum!!.name
+    val albumPath = selectAlbum!!.path
 
     ModalBottomSheet(
         onDismissRequest =
@@ -302,12 +300,12 @@ fun DeleteAlbumDialog(
             modifier = modifier,
         ) {
             Text(text = context.getString(R.string.delete))
-            Text(text = "${context.getString(R.string.delete_album_text)} ${album.name}?")
+            Text(text = "${context.getString(R.string.delete_album_text)} $albumName}?")
             Button(
                 onClick = {
-                    showDeleteAlbumMessage(context, album)
-                    albumList
-// TODO add удалить альбом и обновить список альбомов
+
+                    viewModel.deleteAlbum(album)
+                    showDeleteAlbumMessage(context, albumName, albumPath)
                     mutableState.value = false
                     onDismissRequest()
                 },
@@ -336,18 +334,13 @@ fun DeleteAlbumDialog(
 fun DeleteMediaDialog( // TODO un use
     onDismissRequest: () -> Unit,
     mutableState: MutableState<Boolean>,
-    viewModel: AlbumViewModel,
+    viewModel: MediaViewModel,
 ) {
     // needDelete true - удалить альбом, false - удалить картинку
     val context = LocalContext.current
     val activity = LocalActivity.current
     val modifier = Modifier.fillMaxWidth()
-    LaunchedEffect({}) {
-        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-            getListAlbums(context, viewModel)
-        }
-    }
-    val albumList by viewModel.albumList.collectAsStateWithLifecycle()
+    val listSelectedMedia by viewModel.listSelectedMedia.collectAsStateWithLifecycle()
 
     ModalBottomSheet(
         onDismissRequest =
@@ -364,7 +357,8 @@ fun DeleteMediaDialog( // TODO un use
             Text(text = context.getString(R.string.delete))
             Button(
                 onClick = {
-                    deleteMediaFile(context, activity!!)
+                    TODO()
+                    //deleteMediaFile(context, activity!!, listSelectedMedia)
                     // TODO add удалить фото и обновить список фото
                     mutableState.value = false
                     onDismissRequest()
@@ -391,21 +385,15 @@ fun DeleteMediaDialog( // TODO un use
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RenameAlbumDialog( // TODO un use
+fun RenameAlbumDialog( // TODO fixme сделать обновление названия альбома в списке
     onDismissRequest: () -> Unit,
-    album: Album,
     mutableState: MutableState<Boolean>,
     viewModel: AlbumViewModel,
 ) {
     val context = LocalContext.current
-    var albumName by rememberSaveable { mutableStateOf(album.name) }
+    val album by viewModel.selectedAlbum.collectAsStateWithLifecycle()
+    var albumName by rememberSaveable { mutableStateOf(album!!.name) }
     val modifier = Modifier.fillMaxWidth()
-    LaunchedEffect({}) {
-        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-            getListAlbums(context, viewModel)
-        }
-    }
-    val albumList by viewModel.albumList.collectAsStateWithLifecycle()
 
     ModalBottomSheet(
         onDismissRequest =
@@ -445,27 +433,15 @@ fun RenameAlbumDialog( // TODO un use
                 }
                 Button(onClick = {
                     if (albumName.isNotEmpty()) {
-                        showRenameAlbumMessage(context, album, albumName)
-                        val albumsNames = albumList.map { it.name }
-                        var newAlbum = albumList[0]
-                        albumList.forEachIndexed { i, album ->
-                            if (album.name != albumsNames[i]) {
-                                newAlbum = album
-                                albumList[i].bID = album.bID
-                            }
-                        }
-                        if (newAlbum != albumList[0]) {
-                            // albumList = albumList.sortedBy { it.name } as MutableList<Album> TODO
-                        } else {
-                            Toast.makeText(context, context.getString(R.string.cant_rename_album), Toast.LENGTH_SHORT).show()
-                        }
+                        viewModel.updateAlbum(Album(album!!.bID, albumName, album!!.itemsCount, album!!.thumbnail, album!!.path))
+                        showRenameAlbumMessage(context, album!!, albumName)
+                        mutableState.value = false
+                        onDismissRequest()
+
                     } else {
-                        Toast.makeText(context, context.getString(R.string.enter_name), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.enter_name), Toast.LENGTH_SHORT).show()
                     }
                     Log.i("NEWNAME", "$albumName")
-// TODO add обновить альбом в списке (нужно разобраться, есть баги)
-                    mutableState.value = false
-                    onDismissRequest()
                 }) {
                     Text(
                         text = LocalContext.current.getString(R.string.ok),

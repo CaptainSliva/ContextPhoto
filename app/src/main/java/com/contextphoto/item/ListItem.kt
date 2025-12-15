@@ -1,5 +1,6 @@
-package com.contextphoto
+package com.contextphoto.item
 
+import android.R.attr.checked
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
@@ -15,10 +16,12 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,39 +31,38 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.contextphoto.FunBottomMenu
+import com.contextphoto.R
 import com.contextphoto.data.Album
+import com.contextphoto.data.AlbumViewModel
 import com.contextphoto.data.MediaViewModel
 import com.contextphoto.data.Picture
-import com.contextphoto.data.albumBid
-import com.contextphoto.data.bottomMenuVisible
-import com.contextphoto.data.listpicture
-import com.contextphoto.data.openAlbum
-import com.contextphoto.data.selectProcess
+import com.contextphoto.menu.PopupMenuAlbumScreen
 import com.contextphoto.ui.theme.ContextPhotoTheme
 
 
-var checkboxVisible = mutableStateOf(false)
-
 @Composable
-    fun AlbumItem(album: Album, modifier: Modifier = Modifier, onItemClick: (String) -> Unit) {
-        val albumName = remember { mutableStateOf(album.name) }
-        val albumItemsCount = remember { mutableIntStateOf(album.itemsCount) }
-        val albumMiniature = remember { mutableStateOf(album.miniature) }
+    fun AlbumItem(album: Album, modifier: Modifier = Modifier, onItemClick: (String) -> Unit, albumViewModel: AlbumViewModel,
+                  mediaViewModel: MediaViewModel,) {
+        val albumName = rememberSaveable { mutableStateOf(album.name) }
+        val albumItemsCount = rememberSaveable { mutableIntStateOf(album.itemsCount) }
+        val albumMiniature = rememberSaveable { mutableStateOf(album.thumbnail) }
+        val popupVisible = rememberSaveable { mutableStateOf(false) }
 
         Box(
 //            shape = RoundedCornerShape(0.dp),
             modifier = modifier.combinedClickable (
                 onClick = {
+                    //viewModel.changeStatePopupMenu(false)
+                    mediaViewModel.changeAlbumBid(album.bID)
                     onItemClick(album.bID)
-                    albumBid = album.bID
-                    openAlbum = album
-                    checkboxVisible.value = false
                     Log.d("click", "album bID - ${album.bID}")
                 },
                 onLongClick = {
-                    bottomMenuVisible.value = !bottomMenuVisible.value
-                    selectProcess.value = !selectProcess.value
-                    checkboxVisible.value = !checkboxVisible.value
+                    albumViewModel.selectAlbum(album)
+                    popupVisible.value = !popupVisible.value
                 }
             )
         ) {
@@ -79,16 +81,21 @@ var checkboxVisible = mutableStateOf(false)
                     Text(text = albumItemsCount.intValue.toString(),
                         style = MaterialTheme.typography.titleMedium)
                 }
+                if (popupVisible.value)
+                    FunBottomMenu(popupVisible.value,
+                        { PopupMenuAlbumScreen({}, popupVisible, albumViewModel) })
             }
+
         }
     }
 
     @Composable
-    fun PictureItem(mediaPosition: Int, picture: Picture, modifier: Modifier = Modifier, onItemClick: (String) -> Unit, viewModel: MediaViewModel) {
-        val durationMedia = remember { mutableStateOf(picture.duration) }
-        val miniatureMedia = remember { mutableStateOf(picture.thumbnail) }
-        var checked by remember { mutableStateOf(picture.checked) }
-        val checkModifier by remember { mutableStateOf(Modifier.alpha(if (picture.checked) 0f else 1f)) }
+    fun PictureItem(mediaPosition: Int, pic: Picture, modifier: Modifier = Modifier, onItemClick: (String) -> Unit, viewModel: MediaViewModel) {
+        // TODO возможно состояние сбрасывается из-за того, что я не саму picture сохраняю
+        val picture by remember { mutableStateOf(pic) }
+        val checkboxVisible = viewModel.checkboxVisible.collectAsStateWithLifecycle()
+        val checkModifier by remember { mutableStateOf(Modifier.alpha(if (checkboxVisible.value) 0f else 1f)) }
+        val listSelectedMedia by viewModel.listSelectedMedia.collectAsState()
 
         Box(contentAlignment = Alignment.BottomCenter,
             modifier = modifier.combinedClickable (
@@ -97,46 +104,39 @@ var checkboxVisible = mutableStateOf(false)
                     Log.d("POSITION", mediaPosition.toString())
                     viewModel.updateMediaPosition(mediaPosition)
                 },
-                onLongClick = { // TODO fixme галочки не сбрасываются при долгом нажатии после их установки
-                    bottomMenuVisible.value = !bottomMenuVisible.value
-                    selectProcess.value = !selectProcess.value
-                    checkboxVisible.value = !checkboxVisible.value
-
-                    if (listpicture.isEmpty()) {
-                        checked = true
-                        listpicture.add(picture)
-                    }
-                    else {
-                        listpicture.clear()
-                        checked = false
+                onLongClick = {
+                    viewModel.changeStateBottomMenu()
+                    viewModel.changeStateCheckBox()
+                    if (picture !in listSelectedMedia) viewModel.selectMedia(picture)
+                    if (checkboxVisible.value) {
+                        viewModel.clearSelectedMedia()
                     }
                 }
             )
             )
         {
-            Image(bitmap = miniatureMedia.value.asImageBitmap(), contentDescription = null,
+            Image(bitmap = picture.thumbnail.asImageBitmap(), contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.aspectRatio(1f/1f))
             Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically)
             {
-                Text(text = durationMedia.value,
+                Text(text = picture.duration,
                     modifier = Modifier.padding(8.dp, 0.dp, 0.dp, 0.dp),
                     color = colorResource(R.color.white)
                 )
-                    Checkbox(
-                        checked = checked,
-                        onCheckedChange =
-                            {
-                                checked = it
-                                if (checked) listpicture.add(picture)
-                                else listpicture.remove(picture)
-                            },
-                        modifier = checkModifier.alpha(if (checkboxVisible.value) 1f else 0f),
-                    )
+                Checkbox(
+                    checked = picture in listSelectedMedia,
+                    onCheckedChange =
+                        {
+                            if (picture !in listSelectedMedia) viewModel.selectMedia(picture)
+                            else viewModel.removeSelectMedia(picture)
+                        },
+                    modifier = checkModifier.alpha(if (checkboxVisible.value) 1f else 0f),
+                )
 
-                if (checked) {
+                if (checkboxVisible.value) {
                     println("check")
                 } else {
                     println("UNcheck")
