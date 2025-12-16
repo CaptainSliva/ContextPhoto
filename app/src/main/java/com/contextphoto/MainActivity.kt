@@ -1,5 +1,6 @@
 package com.contextphoto
 
+import android.R.attr.name
 import android.R.attr.visible
 import android.os.Bundle
 import android.util.Log
@@ -87,10 +88,10 @@ class MainActivity : ComponentActivity() {
                                             ?.destination
                                             ?.route
                                     ) {
-                                        "albums" -> "Альбомы"
-                                        "pictures" -> "Все фото"
-                                        "full_screen_img" -> "Картинка"
-                                        else -> "not! found"
+                                        "albums" -> Destination.ALBUMS.label
+                                        "pictures" -> Destination.PICTURES.label
+                                        "full_screen_img" -> Destination.PICTURES.label
+                                        else -> "error in MainActivity TopAppBar"
                                     },
                                 )
                             },
@@ -251,7 +252,7 @@ fun FunBottomMenu(visible: Boolean,
                     ) + fadeOut(),
     ) {
         //Box(modifier = Modifier.fillMaxSize().background(Color.Red))
-        bootmFun() // TODO fixme не работает (должна вызываться передаваемая функция, что бы избежать дублирование кода анимации)
+        bootmFun()
     }
 }
 
