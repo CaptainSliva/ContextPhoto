@@ -58,8 +58,14 @@ import com.contextphoto.menu.PopupMenuAlbumScreen
 import com.contextphoto.screen.AlbumsScreen
 import com.contextphoto.screen.FullScreenViewPager
 import com.contextphoto.screen.PicturesScreen
+import com.contextphoto.screen.SearchPhotoScreen
+import com.contextphoto.screen.SettingsScreen
 import com.contextphoto.ui.theme.ContextPhotoTheme
 
+// Виды todo
+// TODO add
+// TODO fixme
+//TODO ask
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,7 +75,7 @@ class MainActivity : ComponentActivity() {
             ComposePermissions()
             val navController = rememberNavController()
             val startDestination = Destination.ALBUMS
-            var selectedDestination by rememberSaveable { mutableIntStateOf(startDestination.ordinal) }
+            //var selectedDestination by rememberSaveable { mutableIntStateOf(startDestination.ordinal) }
             val createAlbumDialogVisible = rememberSaveable { mutableStateOf(false) }
             val albumViewModel = remember { AlbumViewModel() }
             val mediaViewModel = remember { MediaViewModel() }
@@ -88,9 +94,11 @@ class MainActivity : ComponentActivity() {
                                             ?.destination
                                             ?.route
                                     ) {
-                                        "albums" -> Destination.ALBUMS.label
-                                        "pictures" -> Destination.PICTURES.label
-                                        "full_screen_img" -> Destination.PICTURES.label
+                                        Destination.ALBUMS.route -> Destination.ALBUMS.label
+                                        Destination.PICTURES.route -> Destination.PICTURES.label
+                                        Destination.FULLSCREENIMG.route -> Destination.FULLSCREENIMG.label
+                                        Destination.SEARCH_PHOTO.route -> Destination.SEARCH_PHOTO.label
+                                        Destination.SETTINGS.route -> Destination.SETTINGS.label
                                         else -> "error in MainActivity TopAppBar"
                                     },
                                 )
@@ -107,7 +115,7 @@ class MainActivity : ComponentActivity() {
                                     navController.navigateUp()
                                 }) {
                                     Icon(
-                                        Icons.Default.ArrowBack,
+                                        Icons.Default.ArrowBack, // Кнопка назад
                                         contentDescription = null,
                                     )
                                 }
@@ -145,10 +153,9 @@ class MainActivity : ComponentActivity() {
                                 NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
                                     Destination.entries.slice(0..1).forEachIndexed { index, destination ->
                                         NavigationBarItem(
-                                            selected = selectedDestination == index,
+                                            selected = destination == Destination.ALBUMS,
                                             onClick = {
                                                 navController.navigate(route = destination.route)
-                                                selectedDestination = index
                                             },
                                             icon = {
                                                 Icon(
@@ -191,15 +198,12 @@ class MainActivity : ComponentActivity() {
                             albumViewModel,
                             mediaViewModel,
                         )
-                        if (createAlbumDialogVisible.value) { // TODO dodododo
+                        if (createAlbumDialogVisible.value) {
                             CreateAlbumDialog({}, createAlbumDialogVisible, albumViewModel)
                         }
-//                        AlbumsScreen(
-//                            modifier = Modifier.padding(paddingValues)
-//                        )
                     },
                 )
-                com.contextphoto.menu.DropdownMenu()
+                com.contextphoto.menu.MainDropdownMenu(navController)
             }
         }
     }
@@ -278,6 +282,14 @@ fun AppNavHost(
 
         composable(Destination.FULLSCREENIMG.route) {
             FullScreenViewPager(modifier, navController, mediaViewModel)
+        }
+
+        composable(Destination.SEARCH_PHOTO.route) {
+            SearchPhotoScreen(modifier, navController, mediaViewModel)
+        }
+
+        composable(Destination.SETTINGS.route) {
+            SettingsScreen(modifier, navController)
         }
     }
 }

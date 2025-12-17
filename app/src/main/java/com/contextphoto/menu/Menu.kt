@@ -7,6 +7,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,10 +56,12 @@ import java.io.File
 import kotlin.collections.isNotEmpty
 import kotlin.collections.map
 import androidx.core.graphics.createBitmap
+import androidx.navigation.NavController
+import com.contextphoto.data.Destination
 
 
 @Composable
-fun DropdownMenu() {
+fun MainDropdownMenu(navController: NavController) {
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
     Row(
@@ -78,11 +81,17 @@ fun DropdownMenu() {
             ) {
                 DropdownMenuItem(
                     text = { Text(context.getString(R.string.menu_settings)) },
-                    onClick = { expanded = false },
+                    onClick = {
+                        navController.navigate(Destination.SETTINGS.route)
+                        expanded = false
+                    },
                 )
                 DropdownMenuItem(
                     text = { Text(context.getString(R.string.menu_search_photo)) },
-                    onClick = { expanded = false },
+                    onClick = {
+                        navController.navigate(Destination.SEARCH_PHOTO.route)
+                        expanded = false
+                    },
                 )
             }
         }
@@ -148,7 +157,7 @@ fun BottomMenuPictureScreen(mediaViewModel: MediaViewModel) {
     val deleteDialogVisible = rememberSaveable { mutableStateOf(false) }
     val listMedia by mediaViewModel.listSelectedMedia.collectAsStateWithLifecycle()
 
-    // TODO share
+    // TODO add share
 
     AnimatedVisibility(
         visible = toAlbumDialogVisible.value,
@@ -188,7 +197,7 @@ fun BottomMenuPictureScreen(mediaViewModel: MediaViewModel) {
 }
 
 @Composable// TODO add? FullScreen add? поделиться, повернуть, комментировать, удалить
-fun BottomMenuFullScreen(mediaViewModel: MediaViewModel) {
+fun BottomMenuFullScreen(mediaViewModel: MediaViewModel) { // TODO add отдельное состояние для этого вида медиа меню
     val shareDialogVisible = rememberSaveable { mutableStateOf(false) }
     val rotateMedia = rememberSaveable { mutableStateOf(false) }
     val commentateDialogVisible = rememberSaveable { mutableStateOf(false) }
@@ -202,7 +211,7 @@ fun BottomMenuFullScreen(mediaViewModel: MediaViewModel) {
     ) {
 
     }
-    //TODO("rotateMedia")
+    //TODO add ("rotateMedia")
     AnimatedVisibility(
         visible = commentateDialogVisible.value,
         enter = slideInVertically(),

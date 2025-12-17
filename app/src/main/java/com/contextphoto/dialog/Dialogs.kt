@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,6 +50,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -283,9 +285,9 @@ fun DeleteAlbumDialog(
     val modifier = Modifier.fillMaxWidth()
 
     val selectAlbum by viewModel.selectedAlbum.collectAsStateWithLifecycle()
-    val album = selectAlbum?.copy()
-    val albumName = selectAlbum!!.name
-    val albumPath = selectAlbum!!.path
+    val album = remember { selectAlbum?.copy() } // TODO fixme как-то криво работает
+    val albumName = remember { selectAlbum!!.name}
+    val albumPath = remember { selectAlbum!!.path }
 
     ModalBottomSheet(
         onDismissRequest =
@@ -357,7 +359,6 @@ fun DeleteMediaDialog( // TODO un use
             Text(text = context.getString(R.string.delete))
             Button(
                 onClick = {
-                    TODO()
                     //deleteMediaFile(context, activity!!, listSelectedMedia)
                     // TODO add удалить фото и обновить список фото
                     mutableState.value = false

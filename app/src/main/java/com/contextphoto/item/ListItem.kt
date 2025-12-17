@@ -91,7 +91,7 @@ import com.contextphoto.ui.theme.ContextPhotoTheme
 
     @Composable
     fun PictureItem(mediaPosition: Int, pic: Picture, modifier: Modifier = Modifier, onItemClick: (String) -> Unit, viewModel: MediaViewModel) {
-        // TODO возможно состояние сбрасывается из-за того, что я не саму picture сохраняю
+        // TODO fixme возможно состояние сбрасывается из-за того, что я не саму picture сохраняю
         val picture by remember { mutableStateOf(pic) }
         val checkboxVisible = viewModel.checkboxVisible.collectAsStateWithLifecycle()
         val checkModifier by remember { mutableStateOf(Modifier.alpha(if (checkboxVisible.value) 0f else 1f)) }

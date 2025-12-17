@@ -1,8 +1,13 @@
 package com.contextphoto.screen
 
+import android.R.attr.onClick
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -16,11 +21,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.contextphoto.R
 import com.contextphoto.data.MediaViewModel
@@ -32,47 +43,50 @@ fun SearchPhotoScreen(
     navController: NavController,
     viewModel: MediaViewModel,
 ) {
+    val context = LocalContext.current
     var commentText by rememberSaveable { mutableStateOf("") }
     val checkRegister = rememberSaveable { mutableStateOf(false) }
 
     Column(
-        modifier = modifier.fillMaxWidth( )
+        modifier = modifier.fillMaxWidth()
     ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceAround
+        )
+        {
             OutlinedTextField(
                 value = commentText,
                 onValueChange = { commentText = it },
                 label = { "Enter text" },
                 placeholder = { "Найти" },
                 supportingText = {
-                    Text("Минимум 6 символов")
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Box() {
-                Column() {
-                    Button(
-                        onClick = {
-
-                        }
-                    ) {
-
-                    }
-                    Text(text = "Найдено: n")
+                    Text("Найдено: n")
                 }
+            )
 
+            Text("Отмена",
+                modifier = Modifier
+                    .clickable(
+                        onClick = {
+                            // TODO add очистить EditText и MediaList
+                        }
+                    ),
+            )
 
-            }
         }
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Row(modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically) {
             Checkbox(
                 checked = checkRegister.value,
                 onCheckedChange = {
-
+                    checkRegister.value = !checkRegister.value
                 }
             )
+            Text(text = context.getString(R.string.register_check),
+                textAlign = TextAlign.End)
         }
-
 
 
 //        LazyVerticalGrid( // TODO add сдесь гружу то, что из БД по комменту подошло
@@ -90,55 +104,5 @@ fun SearchPhotoScreen(
 //                )
 //            }
 //        }
-    }
-}
-
-@Composable
-fun Greeting() { // TODO fixme render problem
-    val context = LocalContext.current
-    var commentText by rememberSaveable { mutableStateOf("") }
-    val checkRegister = rememberSaveable { mutableStateOf(false) }
-
-    Column(
-        modifier = Modifier.fillMaxWidth( )
-    ) {
-        Row() {
-            OutlinedTextField(
-                value = commentText,
-                onValueChange = { commentText = it },
-                label = { "Enter text" },
-                placeholder = { "Найти" },
-                supportingText = {
-                    Text("Найдено: n")
-                },
-            )
-            OutlinedButton(
-                modifier = Modifier.padding(8.dp, 0.dp, 0.dp, 0.dp),
-                onClick = {
-
-                }
-            ) { // TODO fixme надо кнопку убрать и на текст сразу поставить слушатель
-                Text("Отмена")
-            }
-
-        }
-        Row() {
-            Checkbox(
-                checked = checkRegister.value,
-                onCheckedChange = {
-
-                }
-            )
-            Text(text = "context.getString(R.string.register_check)",
-                textAlign = TextAlign.Center) // TODO fixme надо понять как центрировать нармально
-        } // И на 125 строке в ListItem тоже // наверное надо в Box обернуть
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    ContextPhotoTheme {
-        Greeting()
     }
 }

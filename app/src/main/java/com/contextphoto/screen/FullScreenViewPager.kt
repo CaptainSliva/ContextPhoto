@@ -15,6 +15,7 @@ import androidx.navigation.NavController
 import com.contextphoto.data.MediaViewModel
 import com.contextphoto.item.ImageScreenUI
 import com.contextphoto.item.VideoUI
+import com.contextphoto.utils.FunctionsUri.convertUri
 
 @Composable
 fun FullScreenViewPager(
@@ -35,9 +36,8 @@ fun FullScreenViewPager(
         Log.d("POSITION page", page.toString())
         Box(modifier = Modifier.fillMaxSize()) {
             Log.d("POSITION page", listMedia[page].toString())
-            if (media.path.contains("VID")) {
+            if (convertUri(media.path, media.uri).toString().contains("video")) {
                 VideoUI(media.uri)
-                // Оно сломалось
             } else {
                 ImageScreenUI(media.uri, media.path)
             }
