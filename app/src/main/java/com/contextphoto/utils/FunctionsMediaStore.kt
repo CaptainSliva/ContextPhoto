@@ -65,7 +65,7 @@ object FunctionsMediaStore {
                     if (itemsCount[bucketId] != null) {
                         count = itemsCount[bucketId]!! + 1
                         albums.forEach {
-                            if (it.bID == bucketId) { //TODO fixme работает не пойми как
+                            if (it.bID == bucketId) { // TODO fixme работает не пойми как /- грузить все альбомы в список и выдавать их ViewModel
                                 it.itemsCount = count
                                 // Если не брать каждый раз превью, тогда считает количество медиа в альбоме нормально но если брать, тогда и превью скорее всего не то, и количество медиа на цифре.
                                 it.thumbnail = getThumbnailSafe(context, ContentUris.withAppendedId(contentUri, cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))))

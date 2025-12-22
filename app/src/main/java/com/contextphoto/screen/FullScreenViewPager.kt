@@ -1,6 +1,7 @@
 package com.contextphoto.screen
 
 import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
@@ -34,12 +35,18 @@ fun FullScreenViewPager(
         val media = listMedia[page]
         viewModel.updateMediaPosition(pagerState.settledPage)
         Log.d("POSITION page", page.toString())
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()
+            .clickable(onClick = {
+                viewModel.changeStateBottomMenuFullScreen() // TODO fixme не работает, а почему? /- блиотеки делают перехват нажатия, надо с этим разбираться
+                Log.d("CLICK", "fullScreen")
+            }
+            )
+        ) {
             Log.d("POSITION page", listMedia[page].toString())
             if (convertUri(media.path, media.uri).toString().contains("video")) {
                 VideoUI(media.uri)
             } else {
-                ImageScreenUI(media.uri, media.path)
+                ImageScreenUI(media.uri, media.path) //viewModel.changeStateBottomMenuFullScreen()
             }
             Text(
                 textAlign = TextAlign.Center,

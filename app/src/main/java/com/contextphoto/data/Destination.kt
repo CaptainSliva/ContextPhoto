@@ -8,7 +8,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.ui.graphics.vector.ImageVector
 
-enum class Destination(
+enum class Destination( // TODO refactor sealed interface вместо enum class Destination
     val route: String,
     val label: String,
     val icon: ImageVector,

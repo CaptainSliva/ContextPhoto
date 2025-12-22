@@ -280,12 +280,11 @@ fun DeleteAlbumDialog(
     mutableState: MutableState<Boolean>,
     viewModel: AlbumViewModel,
 ) {
-    // needDelete true - удалить альбом, false - удалить картинку
     val context = LocalContext.current
     val modifier = Modifier.fillMaxWidth()
 
     val selectAlbum by viewModel.selectedAlbum.collectAsStateWithLifecycle()
-    val album = remember { selectAlbum?.copy() } // TODO fixme как-то криво работает
+    val album = remember { selectAlbum?.copy() }
     val albumName = remember { selectAlbum!!.name}
     val albumPath = remember { selectAlbum!!.path }
 
@@ -306,8 +305,8 @@ fun DeleteAlbumDialog(
             Button(
                 onClick = {
 
-                    viewModel.deleteAlbum(album)
                     showDeleteAlbumMessage(context, albumName, albumPath)
+                    viewModel.deleteAlbum(album)
                     mutableState.value = false
                     onDismissRequest()
                 },
@@ -338,7 +337,6 @@ fun DeleteMediaDialog( // TODO un use
     mutableState: MutableState<Boolean>,
     viewModel: MediaViewModel,
 ) {
-    // needDelete true - удалить альбом, false - удалить картинку
     val context = LocalContext.current
     val activity = LocalActivity.current
     val modifier = Modifier.fillMaxWidth()
@@ -386,7 +384,7 @@ fun DeleteMediaDialog( // TODO un use
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RenameAlbumDialog( // TODO fixme сделать обновление названия альбома в списке
+fun RenameAlbumDialog( // TODO fixme сделать обновление названия альбома в списке /- баг нашелся (не работает с альбомами которые не мои)
     onDismissRequest: () -> Unit,
     mutableState: MutableState<Boolean>,
     viewModel: AlbumViewModel,
@@ -434,8 +432,8 @@ fun RenameAlbumDialog( // TODO fixme сделать обновление наз�
                 }
                 Button(onClick = {
                     if (albumName.isNotEmpty()) {
-                        viewModel.updateAlbum(Album(album!!.bID, albumName, album!!.itemsCount, album!!.thumbnail, album!!.path))
                         showRenameAlbumMessage(context, album!!, albumName)
+                        viewModel.updateAlbum(Album(album!!.bID, albumName, album!!.itemsCount, album!!.thumbnail, album!!.path))
                         mutableState.value = false
                         onDismissRequest()
 

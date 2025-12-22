@@ -11,6 +11,7 @@ class MediaViewModel : ViewModel() {
     private val _mediaPosition = MutableStateFlow(0)
     private val _loadMediaState = MutableStateFlow(true)
     private val _bottomMenuVisible = MutableStateFlow(false)
+    private val _bottomMenuFullScreenVisible = MutableStateFlow(false)
 //    private val _selectProcess = MutableStateFlow(false)
     private val _checkboxVisible = MutableStateFlow(false)
     private val _albumBid = MutableStateFlow("")
@@ -19,6 +20,7 @@ class MediaViewModel : ViewModel() {
     val mediaPosition = _mediaPosition.asStateFlow()
     val loadMediaState = _loadMediaState.asStateFlow()
     val bottomMenuVisible = _bottomMenuVisible.asStateFlow()
+    val bottomMenuFullScreenVisible = _bottomMenuFullScreenVisible.asStateFlow()
 //    val selectProcess = _selectProcess.asStateFlow()
     val checkboxVisible = _checkboxVisible.asStateFlow()
     val albumBid = _albumBid.asStateFlow()
@@ -100,8 +102,15 @@ class MediaViewModel : ViewModel() {
         else {
             _bottomMenuVisible.value = !bottomMenuVisible.value
         }
+    }
 
-//        _selectProcess.value = !selectProcess.value
+    fun changeStateBottomMenuFullScreen(state: Boolean? = null) {
+        if (state != null) {
+            _bottomMenuFullScreenVisible.value = state
+        }
+        else {
+            _bottomMenuFullScreenVisible.value = !bottomMenuFullScreenVisible.value
+        }
     }
 
     fun changeStateCheckBox(state: Boolean? = null) {

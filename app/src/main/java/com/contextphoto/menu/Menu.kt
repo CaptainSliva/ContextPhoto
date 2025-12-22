@@ -174,7 +174,6 @@ fun BottomMenuPictureScreen(mediaViewModel: MediaViewModel) {
         CommentateDialog({}, commentateDialogVisible)
     }
     AnimatedVisibility(
-// TODO fixme не работает удаление фото, видимо нужно их удаление в отдельную функцию вынести
         visible = deleteDialogVisible.value,
         enter = slideInVertically(),
         exit = slideOutVertically(),
@@ -202,7 +201,7 @@ fun BottomMenuFullScreen(mediaViewModel: MediaViewModel) { // TODO add отде�
     val rotateMedia = rememberSaveable { mutableStateOf(false) }
     val commentateDialogVisible = rememberSaveable { mutableStateOf(false) }
     val deleteDialogVisible = rememberSaveable { mutableStateOf(false) }
-    val listMedia by mediaViewModel.listSelectedMedia.collectAsStateWithLifecycle() //TODO лист каждый раз очищается и в него добавляется элемент (текущаякартинка на экране)
+    val listMedia by mediaViewModel.listSelectedMedia.collectAsStateWithLifecycle()
 
     AnimatedVisibility(
         visible = shareDialogVisible.value,
@@ -220,7 +219,6 @@ fun BottomMenuFullScreen(mediaViewModel: MediaViewModel) { // TODO add отде�
         CommentateDialog({}, commentateDialogVisible)
     }
     AnimatedVisibility(
-// TODO fixme не работает удаление фото, видимо нужно их удаление в отдельную функцию вынести
         visible = deleteDialogVisible.value,
         enter = slideInVertically(),
         exit = slideOutVertically(),

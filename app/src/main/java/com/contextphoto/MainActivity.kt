@@ -70,7 +70,6 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-    // TODO ask как часто надо обновлять андроид студию? Как лучше присваивать значение переменной от вьюмодели? Через присвоение или через делегирование?
         setContent {
             ComposePermissions()
             val navController = rememberNavController()
@@ -229,7 +228,7 @@ fun ShowBottomMenu(currentDestination: String, albumViewModel: AlbumViewModel, m
         }
 
         Destination.FULLSCREENIMG.route -> {
-            FunBottomMenu(mediaViewModel.bottomMenuVisible.collectAsStateWithLifecycle().value,
+            FunBottomMenu(mediaViewModel.bottomMenuFullScreenVisible.collectAsStateWithLifecycle().value,
                 { BottomMenuFullScreen(mediaViewModel) }
             )
         }
@@ -277,7 +276,7 @@ fun AppNavHost(
         }
 
         composable(Destination.PICTURES.route) {
-            PicturesScreen(modifier, navController, mediaViewModel) // TODO fixme пропадают фото при перекомпозиции, но альбомы не пропадают
+            PicturesScreen(modifier, navController, mediaViewModel) // TODO fixme пропадают фото при перекомпозиции, но альбомы не пропадают /- вьюмодель создаётся неправильно, похоже она умирает, надо почитать как создавать viewModel (не руками) в офф доке
         }
 
         composable(Destination.FULLSCREENIMG.route) {

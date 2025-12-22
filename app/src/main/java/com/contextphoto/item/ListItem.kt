@@ -44,20 +44,17 @@ import com.contextphoto.ui.theme.ContextPhotoTheme
 
 
 @Composable
-    fun AlbumItem(album: Album, modifier: Modifier = Modifier, onItemClick: (String) -> Unit, albumViewModel: AlbumViewModel,
+    fun AlbumItem(album: Album, modifier: Modifier = Modifier, onItemClick: () -> Unit, albumViewModel: AlbumViewModel,
                   mediaViewModel: MediaViewModel,) {
-        val albumName = rememberSaveable { mutableStateOf(album.name) }
-        val albumItemsCount = rememberSaveable { mutableIntStateOf(album.itemsCount) }
-        val albumMiniature = rememberSaveable { mutableStateOf(album.thumbnail) }
+        // TODO fixme напрямую использовать album
         val popupVisible = rememberSaveable { mutableStateOf(false) }
 
         Box(
 //            shape = RoundedCornerShape(0.dp),
             modifier = modifier.combinedClickable (
                 onClick = {
-                    //viewModel.changeStatePopupMenu(false)
                     mediaViewModel.changeAlbumBid(album.bID)
-                    onItemClick(album.bID)
+                    onItemClick()
                     Log.d("click", "album bID - ${album.bID}")
                 },
                 onLongClick = {
@@ -68,17 +65,17 @@ import com.contextphoto.ui.theme.ContextPhotoTheme
         ) {
             Row(horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically) {
-                Image(bitmap = albumMiniature.value.asImageBitmap(), contentDescription = null,
+                Image(bitmap = album.thumbnail.asImageBitmap(), contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.size(100.dp)
                 )
                 Column(
                     modifier = Modifier.padding(12.dp, 0.dp, 0.dp, 0.dp)
                 ) {
-                    Text(text = albumName.value, // maxLength = 63
+                    Text(text = album.name, // maxLength = 63
                         maxLines = 3,
                         style = MaterialTheme.typography.titleLarge)
-                    Text(text = albumItemsCount.intValue.toString(),
+                    Text(text = album.itemsCount.toString(),
                         style = MaterialTheme.typography.titleMedium)
                 }
                 if (popupVisible.value)
@@ -90,17 +87,17 @@ import com.contextphoto.ui.theme.ContextPhotoTheme
     }
 
     @Composable
-    fun PictureItem(mediaPosition: Int, pic: Picture, modifier: Modifier = Modifier, onItemClick: (String) -> Unit, viewModel: MediaViewModel) {
+    fun PictureItem(mediaPosition: Int, pic: Picture, modifier: Modifier = Modifier, onItemClick: () -> Unit, viewModel: MediaViewModel) {
         // TODO fixme возможно состояние сбрасывается из-за того, что я не саму picture сохраняю
         val picture by remember { mutableStateOf(pic) }
         val checkboxVisible = viewModel.checkboxVisible.collectAsStateWithLifecycle()
         val checkModifier by remember { mutableStateOf(Modifier.alpha(if (checkboxVisible.value) 0f else 1f)) }
         val listSelectedMedia by viewModel.listSelectedMedia.collectAsState()
-
+        // TODO есть баг при заходе в fullscreen когда меню вызвано и выходе - галочки пропали и не появляются, пока не переоткрою экран
         Box(contentAlignment = Alignment.BottomCenter,
             modifier = modifier.combinedClickable (
                 onClick = {
-                    onItemClick("")
+                    onItemClick()
                     Log.d("POSITION", mediaPosition.toString())
                     viewModel.updateMediaPosition(mediaPosition)
                 },

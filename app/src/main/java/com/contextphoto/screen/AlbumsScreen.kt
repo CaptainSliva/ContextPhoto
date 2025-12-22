@@ -1,5 +1,6 @@
 package com.contextphoto.screen
 
+import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -38,6 +39,7 @@ fun AlbumsScreen(
         }
     }
     val albumList by albumViewModel.albumList.collectAsStateWithLifecycle()
+    Log.d("Albums", albumList.toString())
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(1),
