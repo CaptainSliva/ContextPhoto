@@ -45,6 +45,7 @@
     <string name="delete_album_text">Удалить альбом</string>
 
     <!-- Текста -->
+    <string name="register_check">Поиск с учётом регистра</string>
     <string name="no_comment">Нет комментария</string>
     <string name="write_comment">Введите комментарий</string>
     <string name="check_register">Поиск с учётом регистра</string>

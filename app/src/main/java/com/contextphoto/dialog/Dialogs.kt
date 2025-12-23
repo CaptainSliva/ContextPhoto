@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,6 +50,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -278,14 +280,13 @@ fun DeleteAlbumDialog(
     mutableState: MutableState<Boolean>,
     viewModel: AlbumViewModel,
 ) {
-    // needDelete true - удалить альбом, false - удалить картинку
     val context = LocalContext.current
     val modifier = Modifier.fillMaxWidth()
 
     val selectAlbum by viewModel.selectedAlbum.collectAsStateWithLifecycle()
-    val album = selectAlbum?.copy()
-    val albumName = selectAlbum!!.name
-    val albumPath = selectAlbum!!.path
+    val album = remember { selectAlbum?.copy() }
+    val albumName = remember { selectAlbum!!.name}
+    val albumPath = remember { selectAlbum!!.path }
 
     ModalBottomSheet(
         onDismissRequest =
@@ -304,8 +305,8 @@ fun DeleteAlbumDialog(
             Button(
                 onClick = {
 
-                    viewModel.deleteAlbum(album)
                     showDeleteAlbumMessage(context, albumName, albumPath)
+                    viewModel.deleteAlbum(album)
                     mutableState.value = false
                     onDismissRequest()
                 },
@@ -336,7 +337,6 @@ fun DeleteMediaDialog( // TODO un use
     mutableState: MutableState<Boolean>,
     viewModel: MediaViewModel,
 ) {
-    // needDelete true - удалить альбом, false - удалить картинку
     val context = LocalContext.current
     val activity = LocalActivity.current
     val modifier = Modifier.fillMaxWidth()
@@ -357,7 +357,6 @@ fun DeleteMediaDialog( // TODO un use
             Text(text = context.getString(R.string.delete))
             Button(
                 onClick = {
-                    TODO()
                     //deleteMediaFile(context, activity!!, listSelectedMedia)
                     // TODO add удалить фото и обновить список фото
                     mutableState.value = false
@@ -385,7 +384,7 @@ fun DeleteMediaDialog( // TODO un use
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RenameAlbumDialog( // TODO fixme сделать обновление названия альбома в списке
+fun RenameAlbumDialog( // TODO fixme сделать обновление названия альбома в списке /- баг нашелся (не работает с альбомами которые не мои)
     onDismissRequest: () -> Unit,
     mutableState: MutableState<Boolean>,
     viewModel: AlbumViewModel,
@@ -414,7 +413,7 @@ fun RenameAlbumDialog( // TODO fixme сделать обновление наз�
                 label = { "Enter text" },
                 placeholder = { "Hello World" },
                 supportingText = {
-                    Text("Минимум 6 символов")
+                    Text("")
                 },
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -433,8 +432,8 @@ fun RenameAlbumDialog( // TODO fixme сделать обновление наз�
                 }
                 Button(onClick = {
                     if (albumName.isNotEmpty()) {
-                        viewModel.updateAlbum(Album(album!!.bID, albumName, album!!.itemsCount, album!!.thumbnail, album!!.path))
                         showRenameAlbumMessage(context, album!!, albumName)
+                        viewModel.updateAlbum(Album(album!!.bID, albumName, album!!.itemsCount, album!!.thumbnail, album!!.path))
                         mutableState.value = false
                         onDismissRequest()
 

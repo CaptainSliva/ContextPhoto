@@ -1,14 +1,25 @@
 package com.contextphoto.item
 
+import android.R.attr.path
 import android.net.Uri
+import android.util.Log
 import android.view.ViewGroup
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.contextphoto.data.Destination
+import com.contextphoto.data.Picture
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.google.android.exoplayer2.ExoPlayer
@@ -69,6 +80,7 @@ fun VideoUI( // TODO fixme проверить как сделать воспро
 fun ImageScreenUI(
     uri: Uri,
     path: String,
+    onClick: () -> Unit = {}
 ) {
     AndroidView(
         factory = { ctx ->
@@ -78,35 +90,13 @@ fun ImageScreenUI(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT,
                     )
-
-                // Загрузка изображения через Coil
-//                val imageLoader = ImageLoader(ctx)
-//                val request = ImageRequest.Builder(ctx)
-//                    .data(uri)
-//                    .allowHardware(false)
-//                    .build()
-//
-//                imageLoader.enqueue(request)
-                // Заработает?
-                setImage(ImageSource.uri(Uri.fromFile(File(path)))) // Костыль кажется
-                // Загрузка изображения через Glide
-//                            Glide.with(context)
-//                                .asFile()
-//                                .load(media.uri)
-//                                .into(object : CustomTarget<File>() {
-//                                    override fun onResourceReady(
-//                                        resource: File,
-//                                        transition: Transition<in File>?
-//                                    ) {
-//                                        setImage(ImageSource.uri(Uri.fromFile(resource)))
-//                                    }
-//
-//                                    override fun onLoadCleared(placeholder: Drawable?) {
-//                                        recycle()
-//                                    }
-//                                })
+                setImage(ImageSource.uri(Uri.fromFile(File(path))))
             }
         },
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
+            .clickable(onClick = {
+                onClick()
+                Log.d("CLICK_FUN", "fullScreen")
+            }),
     )
 }
