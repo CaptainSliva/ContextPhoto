@@ -33,11 +33,7 @@ fun AlbumsScreen(
     mediaViewModel.changeState()
 
     val context = LocalContext.current
-    LaunchedEffect({}) {
-        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-            getListAlbums(context, albumViewModel)
-        }
-    }
+    albumViewModel.loadAlbumList(context)
     val albumList by albumViewModel.albumList.collectAsStateWithLifecycle()
     Log.d("Albums", albumList.toString())
 

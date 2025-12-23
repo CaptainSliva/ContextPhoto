@@ -1,9 +1,6 @@
 package com.contextphoto
 
-import android.R.attr.name
-import android.R.attr.visible
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -13,9 +10,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -31,15 +25,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -54,19 +46,20 @@ import com.contextphoto.data.MediaViewModel
 import com.contextphoto.dialog.CreateAlbumDialog
 import com.contextphoto.menu.BottomMenuFullScreen
 import com.contextphoto.menu.BottomMenuPictureScreen
-import com.contextphoto.menu.PopupMenuAlbumScreen
 import com.contextphoto.screen.AlbumsScreen
 import com.contextphoto.screen.FullScreenViewPager
 import com.contextphoto.screen.PicturesScreen
 import com.contextphoto.screen.SearchPhotoScreen
 import com.contextphoto.screen.SettingsScreen
 import com.contextphoto.ui.theme.ContextPhotoTheme
+import dagger.hilt.android.AndroidEntryPoint
 
 // Виды todo
 // TODO add
 // TODO fixme
 //TODO ask
-class MainActivity : ComponentActivity() {
+@AndroidEntryPoint
+class MainActivity() : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,7 +69,7 @@ class MainActivity : ComponentActivity() {
             val startDestination = Destination.ALBUMS
             //var selectedDestination by rememberSaveable { mutableIntStateOf(startDestination.ordinal) }
             val createAlbumDialogVisible = rememberSaveable { mutableStateOf(false) }
-            val albumViewModel = remember { AlbumViewModel() }
+            val albumViewModel = hiltViewModel<AlbumViewModel>()
             val mediaViewModel = remember { MediaViewModel() }
 
             ContextPhotoTheme {

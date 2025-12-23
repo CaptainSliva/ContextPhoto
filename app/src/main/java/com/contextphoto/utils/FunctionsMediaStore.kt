@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.core.app.ActivityCompat.startIntentSenderForResult
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.contextphoto.data.Album
 import com.contextphoto.data.AlbumViewModel
 import com.contextphoto.data.MediaViewModel
@@ -25,13 +26,23 @@ import com.contextphoto.utils.FunctionsBitmap.getThumbnailSafe
 import com.contextphoto.utils.FunctionsUri.convertUri
 import com.contextphoto.utils.FunctionsUri.getRealPathFromUri
 import com.davemorrissey.labs.subscaleview.ImageSource.uri
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import jakarta.inject.Singleton
 import java.io.File
+import kotlin.collections.mutableListOf
 
+@Module
+@InstallIn(SingletonComponent::class)
 object FunctionsMediaStore {
+    @Singleton
+    @Provides
     fun getListAlbums( // TODO fixme альбомы в памяти и на SD-карте считает за разные альбомы
         context: Context,
-        viewModel: AlbumViewModel,
-    ) {
+    ) : MutableList<Album> {
         val albums = mutableListOf<Album>()
         val itemsCount = hashMapOf<String, Int>()
         val contentUri = MediaStore.Files.getContentUri("external")
@@ -106,21 +117,22 @@ object FunctionsMediaStore {
                                 File(path),
                             )
                         albums.add(album)
-                        viewModel.addAlbum(album)
+
                     }
                 }
-                albums.forEach {
-                    viewModel.updateAlbum(it)
-                }
-                viewModel.changeState(false)
             }
+//        albums.forEach {
+//            viewModel.addAlbum(it)
+//        }
+//        viewModel.changeState(false)
+        return albums
     }
 
     fun getNewAlbum(
         context: Context,
         newAlbumName: String,
         viewModel: AlbumViewModel,
-    ) {
+    ) : MutableList<Album> {
         val albums = mutableListOf<Album>()
         val itemsCount = hashMapOf<String, Int>()
         val contentUri = MediaStore.Files.getContentUri("external")
@@ -137,7 +149,7 @@ object FunctionsMediaStore {
 //        val sortOrder = "${MediaStore.MediaColumns.BUCKET_DISPLAY_NAME} == $newAlbumName"
         val sortOrder = "${MediaStore.MediaColumns.BUCKET_DISPLAY_NAME} ASC"
         val uniqueAlbums = mutableListOf<String>()
-        viewModel.changeState()
+        viewModel.changeStateAlbum()
 
         context.contentResolver
             .query(
@@ -199,11 +211,12 @@ object FunctionsMediaStore {
                         viewModel.addAlbum(album)
                     }
                 }
-                albums.forEach {
-                    viewModel.updateAlbum(it)
-                }
-                viewModel.changeState(false)
+//                albums.forEach {
+//                    viewModel.updateAlbum(it)
+//                }
+//                viewModel.changeState(false)
             }
+        return albums
     }
 
     fun getAllMedia(

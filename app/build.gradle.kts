@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
     id("org.jlleitschuh.gradle.ktlint")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -79,6 +80,10 @@ dependencies {
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+    implementation("com.google.dagger:hilt-android:2.57.1")
+    ksp("com.google.dagger:hilt-android-compiler:2.57.1")
+    implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
 

@@ -413,7 +413,7 @@ fun RenameAlbumDialog( // TODO fixme сделать обновление наз�
                 label = { "Enter text" },
                 placeholder = { "Hello World" },
                 supportingText = {
-                    Text("Минимум 6 символов")
+                    Text("")
                 },
                 modifier = Modifier.fillMaxWidth(),
             )
