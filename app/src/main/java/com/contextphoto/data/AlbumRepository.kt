@@ -5,22 +5,38 @@ import com.contextphoto.utils.FunctionsMediaStore.getListAlbums
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.update
+import kotlin.collections.map
+import kotlin.collections.remove
 
-class AlbumRepository @Inject constructor() {
+class AlbumRepository @Inject constructor(private val albumCache: AlbumCache) {
 
-    fun loadAlbumList(context: Context) = getListAlbums(context)
+    fun getAlbumList() = albumCache.listAlbums.value
+    fun loadAlbumList() = albumCache.loadAlbumList()
 
-    fun addAlbum(albumList: List<Album>, album: Album) = albumList.toMutableList().apply { add(album) }
+    fun addAlbum(album: Album) {
+        albumCache.updateAlbumList(albumCache.listAlbums.value.toMutableList().apply { add(album) })
+    }
 
-    fun deleteAlbum(albumList: List<Album>, album: Album?) = albumList.filterNot { it.bID == album?.bID }
+    fun deleteAlbum(album: Album?) {
+        albumCache.updateAlbumList(albumCache.listAlbums.value.toMutableList().apply { remove(album) })
+    }
 
-    fun updateAlbum(albumList: List<Album>, album: Album) =
-        albumList.map {
-            if (it.bID == album.bID) {
-                album
-            } else {
-                it
+    fun updateAlbum(album: Album) {
+        albumCache.updateAlbumList(
+            albumCache.listAlbums.value.toMutableList().map
+            {
+                if (it.bID == album.bID) {
+                    album
+                } else {
+                    it
+                }
             }
-        }
+        )
+    }
+
+    fun updateAlbumID(bID: String) {
+        albumCache.updateAlbumID(bID)
+        albumBid = bID
+    }
 
 }

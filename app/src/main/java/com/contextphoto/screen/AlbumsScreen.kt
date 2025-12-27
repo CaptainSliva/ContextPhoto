@@ -11,12 +11,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.contextphoto.data.AlbumCache
 import com.contextphoto.item.AlbumItem
-import com.contextphoto.data.AlbumViewModel
+import com.contextphoto.ui.AlbumViewModel
 import com.contextphoto.data.Destination
-import com.contextphoto.data.MediaViewModel
+import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.utils.FunctionsMediaStore.getListAlbums
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,12 +30,10 @@ fun AlbumsScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
     albumViewModel: AlbumViewModel,
-    mediaViewModel: MediaViewModel,
 ) {
-    mediaViewModel.changeState()
 
     val context = LocalContext.current
-    albumViewModel.loadAlbumList(context)
+    albumViewModel.loadAlbumList()
     val albumList by albumViewModel.albumList.collectAsStateWithLifecycle()
     Log.d("Albums", albumList.toString())
 
@@ -48,8 +48,7 @@ fun AlbumsScreen(
                 album,
                 Modifier.padding(0.dp, 2.dp),
                 onItemClick = { navController.navigate(Destination.PICTURES.route) },
-                albumViewModel,
-                mediaViewModel
+                albumViewModel
             )
         }
     }

@@ -17,8 +17,8 @@ import androidx.core.app.ActivityCompat.startIntentSenderForResult
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.contextphoto.data.Album
-import com.contextphoto.data.AlbumViewModel
-import com.contextphoto.data.MediaViewModel
+import com.contextphoto.ui.AlbumViewModel
+import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.data.PERMISSION_DELETE_REQUEST_CODE
 import com.contextphoto.data.Picture
 import com.contextphoto.utils.FunctionsApp.durationTranslate
@@ -219,11 +219,13 @@ object FunctionsMediaStore {
         return albums
     }
 
+    @Singleton
+    @Provides
     fun getAllMedia(
         context: Context,
-        bucketIdArg: String = "",
-        viewModel: MediaViewModel,
-    ) {
+        bucketIdArg: String = ""
+    ) : List<Picture> {
+        val listMedia = mutableListOf<Picture>()
         val contentUri = MediaStore.Files.getContentUri("external")
         var n = 0
         val projection =
@@ -279,7 +281,7 @@ object FunctionsMediaStore {
                                 ),
                             )
                         println("video $n $id $uri, $path $bucketId $dateAdded")
-                        viewModel.addMedia(
+                        listMedia.add(
                             Picture(
                                 bucketId,
                                 uri,
@@ -299,11 +301,11 @@ object FunctionsMediaStore {
                                 ),
                             )
                         println("image $n $id $uri, $path $bucketId $dateAdded")
-                        viewModel.addMedia(Picture(bucketId, uri, path, thumbnail, "", ))
+                        listMedia.add(Picture(bucketId, uri, path, thumbnail, "", ))
                     }
                 }
             }
-        viewModel.changeState(false)
+        return listMedia
     }
 
     fun copyMediaToAlbum(

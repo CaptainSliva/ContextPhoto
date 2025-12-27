@@ -31,11 +31,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.contextphoto.R
 import com.contextphoto.data.Album
-import com.contextphoto.data.AlbumViewModel
-import com.contextphoto.data.MediaViewModel
+import com.contextphoto.ui.AlbumViewModel
+import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.utils.FunctionsDialogs.mediaPicker
 import com.contextphoto.utils.FunctionsDialogs.showCreateAlbumMessage
 import com.contextphoto.utils.FunctionsDialogs.showDeleteAlbumMessage
@@ -57,7 +58,7 @@ import java.io.File
 fun CreateAlbumDialog(
     onDismissRequest: () -> Unit,
     mutableState: MutableState<Boolean>,
-    albumViewModel: AlbumViewModel
+    albumViewModel: AlbumViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val modifier = Modifier.fillMaxWidth()

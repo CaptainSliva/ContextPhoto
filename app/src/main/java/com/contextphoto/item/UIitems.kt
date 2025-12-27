@@ -1,25 +1,17 @@
 package com.contextphoto.item
 
-import android.R.attr.path
+import android.graphics.PointF
 import android.net.Uri
 import android.util.Log
+import android.view.GestureDetector
+import android.view.GestureDetector.SimpleOnGestureListener
+import android.view.MotionEvent
 import android.view.ViewGroup
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.contextphoto.data.Destination
-import com.contextphoto.data.Picture
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.google.android.exoplayer2.ExoPlayer
@@ -30,9 +22,10 @@ import java.io.File
 
 // https://kotlincodes.com/kotlin/jetpack-compose-kotlin/jetpack-compose-media-player-integration/
 @Composable // https://gorkemkara.net/responsive-video-playback-jetpack-compose-exoplayer/
-fun VideoUI( // TODO fixme проверить как сделать воспроизведение как можно большего числа расширений (mp4 который я загрузил не воспроизводит)
+fun VideoUI(
+    // TODO fixme проверить как сделать воспроизведение как можно большего числа расширений (mp4 который я загрузил не воспроизводит)
     uri: Uri,
-    onComplete: () -> Unit = {},
+    onClick: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val exoPlayer =
@@ -61,9 +54,20 @@ fun VideoUI( // TODO fixme проверить как сделать воспро
 
                 // Обработка касаний
                 setControllerHideOnTouch(true)
+
+                val gestureDetector =
+                    GestureDetector(object : SimpleOnGestureListener() {
+                        override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                            onClick()
+                            return true
+                        }
+                    })
+                setOnTouchListener { v, event ->
+                    gestureDetector.onTouchEvent(event)
+                }
             }
         },
-        modifier = Modifier.fillMaxSize(),
+        //modifier = Modifier.fillMaxSize(),
         update = { view ->
             // Обновление при необходимости
         },
@@ -91,12 +95,20 @@ fun ImageScreenUI(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                     )
                 setImage(ImageSource.uri(Uri.fromFile(File(path))))
+
+                val gestureDetector =
+                    GestureDetector(object : SimpleOnGestureListener() {
+                        override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                            onClick()
+                            return true
+                        }
+                    })
+
+                setOnTouchListener { v, event ->
+                    gestureDetector.onTouchEvent(event)
+                }
             }
         },
-        modifier = Modifier.fillMaxSize()
-            .clickable(onClick = {
-                onClick()
-                Log.d("CLICK_FUN", "fullScreen")
-            }),
+//        modifier = Modifier.fillMaxSize()
     )
 }

@@ -1,5 +1,6 @@
 package com.contextphoto.screen
 
+import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -13,8 +14,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.contextphoto.data.Destination
-import com.contextphoto.data.MediaViewModel
+import com.contextphoto.data.albumBid
 import com.contextphoto.item.PictureItem
+import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.utils.FunctionsMediaStore.getAllMedia
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -27,23 +29,18 @@ fun PicturesScreen(
     navController: NavController,
     viewModel: MediaViewModel,
 ) {
-    viewModel.resetMediaPosition()
+    viewModel.resetPicturePosition()
 
     val context = LocalContext.current
-    val albumBid by viewModel.albumBid.collectAsStateWithLifecycle()
-    LaunchedEffect(Unit) {
-        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-            getAllMedia(context, albumBid, viewModel)
-        }
-    }
+    viewModel.loadPictureList(albumBid)
     val listMedia by viewModel.listMedia.collectAsStateWithLifecycle()
+    Log.d("Pictures", listMedia.toString())
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(3),
         modifier = modifier
     ) {
         items(items = listMedia) { media ->
-            println("\n\nPRIIIINT\n${listMedia.size}\nIIITT\n$media\n")
             PictureItem(
                 listMedia.indexOf(media),
                 media,

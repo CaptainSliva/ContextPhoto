@@ -1,15 +1,25 @@
-package com.contextphoto.data
+package com.contextphoto.ui
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.contextphoto.data.MediaRepository
+import com.contextphoto.data.Picture
+import dagger.hilt.android.lifecycle.HiltViewModel
+import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class MediaViewModel : ViewModel() {
+@HiltViewModel
+class MediaViewModel @Inject constructor (
+    private val repository: MediaRepository
+) : ViewModel() {
     private val _listMedia = MutableStateFlow<List<Picture>>(emptyList())
     private val _listSelectedMedia = MutableStateFlow<List<Picture>>(emptyList())
     private val _mediaPosition = MutableStateFlow(0)
-    private val _loadMediaState = MutableStateFlow(true)
+    private val _loadPictureState = MutableStateFlow(true)
     private val _bottomMenuVisible = MutableStateFlow(false)
     private val _bottomMenuFullScreenVisible = MutableStateFlow(false)
 //    private val _selectProcess = MutableStateFlow(false)
@@ -18,21 +28,41 @@ class MediaViewModel : ViewModel() {
     val listMedia = _listMedia.asStateFlow()
     val listSelectedMedia = _listSelectedMedia.asStateFlow()
     val mediaPosition = _mediaPosition.asStateFlow()
-    val loadMediaState = _loadMediaState.asStateFlow()
+    val loadPictureState = _loadPictureState.asStateFlow()
     val bottomMenuVisible = _bottomMenuVisible.asStateFlow()
     val bottomMenuFullScreenVisible = _bottomMenuFullScreenVisible.asStateFlow()
 //    val selectProcess = _selectProcess.asStateFlow()
     val checkboxVisible = _checkboxVisible.asStateFlow()
     val albumBid = _albumBid.asStateFlow()
 
-
-    fun addMedia(pic: Picture) {
-        if (loadMediaState.value) {
-            _listMedia.update { currentList ->
-                currentList.toMutableList().apply {
-                    add(pic)
-                }
+    fun loadPictureList(bID: String) {
+        if (_listMedia.value.size  == 0) changeState(true)
+        if (loadPictureState.value) {
+            viewModelScope.launch {
+                _listMedia.value = repository.loadPictureList(bID)
             }
+        }
+        _loadPictureState.value = false
+    }
+    
+    fun addPicture(pic: Picture) {
+        viewModelScope.launch { 
+            repository.addPicture(pic)
+            _listMedia.value = repository.getPictureList()
+        }
+    }
+
+    fun deletePicture(pic: Picture) {
+        viewModelScope.launch {
+            repository.deletePicture(pic)
+            _listMedia.value = repository.getPictureList()
+        }
+    }
+
+    fun updatePicture(pic: Picture) {
+        viewModelScope.launch {
+            repository.updatePicture(pic)
+            _listMedia.value = repository.getPictureList()
         }
     }
 
@@ -40,30 +70,9 @@ class MediaViewModel : ViewModel() {
         _mediaPosition.value = pos
     }
 
-    fun deletePicture(pic: Picture) {
-        _listMedia.update { currentList ->
-            currentList.toMutableList().apply {
-                remove(pic)
-            }
-        }
-    }
-
-    fun resetMediaPosition() {
+    fun resetPicturePosition() {
         _mediaPosition.value = 0
     }
-
-    fun updatePicture(pic: Picture) {
-        _listMedia.update { currentList ->
-            currentList.map {
-                if (it.bID == pic.bID) {
-                    pic
-                } else {
-                    it
-                }
-            }
-        }
-    }
-
 
     fun selectMedia(pic: Picture) {
         _listSelectedMedia.update { currentList ->
@@ -88,10 +97,11 @@ class MediaViewModel : ViewModel() {
 
     fun changeState(state: Boolean = true) {
         if (state) {
-            _loadMediaState.value = true
-            _listMedia.value = emptyList()
+            _loadPictureState.value = true
         } else {
-            _loadMediaState.value = false
+            _loadPictureState.value = false
+            repository.clearPictureList()
+            _listMedia.value = repository.getPictureList()
         }
     }
 
@@ -120,9 +130,5 @@ class MediaViewModel : ViewModel() {
         else {
             _checkboxVisible.value = !checkboxVisible.value
         }
-    }
-
-    fun changeAlbumBid(Bid: String) {
-        _albumBid.value = Bid
     }
 }
