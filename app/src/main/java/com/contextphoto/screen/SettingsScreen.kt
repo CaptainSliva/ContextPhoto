@@ -12,7 +12,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.room.util.TableInfo
-import com.contextphoto.data.MediaViewModel
+import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.ui.theme.ContextPhotoTheme
 
 @Composable

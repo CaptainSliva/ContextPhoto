@@ -40,9 +40,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.contextphoto.RequestPermissions.ComposePermissions
-import com.contextphoto.data.AlbumViewModel
+import com.contextphoto.ui.AlbumViewModel
 import com.contextphoto.data.Destination
-import com.contextphoto.data.MediaViewModel
+import com.contextphoto.data.albumBid
+import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.dialog.CreateAlbumDialog
 import com.contextphoto.menu.BottomMenuFullScreen
 import com.contextphoto.menu.BottomMenuPictureScreen
@@ -70,7 +71,7 @@ class MainActivity() : ComponentActivity() {
             //var selectedDestination by rememberSaveable { mutableIntStateOf(startDestination.ordinal) }
             val createAlbumDialogVisible = rememberSaveable { mutableStateOf(false) }
             val albumViewModel = hiltViewModel<AlbumViewModel>()
-            val mediaViewModel = remember { MediaViewModel() }
+            val mediaViewModel = hiltViewModel<MediaViewModel>()
 
             ContextPhotoTheme {
                 Scaffold(
@@ -110,6 +111,9 @@ class MainActivity() : ComponentActivity() {
                                         Icons.Default.ArrowBack, // Кнопка назад
                                         contentDescription = null,
                                     )
+                                    mediaViewModel.changeStateBottomMenu(false)
+                                    mediaViewModel.changeStateCheckBox(false)
+                                    mediaViewModel.changeStateBottomMenuFullScreen(false)
                                 }
                             },
                         )
@@ -125,7 +129,7 @@ class MainActivity() : ComponentActivity() {
                             mediaViewModel.changeState(false)
                             mediaViewModel.changeStateCheckBox(false)
                             mediaViewModel.clearSelectedMedia()
-                            mediaViewModel.changeAlbumBid("")
+                            albumBid = ""
                             AnimatedVisibility(
                                 currentDestination == Destination.ALBUMS.route,
                                 enter =
@@ -161,9 +165,8 @@ class MainActivity() : ComponentActivity() {
                                 }
                             }
                         }
-                        if (mediaViewModel.bottomMenuVisible.collectAsStateWithLifecycle().value) {
-                            ShowBottomMenu(currentDestination?: Destination.ALBUMS.route, albumViewModel, mediaViewModel)
-                        }
+                        ShowBottomMenu(currentDestination?: Destination.ALBUMS.route, albumViewModel, mediaViewModel)
+
                     },
                     floatingActionButton = {
                         AnimatedVisibility(
@@ -265,7 +268,7 @@ fun AppNavHost(
         startDestination = startDestination.route,
     ) {
         composable(Destination.ALBUMS.route) {
-            AlbumsScreen(modifier, navController, albumViewModel, mediaViewModel)
+            AlbumsScreen(modifier, navController, albumViewModel)
         }
 
         composable(Destination.PICTURES.route) {

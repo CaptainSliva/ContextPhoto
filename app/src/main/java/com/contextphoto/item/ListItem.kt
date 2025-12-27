@@ -36,24 +36,23 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.contextphoto.FunBottomMenu
 import com.contextphoto.R
 import com.contextphoto.data.Album
-import com.contextphoto.data.AlbumViewModel
-import com.contextphoto.data.MediaViewModel
+import com.contextphoto.data.AlbumCache
+import com.contextphoto.ui.AlbumViewModel
+import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.data.Picture
 import com.contextphoto.menu.PopupMenuAlbumScreen
 import com.contextphoto.ui.theme.ContextPhotoTheme
 
 
 @Composable
-    fun AlbumItem(album: Album, modifier: Modifier = Modifier, onItemClick: () -> Unit, albumViewModel: AlbumViewModel,
-                  mediaViewModel: MediaViewModel,) {
-        // TODO fixme напрямую использовать album
+    fun AlbumItem(album: Album, modifier: Modifier = Modifier, onItemClick: () -> Unit, albumViewModel: AlbumViewModel) {
         val popupVisible = rememberSaveable { mutableStateOf(false) }
 
         Box(
 //            shape = RoundedCornerShape(0.dp),
             modifier = modifier.combinedClickable (
                 onClick = {
-                    mediaViewModel.changeAlbumBid(album.bID)
+                    albumViewModel.updateAlbumID(album.bID)
                     onItemClick()
                     Log.d("click", "album bID - ${album.bID}")
                 },

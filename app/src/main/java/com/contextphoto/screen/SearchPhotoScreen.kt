@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.contextphoto.R
-import com.contextphoto.data.MediaViewModel
+import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.ui.theme.ContextPhotoTheme
 
 @Composable
