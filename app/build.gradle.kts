@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.implementation
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +7,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("org.jlleitschuh.gradle.ktlint")
     id("com.google.dagger.hilt.android")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -69,11 +72,15 @@ dependencies {
     implementation("com.davemorrissey.labs:subsampling-scale-image-view:3.10.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("com.google.android.exoplayer:exoplayer:2.19.1")
+
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+
     implementation("androidx.room:room-runtime:${room_version}")
     ksp("androidx.room:room-compiler:$room_version")
+
     implementation("androidx.navigation:navigation-compose:${nav_version}")
     implementation("androidx.navigation:navigation-common:${nav_version}")
+
     implementation("androidx.compose.material:material:${material_version}")
 
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
@@ -86,6 +93,16 @@ dependencies {
     implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
 
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
+
+    implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth")
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    implementation("com.google.firebase:firebase-database")
+    implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
+    implementation("com.google.firebase:firebase-firestore")
 
     // implementation("androidx.media3:media3-exoplayer:1.8.0")
     // implementation("androidx.media3:media3-ui:1.8.0")

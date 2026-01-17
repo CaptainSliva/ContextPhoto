@@ -20,6 +20,7 @@ object FunctionsFiles {
             }
             albumPath.delete()
         } catch (e: Exception) {
+
         }
     }
 

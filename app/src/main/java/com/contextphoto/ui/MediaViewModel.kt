@@ -18,22 +18,14 @@ class MediaViewModel @Inject constructor (
 ) : ViewModel() {
     private val _listMedia = MutableStateFlow<List<Picture>>(emptyList())
     private val _listSelectedMedia = MutableStateFlow<List<Picture>>(emptyList())
-    private val _mediaPosition = MutableStateFlow(0)
     private val _loadPictureState = MutableStateFlow(true)
     private val _bottomMenuVisible = MutableStateFlow(false)
-    private val _bottomMenuFullScreenVisible = MutableStateFlow(false)
 //    private val _selectProcess = MutableStateFlow(false)
-    private val _checkboxVisible = MutableStateFlow(false)
-    private val _albumBid = MutableStateFlow("")
     val listMedia = _listMedia.asStateFlow()
     val listSelectedMedia = _listSelectedMedia.asStateFlow()
-    val mediaPosition = _mediaPosition.asStateFlow()
     val loadPictureState = _loadPictureState.asStateFlow()
     val bottomMenuVisible = _bottomMenuVisible.asStateFlow()
-    val bottomMenuFullScreenVisible = _bottomMenuFullScreenVisible.asStateFlow()
 //    val selectProcess = _selectProcess.asStateFlow()
-    val checkboxVisible = _checkboxVisible.asStateFlow()
-    val albumBid = _albumBid.asStateFlow()
 
     fun loadPictureList(bID: String) {
         if (_listMedia.value.size  == 0) changeState(true)
@@ -43,6 +35,13 @@ class MediaViewModel @Inject constructor (
             }
         }
         _loadPictureState.value = false
+    }
+
+    fun clearPictureList() {
+        viewModelScope.launch {
+            repository.clearPictureList()
+            _listMedia.value = repository.getPictureList()
+        }
     }
     
     fun addPicture(pic: Picture) {
@@ -55,7 +54,7 @@ class MediaViewModel @Inject constructor (
     fun deletePicture(pic: Picture) {
         viewModelScope.launch {
             repository.deletePicture(pic)
-            _listMedia.value = repository.getPictureList()
+            _listMedia.value = repository.getPictureList() // TODO fixme не происходит удаление картинок пока они // не уйдут с экрана
         }
     }
 
@@ -66,19 +65,15 @@ class MediaViewModel @Inject constructor (
         }
     }
 
-    fun updateMediaPosition(pos: Int) {
-        _mediaPosition.value = pos
-    }
-
-    fun resetPicturePosition() {
-        _mediaPosition.value = 0
-    }
-
     fun selectMedia(pic: Picture) {
         _listSelectedMedia.update { currentList ->
             currentList.toMutableList().apply {
                 add(pic)
             }
+        }
+        viewModelScope.launch {
+            repository.changePictureState(pic.bID, true)
+            _listMedia.value = repository.getPictureList()
         }
     }
 
@@ -88,10 +83,15 @@ class MediaViewModel @Inject constructor (
                 remove(pic)
             }
         }
+        viewModelScope.launch {
+            repository.changePictureState(pic.bID, false)
+            _listMedia.value = repository.getPictureList()
+        }
     }
 
     fun clearSelectedMedia() {
         _listSelectedMedia.value = emptyList()
+        repository.clearSelectedMedia()
     }
 
 
@@ -114,21 +114,4 @@ class MediaViewModel @Inject constructor (
         }
     }
 
-    fun changeStateBottomMenuFullScreen(state: Boolean? = null) {
-        if (state != null) {
-            _bottomMenuFullScreenVisible.value = state
-        }
-        else {
-            _bottomMenuFullScreenVisible.value = !bottomMenuFullScreenVisible.value
-        }
-    }
-
-    fun changeStateCheckBox(state: Boolean? = null) {
-        if (state != null) {
-            _checkboxVisible.value = state
-        }
-        else {
-            _checkboxVisible.value = !checkboxVisible.value
-        }
-    }
 }

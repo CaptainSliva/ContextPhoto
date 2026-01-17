@@ -2,6 +2,7 @@ package com.contextphoto.data
 
 import android.graphics.Bitmap
 import android.net.Uri
+import kotlinx.serialization.Serializable
 
 data class Picture(
     val bID: String,
@@ -9,5 +10,5 @@ data class Picture(
     val path: String,
     val thumbnail: Bitmap,
     val duration: String,
-    //val checked: Boolean
+    var checked: Boolean
 )

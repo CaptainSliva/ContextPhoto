@@ -3,37 +3,27 @@ package com.contextphoto.data
 import android.content.Context
 import com.contextphoto.utils.FunctionsMediaStore.getAllMedia
 import dagger.hilt.android.qualifiers.ApplicationContext
-import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
 
-class MediaCache @Inject constructor(@param:ApplicationContext private val context: Context) {
+class FullScreenCache @Inject constructor(@param:ApplicationContext private val context: Context) {
     private val _listPicture = MutableStateFlow<List<Picture>>(emptyList())
     val listPicture = _listPicture.asStateFlow()
 
     fun loadPictureList(bID: String): List<Picture> {
+//        _listPicture.value = listPicture
+//        return _listPicture.value
         _listPicture.value = getAllMedia(context, bID)
         return _listPicture.value
-    }
-
-    fun updatePictureList(newList: List<Picture>) {
-        _listPicture.value = newList
     }
 
     fun clearPictureList() {
         _listPicture.value = emptyList()
     }
 
-    fun changePictureState(picID: String, state: Boolean) {
-        _listPicture.value.forEach {
-            if (it.bID == picID) it.checked = state
-        }
-    }
-
-    fun clearSelectedMedia() {
-        _listPicture.value.forEach {
-            it.checked = false
-        }
+    fun updatePictureList(newList: List<Picture>) {
+        _listPicture.value = newList
     }
 
 }
