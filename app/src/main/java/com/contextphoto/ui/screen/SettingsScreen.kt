@@ -1,4 +1,4 @@
-package com.contextphoto.screen
+package com.contextphoto.ui.screen
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,7 +23,7 @@ fun SettingsScreen(modifier: Modifier = Modifier,
         Text("Импорт из файла")
         Text("Экспорт в файл")
         Divider(modifier = Modifier.fillMaxWidth().padding(0.dp, 8.dp))
-        Text("Авторизация/регистрация")
+        Text("Авторизация/регистрация/logout")
         Text("Импорт из Firebase")
         Text("Экспорт в Firebase")
     }

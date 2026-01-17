@@ -24,4 +24,3 @@ const val versionDB = 1
 const val commentDatabase = "comment_database"
 
 // Новые переменные
-var albumBid = ""

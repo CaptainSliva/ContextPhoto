@@ -28,5 +28,13 @@ class MediaRepository @Inject constructor(private val mediaCache: MediaCache) {
             }
         )
     }
+
+    fun changePictureState(picID: String, state: Boolean) {
+        mediaCache.changePictureState(picID, state)
+    }
+
+    fun clearSelectedMedia() {
+        mediaCache.clearSelectedMedia()
+    }
     
 }

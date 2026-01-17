@@ -1,12 +1,6 @@
 package com.contextphoto.data
 
-import android.content.Context
-import com.contextphoto.utils.FunctionsMediaStore.getListAlbums
-import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
-import kotlinx.coroutines.flow.update
-import kotlin.collections.map
-import kotlin.collections.remove
 
 class AlbumRepository @Inject constructor(private val albumCache: AlbumCache) {
 
@@ -36,7 +30,6 @@ class AlbumRepository @Inject constructor(private val albumCache: AlbumCache) {
 
     fun updateAlbumID(bID: String) {
         albumCache.updateAlbumID(bID)
-        albumBid = bID
     }
 
 }

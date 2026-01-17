@@ -22,7 +22,7 @@ object FunctionsBitmap {
         return BigInteger(1, md.digest()).toString(16).padStart(32, '0')
     }
 
-    inline fun getThumbnailSafe(
+    inline fun getThumbnail(
         context: Context,
         uri: Uri,
     ): Bitmap =

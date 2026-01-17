@@ -1,58 +1,40 @@
 package com.contextphoto.menu
 
-import android.R.attr.text
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.graphics.Bitmap
-import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.BottomSheetState
-import androidx.compose.material.Divider
-import androidx.compose.material.DrawerValue
-import androidx.compose.material.ModalBottomSheetLayout
-import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Create
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material.rememberDrawerState
-import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -62,25 +44,20 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.contextphoto.R
-import com.contextphoto.data.Album
 import com.contextphoto.ui.AlbumViewModel
 import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.data.Picture
 import com.contextphoto.dialog.CommentateDialog
 import com.contextphoto.dialog.DeleteAlbumDialog
 import com.contextphoto.dialog.RenameAlbumDialog
-import kotlinx.coroutines.flow.MutableStateFlow
-import java.io.File
 import kotlin.collections.isNotEmpty
 import kotlin.collections.map
-import androidx.core.graphics.createBitmap
 import androidx.navigation.NavController
 import com.contextphoto.data.Destination
-import com.contextphoto.utils.FunctionsMediaStore.deleteMediaFile
-import kotlinx.coroutines.launch
+import com.contextphoto.dialog.DeleteMediaDialog
+import com.contextphoto.ui.FullscreenViewModel
 
 
 @Composable
@@ -96,7 +73,7 @@ fun MainDropdownMenu(navController: NavController) {
     ) {
         Box {
             IconButton(onClick = { expanded = !expanded }) {
-                Icon(Icons.Default.MoreVert, contentDescription = "More options")
+                Icon(Icons.Default.MoreVert, contentDescription = null)
             }
             DropdownMenu(
                 expanded = expanded,
@@ -121,7 +98,7 @@ fun MainDropdownMenu(navController: NavController) {
     }
 }
 
-@Composable// TODO add? ListAlbums переименовать, удалить
+@Composable// ListAlbums переименовать, удалить
 fun PopupMenuAlbumScreen(onDismissRequest: () -> Unit, mutableState: MutableState<Boolean>, albumViewModel: AlbumViewModel) {
     val renameAlbumDialogVisible = rememberSaveable { mutableStateOf(false) }
     val deleteDialogVisible = rememberSaveable { mutableStateOf(false) }
@@ -173,14 +150,13 @@ fun PopupMenuAlbumScreen(onDismissRequest: () -> Unit, mutableState: MutableStat
 
 }
 
-@Composable// TODO add? ListMedia поделиться, в альбом, комментировать, удалить
+@Composable// ListMedia поделиться, в альбом, комментировать, удалить
 fun BottomMenuPictureScreen(mediaViewModel: MediaViewModel) {
     val toAlbumDialogVisible = rememberSaveable { mutableStateOf(false) }
     val commentateDialogVisible = rememberSaveable { mutableStateOf(false) }
     val deleteDialogVisible = rememberSaveable { mutableStateOf(false) }
     val listMedia by mediaViewModel.listSelectedMedia.collectAsStateWithLifecycle()
 
-    // TODO add share
     AnimatedVisibility(
         visible = toAlbumDialogVisible.value,
         enter = slideInVertically(),
@@ -193,38 +169,46 @@ fun BottomMenuPictureScreen(mediaViewModel: MediaViewModel) {
         enter = slideInVertically(),
         exit = slideOutVertically(),
     ) {
-        CommentateDialog({}, commentateDialogVisible)
+        CommentateDialog({}, commentateDialogVisible, listMedia)
     }
     AnimatedVisibility(
         visible = deleteDialogVisible.value,
         enter = slideInVertically(),
         exit = slideOutVertically(),
     ) {
-
+        DeleteMediaDialog(
+            {},
+            deleteDialogVisible,
+            Destination.PICTURES.route,
+            mediaViewModel = mediaViewModel
+        )
     }
 
-    Row(
-        modifier =
-            Modifier
-                .background(Color.Black)
-                .fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-    ) {
-        ButtonShare(listMedia)
-        ButtonToAlbum(listMedia, toAlbumDialogVisible)
-        ButtonCommentate(listMedia, commentateDialogVisible)
-        ButtonDelete(deleteDialogVisible, mediaViewModel)
+    Column(modifier = Modifier.fillMaxHeight(),
+        verticalArrangement = Arrangement.Bottom) {
+        Row(
+            modifier =
+                Modifier
+                    .background(Color.Black)
+                    .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            ButtonShare(listMedia)
+            ButtonToAlbum(listMedia, toAlbumDialogVisible)
+            ButtonCommentate(listMedia, commentateDialogVisible)
+            ButtonDelete(deleteDialogVisible, mediaViewModel)
+        }
     }
+
 }
 
-@Composable// TODO add? FullScreen add? поделиться, повернуть, комментировать, удалить
-fun BottomMenuFullScreen(mediaViewModel: MediaViewModel) { // TODO add отдельное состояние для этого вида медиа меню
+@Composable// FullScreen поделиться, повернуть, комментировать, удалить
+fun BottomMenuFullScreen(fullscreenViewModel: FullscreenViewModel) {
     val shareDialogVisible = rememberSaveable { mutableStateOf(false) }
-    val rotateMedia = rememberSaveable { mutableStateOf(false) }
     val commentateDialogVisible = rememberSaveable { mutableStateOf(false) }
     val deleteDialogVisible = rememberSaveable { mutableStateOf(false) }
-    val listMedia by mediaViewModel.listMedia.collectAsStateWithLifecycle()
-    val pos = mediaViewModel.mediaPosition.collectAsStateWithLifecycle().value
+    val listMedia by fullscreenViewModel.listMedia.collectAsStateWithLifecycle()
+    val pos = fullscreenViewModel.mediaPosition.collectAsStateWithLifecycle()
     AnimatedVisibility(
         visible = shareDialogVisible.value,
         enter = slideInVertically(),
@@ -232,97 +216,43 @@ fun BottomMenuFullScreen(mediaViewModel: MediaViewModel) { // TODO add отде�
     ) {
 
     }
-    //TODO add ("rotateMedia")
     AnimatedVisibility(
         visible = commentateDialogVisible.value,
         enter = slideInVertically(),
         exit = slideOutVertically(),
     ) {
-        CommentateDialog({}, commentateDialogVisible)
+        CommentateDialog({}, commentateDialogVisible, listOf(listMedia[pos.value]))
     }
     AnimatedVisibility(
         visible = deleteDialogVisible.value,
         enter = slideInVertically(),
         exit = slideOutVertically(),
     ) {
-
+        DeleteMediaDialog(
+            {},
+            deleteDialogVisible,
+            Destination.FULLSCREENIMG.route,
+            fullscreenViewModel = fullscreenViewModel
+        )
     }
-    val modalBottomSheetState = rememberModalBottomSheetState(
-        initialValue = ModalBottomSheetValue.Expanded,
-        confirmValueChange = { it != ModalBottomSheetValue.HalfExpanded }
-    )
-    Column() {
-//        Box(
-//            modifier = Modifier
-//                .background(Color.LightGray)
-//                .verticalScroll(rememberScrollState())
-//                .padding(32.dp)
-//        ) {
-//            Box(modifier = Modifier
-//                .fillMaxWidth()
-//                .height(128.dp)
-//                .verticalScroll(rememberScrollState())
-//            ) {
-//                repeat(6) {
-//                    Text(
-//                        text = "media position ${listMedia[pos]}"
-//                    )
-//                }
-//            }
-//        }
-        ModalBottomSheetLayout(
-            sheetContent = {
-                Box() {
-                    Text(
-                        text = "media position ${listMedia[pos]}"
-                    )
-                }
-            },
-            modifier = Modifier,
-            sheetState = modalBottomSheetState,
-            sheetGesturesEnabled = true,
-            sheetElevation = 0.dp,
-            sheetBackgroundColor = Color.Cyan,
-            sheetContentColor = Color.Magenta,
-            scrimColor = Color.Yellow
+
+    Column(modifier = Modifier.fillMaxHeight(),
+        verticalArrangement = Arrangement.Bottom) {
+        Row(
+            modifier =
+                Modifier
+                    .background(Color.Black)
+                    .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
         ) {
-            Row(
-                modifier =
-                    Modifier
-                        .background(Color.Black)
-                        .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-            ) {
-                ButtonShare(listOf(listMedia[pos]))
-                ButtonRotate(rotateMedia)
-                ButtonCommentate(listOf(listMedia[pos]), commentateDialogVisible)
-                ButtonDelete(deleteDialogVisible, mediaViewModel)
+            ButtonShare(listOf(listMedia[pos.value]))
+            ButtonRotate()
+            ButtonCommentate(listOf(listMedia[pos.value]), commentateDialogVisible)
+            ButtonDelete(deleteDialogVisible, fullscreenViewModel)
 
-            }
         }
-
-
     }
 
-
-//    Box(
-//        contentAlignment = Alignment.BottomCenter,
-//        modifier = Modifier
-//            .background(Color.LightGray)
-//            .verticalScroll(rememberScrollState())
-//            .padding(32.dp)
-//    ) {
-//
-//        Box(
-//            modifier = Modifier
-//                .height(128.dp)
-//                .verticalScroll(rememberScrollState())
-//        ) {
-//            Text(
-//                text = "Page: $page"
-//            )
-//        }
-//    }
 }
 
 
@@ -335,7 +265,7 @@ fun ButtonShare(listSelectedMedia: List<Picture>) {
         modifier =
             Modifier
                 .padding(8.dp, 16.dp)
-                .combinedClickable(
+                .clickable(
                     onClick = {
                         if (listSelectedMedia.isNotEmpty()) {
                             // val sendCommentText = db.findImageByHash(md5(it.thumbnail))
@@ -350,10 +280,7 @@ fun ButtonShare(listSelectedMedia: List<Picture>) {
                             // context.startActivity(sendIntent)
                             context.startActivity(Intent.createChooser(sendIntent, null))
                         }
-                    },
-                    onLongClick = {
-
-                    },
+                    }
                 ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -377,12 +304,11 @@ fun ButtonCommentate(listSelectedMedia: List<Picture>, commentateDialogVisible: 
         modifier =
             Modifier
                 .padding(8.dp, 16.dp)
-                .combinedClickable(
+                .clickable(
                     onClick = {
-                        TODO("Запись комментария в БД")
+                        //TODO fixme ("Запись комментария в БД"), после записи должно меню пропадать
                         commentateDialogVisible.value = true
-                    },
-                    onLongClick = {},
+                    }
                 ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -402,20 +328,40 @@ fun ButtonCommentate(listSelectedMedia: List<Picture>, commentateDialogVisible: 
 @Composable
 fun ButtonDelete(deleteDialogVisible: MutableState<Boolean>, mediaViewModel: MediaViewModel) {
     val context = LocalContext.current
-    val activity = context as Activity
-    val listSelectedMedia by mediaViewModel.listSelectedMedia.collectAsStateWithLifecycle()
     Column( // TODO fixme со второго раза удаляет + у всех функций которые дублирует и список картинок и большая картинка нужно сделать проверку на listSelectedMsedia.isEmpty, и если пустой, тогда уже брать не его, а фотку по позиции
         modifier =
             Modifier
                 .padding(8.dp, 16.dp)
-                .combinedClickable(
+                .clickable(
                     onClick = {
                         deleteDialogVisible.value = true
-                        listSelectedMedia.forEach {
-                            deleteMediaFile(context, activity, it.uri)
-                        }
-                    },
-                    onLongClick = {},
+                    }
+                ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Image(
+            Icons.Outlined.Delete,
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(Color.White),
+        )
+        Text(
+            text = context.getString(R.string.delete),
+            style = MaterialTheme.typography.labelSmall,
+            color = colorResource(R.color.white),
+        )
+    }
+}
+@Composable
+fun ButtonDelete(deleteDialogVisible: MutableState<Boolean>, fullscreenViewModel: FullscreenViewModel) {
+    val context = LocalContext.current
+    Column(
+        modifier =
+            Modifier
+                .padding(8.dp, 16.dp)
+                .clickable(
+                    onClick = {
+                        deleteDialogVisible.value = true
+                    }
                 ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -433,24 +379,22 @@ fun ButtonDelete(deleteDialogVisible: MutableState<Boolean>, mediaViewModel: Med
 }
 
 @Composable
-fun ButtonRotate(rotateDialogVisible: MutableState<Boolean>) {
+fun ButtonRotate() {
     val context = LocalContext.current
     val activity = context as Activity
-    val portrait = remember { mutableStateOf(activity.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) }
 
     Column(
         modifier = Modifier
             .padding(8.dp, 16.dp)
-            .combinedClickable(
+            .clickable(
                 onClick = {
-                    rotateDialogVisible.value = true
-                    if (portrait.value) {
+                    if (activity.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
                         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                    } else {
+                    }
+                    if (activity.requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
                         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                     }
-                },
-                onLongClick = {},
+                }
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -473,12 +417,11 @@ fun ButtonToAlbum(listSelectedMedia: List<Picture>, toAlbumDialogVisible: Mutabl
     Column(
         modifier = Modifier
             .padding(8.dp, 16.dp)
-            .combinedClickable(
+            .clickable(
                 onClick = {
                     TODO("Запуск экрана со списком альбомов, в нём выбирается один альбом, вызывается диалог копировать/переместить и пользователя возвращаю на экран с фотками в котором он был")
                     toAlbumDialogVisible.value = true
-                },
-                onLongClick = {},
+                }
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -494,3 +437,6 @@ fun ButtonToAlbum(listSelectedMedia: List<Picture>, toAlbumDialogVisible: Mutabl
         )
     }
 }
+
+
+

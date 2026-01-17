@@ -8,6 +8,11 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.ui.graphics.vector.ImageVector
 
+
+//sealed class Destinations {
+//    data class ALBUMS(val route: String = "albums", val label: String = "Альбомы", val icon: ImageVector = Icons.Default.Build, val contentDescription: String = "Album")  : Destinations()
+//}
+
 enum class Destination( // TODO refactor sealed interface вместо enum class Destination
     val route: String,
     val label: String,

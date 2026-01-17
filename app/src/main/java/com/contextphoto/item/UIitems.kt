@@ -23,7 +23,6 @@ import java.io.File
 // https://kotlincodes.com/kotlin/jetpack-compose-kotlin/jetpack-compose-media-player-integration/
 @Composable // https://gorkemkara.net/responsive-video-playback-jetpack-compose-exoplayer/
 fun VideoUI(
-    // TODO fixme проверить как сделать воспроизведение как можно большего числа расширений (mp4 который я загрузил не воспроизводит)
     uri: Uri,
     onClick: () -> Unit = {},
 ) {
@@ -67,7 +66,6 @@ fun VideoUI(
                 }
             }
         },
-        //modifier = Modifier.fillMaxSize(),
         update = { view ->
             // Обновление при необходимости
         },
@@ -81,7 +79,7 @@ fun VideoUI(
 }
 
 @Composable
-fun ImageScreenUI(
+fun ImageUI(
     uri: Uri,
     path: String,
     onClick: () -> Unit = {}
@@ -109,6 +107,5 @@ fun ImageScreenUI(
                 }
             }
         },
-//        modifier = Modifier.fillMaxSize()
     )
 }

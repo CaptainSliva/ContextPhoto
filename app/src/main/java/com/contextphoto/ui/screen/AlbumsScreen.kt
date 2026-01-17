@@ -1,6 +1,7 @@
-package com.contextphoto.screen
+package com.contextphoto.ui.screen
 
 import android.util.Log
+import android.view.View
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -12,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.contextphoto.data.AlbumCache
@@ -20,6 +22,7 @@ import com.contextphoto.ui.AlbumViewModel
 import com.contextphoto.data.Destination
 import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.utils.FunctionsMediaStore.getListAlbums
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -29,7 +32,7 @@ import kotlinx.coroutines.launch
 fun AlbumsScreen(
     modifier: Modifier = Modifier,
     navController: NavController,
-    albumViewModel: AlbumViewModel,
+    albumViewModel: AlbumViewModel = hiltViewModel()
 ) {
 
     val context = LocalContext.current
@@ -47,7 +50,7 @@ fun AlbumsScreen(
             AlbumItem(
                 album,
                 Modifier.padding(0.dp, 2.dp),
-                onItemClick = { navController.navigate(Destination.PICTURES.route) },
+                onItemClick = { navController.navigate(Destination.PICTURES.route + "/${album.bID}") },
                 albumViewModel
             )
         }
