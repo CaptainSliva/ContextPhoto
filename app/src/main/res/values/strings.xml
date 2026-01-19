@@ -60,4 +60,6 @@
     <string name="login_bottom_text"></string>
     <string name="register_bottom_text">Already have account? Login</string>
     <string name="alternative_login">Or</string>
+    <string name="default_web_client_id">113904399220611091178</string>
+
 </resources>
