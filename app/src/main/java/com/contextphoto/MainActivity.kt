@@ -12,7 +12,17 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -27,11 +37,26 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.Bottom
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -55,9 +80,6 @@ import com.contextphoto.ui.screen.PicturesScreen
 import com.contextphoto.ui.screen.SearchPhotoScreen
 import com.contextphoto.ui.screen.SettingsScreen
 import com.contextphoto.ui.theme.ContextPhotoTheme
-import com.contextphoto.utils.FunctionsApp.firebaseFirestoreDatabaseTest
-import com.contextphoto.utils.FunctionsApp.firebasePasswordAuth
-import com.contextphoto.utils.FunctionsApp.firebaseRealTimeDatabaseTest
 import dagger.hilt.android.AndroidEntryPoint
 
 // Виды todo
@@ -208,7 +230,8 @@ class MainActivity() : ComponentActivity() {
 fun ShowBottomMenu(
     currentDestination: String,
     mediaViewModel: MediaViewModel = hiltViewModel(),
-    fullScreenViewModel: FullscreenViewModel = hiltViewModel()
+    fullScreenViewModel: FullscreenViewModel = hiltViewModel(),
+    commentText: String? = null,
 ) {
 
     when (currentDestination) {
@@ -219,7 +242,9 @@ fun ShowBottomMenu(
         }
 
         Destination.FULLSCREENIMG.route -> {
-            FunBottomMenu(fullScreenViewModel.bottomMenuFullScreenVisible.collectAsStateWithLifecycle().value,
+            val visible = fullScreenViewModel.bottomMenuFullScreenVisible.collectAsStateWithLifecycle().value
+            if (commentText != null) InfinityScrollableText(visible, commentText, { fullScreenViewModel.changeStateBottomMenuFullScreen() })
+            FunBottomMenu(visible,
                 { BottomMenuFullScreen(fullScreenViewModel) }
             )
         }
@@ -249,6 +274,59 @@ fun FunBottomMenu(visible: Boolean,
         bootmFun()
     }
 }
+
+@Composable
+fun InfinityScrollableText(
+    visible: Boolean,
+    commentText: String,
+    onClick: () -> Unit)
+{
+    val freeSpace = 167
+    val brush = Brush.verticalGradient(listOf(colorResource(R.color.medium_transparant_black), colorResource(R.color.dark_black_overlay), Color.Black))
+    val offsetX = remember { mutableStateOf(0f) }
+    val offsetY = remember { mutableStateOf(0f) }
+    var size by remember { mutableStateOf(Size.Zero) }
+    Column(modifier = Modifier.fillMaxHeight().alpha(alpha = if (visible) 1f else 0f),
+        verticalArrangement = Arrangement.Bottom) {
+
+        println(offsetY.value)
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight(unbounded=true, align = Bottom)
+            .onSizeChanged { size = it.toSize() }
+            .background(brush)
+            .pointerInput(Unit) {
+                detectDragGestures { _, dragAmount ->
+                    val original = Offset(offsetX.value, offsetY.value)
+                    val summed = original + dragAmount
+                    val newValue =
+                        Offset(
+                            x = summed.x.coerceIn(0f, size.width),
+                            y = (original.y-dragAmount.y/3.3f).coerceIn(0f, Constraints.Infinity.toFloat()),
+                        )
+                    offsetX.value = newValue.x
+                    offsetY.value = newValue.y
+                }
+            }
+            .clickable(onClick = {
+                onClick()
+                offsetY.value = 0f
+            })
+            .height(freeSpace.dp+offsetY.value.dp),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            Text(text = commentText, modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp)
+                    .height(freeSpace.dp+offsetY.value.dp),
+                color = Color.White,
+            )
+        }
+    }
+
+}
+
 
 @Composable
 fun AppNavHost(

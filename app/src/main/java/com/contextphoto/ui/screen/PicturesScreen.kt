@@ -1,13 +1,20 @@
 package com.contextphoto.ui.screen
 
-import android.app.Activity
-import android.content.pm.ActivityInfo
 import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material.Scaffold
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -26,9 +33,52 @@ import com.contextphoto.utils.FunctionsBitmap.md5
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
 
 @Composable // TODO fixme При закрытии экрана и быстром нажатии на место где была картинка - открывается картинка, хотя на экране её уже нет
 fun PicturesScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+    bID: String,
+    mediaViewModel: MediaViewModel = hiltViewModel(),
+) {
+    val context = LocalContext.current
+    val db = CommentDatabase.getDatabse(context).commentDao()
+    val haveComment = rememberSaveable { mutableStateOf(false) }
+    //mediaViewModel.loadPictureList(albumBid)
+    mediaViewModel.loadPictureList(bID)
+    val listMedia by mediaViewModel.listMedia.collectAsStateWithLifecycle()
+    Log.d("Pictures", listMedia.toString())
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        modifier = modifier
+    ) {
+        items(items = listMedia) { media ->
+            LaunchedEffect(Unit) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    haveComment.value = (db.findImageByHash(md5(media.thumbnail))?.image_comment ?: "") != ""
+                    Log.d("commentTag", db.findImageByHash(md5(media.thumbnail))?.image_comment?:"")
+                }
+            }
+
+            PictureItem(
+                listMedia.indexOf(media),
+                media,
+                Modifier.padding(1.dp),
+                onItemClick = { navController.navigate(Destination.FULLSCREENIMG.route + "/${bID}/${listMedia.indexOf(media)}") },
+                mediaViewModel,
+                haveComment.value
+
+            )
+        }
+    }
+    ShowBottomMenu(Destination.PICTURES.route, mediaViewModel =  mediaViewModel)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PicturesScreenWithScaffold(
     modifier: Modifier = Modifier,
     navController: NavController,
     bID: String,
@@ -42,24 +92,48 @@ fun PicturesScreen(
     val listMedia by mediaViewModel.listMedia.collectAsStateWithLifecycle()
     Log.d("Pictures", listMedia.toString())
 
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
-        modifier = modifier
-    ) {
-        items(items = listMedia) { media ->
-            CoroutineScope(Dispatchers.IO).launch {
-                db.findImageByHash(md5(media.thumbnail))?.image_comment != ""
-            }
-            PictureItem(
-                listMedia.indexOf(media),
-                media,
-                Modifier.padding(1.dp),
-                onItemClick = { navController.navigate(Destination.FULLSCREENIMG.route + "/${bID}/${listMedia.indexOf(media)}") },
-                mediaViewModel,
-                true
-
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        File(listMedia[0].path).nameWithoutExtension
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = {
+                        navController.navigateUp()
+                    }) {
+                        Icon(
+                            Icons.Default.ArrowBack, // Кнопка назад
+                            contentDescription = null,
+                        )
+                    }
+                },
             )
+        },
+        content = { paddingValues ->
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                modifier = modifier.padding(paddingValues)
+            ) {
+                items(items = listMedia) { media ->
+                    CoroutineScope(Dispatchers.IO).launch {
+                        db.findImageByHash(md5(media.thumbnail))?.image_comment != ""
+                    }
+                    PictureItem(
+                        listMedia.indexOf(media),
+                        media,
+                        Modifier.padding(1.dp),
+                        onItemClick = { navController.navigate(Destination.FULLSCREENIMG.route + "/${bID}/${listMedia.indexOf(media)}") },
+                        mediaViewModel,
+                        true
+
+                    )
+                }
+            }
+            ShowBottomMenu(Destination.PICTURES.route, mediaViewModel =  mediaViewModel)
         }
-    }
-    ShowBottomMenu(Destination.PICTURES.route, mediaViewModel =  mediaViewModel)
+    )
+
 }

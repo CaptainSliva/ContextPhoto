@@ -1,6 +1,8 @@
 package com.contextphoto.data
 
 import android.R.attr.name
+import android.R.attr.password
+import com.contextphoto.db.Comment
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
@@ -20,7 +22,18 @@ class FireBaseSource @Inject constructor(private val firebaseAuth: FirebaseAuth,
         GoogleAuthProvider.getCredential(acct.idToken,null))
 
     fun fetchUser()=firestore.collection("users").get()
+
+    fun saveComments(uId: String, comments: List<Comment>) {
+        comments.forEach {
+            firestore.collection("comments").document(uId).set(it)
+        }
+    }
+
+    fun deleteComments(uId: String) {
+        firestore.collection("comments").document(uId).delete()
+    }
 }
+
 
 data class User(
     val email: String,
