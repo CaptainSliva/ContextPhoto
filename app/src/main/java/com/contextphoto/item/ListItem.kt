@@ -113,53 +113,47 @@ import com.contextphoto.utils.FunctionsBitmap.md5
             )
             )
         {
-            Image(bitmap = picture.thumbnail.asImageBitmap(), contentDescription = null,
+            Image(
+                bitmap = picture.thumbnail.asImageBitmap(), contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.aspectRatio(1f/1f))
+                modifier = Modifier.aspectRatio(1f / 1f)
+            )
 
-            Column(modifier = Modifier.fillMaxSize().padding(4.dp),
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.Top,) {
-                Icon(
-                    painter = painterResource(R.drawable.text),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp).alpha(if (haveComment) 1f else 0f),
-                    tint = Color.White
+            Icon(
+                painter = painterResource(R.drawable.text),
+                contentDescription = null,
+                modifier = Modifier.size(26.dp).alpha(if (haveComment) 1f else 0f).padding(4.dp),
+                tint = Color.White
+            )
+
+            Row(
+                modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            )
+            {
+                Text(
+                    text = picture.duration,
+                    modifier = Modifier.padding(start = 8.dp),
+                    color = colorResource(R.color.white)
                 )
-            }
-
-            Column(modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Bottom) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Bottom
+                Checkbox(
+                    checked = picture in listSelectedMedia,
+                    onCheckedChange =
+                        {
+                            if (picture !in listSelectedMedia) mediaViewModel.selectMedia(
+                                picture
+                            )
+                            else mediaViewModel.removeSelectMedia(picture)
+                        },
+                    modifier = Modifier.alpha(if (checkboxVisible.value) 1f else 0f)
+                        //.border(1.dp, color = Color.White, shape = RoundedCornerShape(20)),
                 )
-                {
-                    Text(
-                        text = picture.duration,
-                        modifier = Modifier.padding(8.dp, 0.dp, 0.dp, 0.dp),
-                        color = colorResource(R.color.white)
-                    )
-                    Checkbox(
-                        checked = picture in listSelectedMedia,
-                        onCheckedChange =
-                            {
-                                if (picture !in listSelectedMedia) mediaViewModel.selectMedia(
-                                    picture
-                                )
-                                else mediaViewModel.removeSelectMedia(picture)
-                            },
-                        modifier = Modifier.alpha(if (checkboxVisible.value) 1f else 0f)
-                            //.border(1.dp, color = Color.White, shape = RoundedCornerShape(20)),
-                    )
 
-                    if (checkboxVisible.value) {
-                        println("check")
-                    } else {
-                        println("UNcheck")
-                    }
+                if (checkboxVisible.value) {
+                    println("check")
+                } else {
+                    println("UNcheck")
                 }
             }
 

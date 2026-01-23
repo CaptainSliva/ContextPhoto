@@ -1,6 +1,6 @@
 package com.contextphoto.utils
 
-import android.R.attr.path
+import android.R.attr.type
 import android.app.Activity
 import android.app.RecoverableSecurityException
 import android.content.ContentUris
@@ -11,7 +11,6 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import androidx.core.app.ActivityCompat.startIntentSenderForResult
 import com.contextphoto.data.Album
 import com.contextphoto.data.PERMISSION_DELETE_REQUEST_CODE
 import com.contextphoto.data.Picture
@@ -26,6 +25,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jakarta.inject.Singleton
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -480,5 +482,37 @@ object FunctionsMediaStore {
         }
 
         return mediaFiles[0]
+    }
+
+    fun getImageDate(
+        context: Context,
+        path: String,
+    ): List<String> { // TODO можно любые парметры даостать, если в projection их указать
+        val contentUri = MediaStore.Files.getContentUri("external")
+        val projection = arrayOf(
+            MediaStore.MediaColumns.DATE_ADDED,
+            )
+        val selection = "${MediaStore.MediaColumns.DATA} = ?"
+        val selectionArgs = arrayOf(path)
+
+        val cursor =
+            context.contentResolver.query(
+                contentUri,
+                projection,
+                selection,
+                selectionArgs,
+                null,
+            )
+        var datePhoto = ""
+        val dateFormat = SimpleDateFormat("d MMMM yyyy\nHH:mm:ss", Locale("ru"))
+        cursor?.use { cursor ->
+            val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
+            if (cursor.moveToFirst()) {
+                val dateAdded = cursor.getLong(dateAddedColumn)
+                datePhoto =  dateFormat.format(Date(dateAdded * 1000)).toString()
+            }
+        }
+
+        return datePhoto.split("\n")
     }
 }
