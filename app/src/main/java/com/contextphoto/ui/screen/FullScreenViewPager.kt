@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -54,8 +55,11 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -71,6 +75,7 @@ import com.contextphoto.item.ImageUI
 import com.contextphoto.item.VideoUI
 import com.contextphoto.ui.FullscreenViewModel
 import com.contextphoto.utils.FunctionsBitmap.md5
+import com.contextphoto.utils.FunctionsMediaStore.getImageDate
 import com.contextphoto.utils.FunctionsUri.convertUri
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -159,16 +164,25 @@ fun FullScreenViewPagerWithScaffold(
     val listMedia by fullScreenViewModel.listMedia.collectAsStateWithLifecycle()
     val mediaPosotion by fullScreenViewModel.mediaPosition.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(initialPage = mediaPosotion, pageCount = { listMedia.size })
-    val commentText = rememberSaveable {mutableStateOf("")}
+    val commentText = rememberSaveable {mutableStateOf<String?>(null)}
 
     Log.d("POSITION page", mediaPosotion.toString())
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        File(listMedia[mediaPosotion].path).nameWithoutExtension
-                    )
+                    Column {
+                        val dateInfoList = getImageDate(LocalContext.current, listMedia[mediaPosotion].path)
+                        Text(
+                            dateInfoList[0],
+                            fontSize = 20.sp
+                        )
+                        Text(
+                            dateInfoList[1],
+                            fontSize = 13.sp
+                        )
+                    }
+
                 },
                 navigationIcon = {
                     IconButton(onClick = {
@@ -200,7 +214,7 @@ fun FullScreenViewPagerWithScaffold(
                     }
                     LaunchedEffect(page) {
                         coroutineScope.launch {
-                            commentText.value = db.findImageByHash(md5(media.thumbnail))?.image_comment?:""
+                            commentText.value = db.findImageByHash(md5(media.thumbnail))?.image_comment
                         }
                     }
                 }

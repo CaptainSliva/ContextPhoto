@@ -75,8 +75,11 @@ import com.contextphoto.menu.MainDropdownMenu
 import com.contextphoto.ui.FullscreenViewModel
 import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.ui.screen.AlbumsScreen
+import com.contextphoto.ui.screen.AlbumsScreenWithScaffold
 import com.contextphoto.ui.screen.FullScreenViewPager
+import com.contextphoto.ui.screen.FullScreenViewPagerWithScaffold
 import com.contextphoto.ui.screen.PicturesScreen
+import com.contextphoto.ui.screen.PicturesScreenWithScaffold
 import com.contextphoto.ui.screen.SearchPhotoScreen
 import com.contextphoto.ui.screen.SettingsScreen
 import com.contextphoto.ui.theme.ContextPhotoTheme
@@ -99,7 +102,6 @@ class MainActivity() : ComponentActivity() {
             val activity = context as Activity
             var orientation = rememberSaveable { mutableStateOf(activity.requestedOrientation) }
             //var selectedDestination by rememberSaveable { mutableIntStateOf(startDestination.ordinal) }
-            val createAlbumDialogVisible = rememberSaveable { mutableStateOf(false) }
             //val albumViewModel = hiltViewModel<AlbumViewModel>()
             //val mediaViewModel = hiltViewModel<MediaViewModel>()
 
@@ -110,44 +112,6 @@ class MainActivity() : ComponentActivity() {
 
             ContextPhotoTheme {
                 Scaffold(
-                    topBar = {
-                        TopAppBar(
-                            title = {
-                                Text(
-                                    when{
-                                        navController.currentBackStackEntryAsState().value?.destination?.route.toString().contains(Destination.ALBUMS.route) -> Destination.ALBUMS.label
-                                        navController.currentBackStackEntryAsState().value?.destination?.route.toString().contains(Destination.PICTURES.route) -> Destination.PICTURES.label
-                                        navController.currentBackStackEntryAsState().value?.destination?.route.toString().contains(Destination.FULLSCREENIMG.route) -> Destination.FULLSCREENIMG.label
-                                        navController.currentBackStackEntryAsState().value?.destination?.route.toString().contains(Destination.SEARCH_PHOTO.route) -> Destination.SEARCH_PHOTO.label
-                                        navController.currentBackStackEntryAsState().value?.destination?.route.toString().contains(Destination.SETTINGS.route) -> Destination.SETTINGS.label
-                                        else -> {
-                                            println("NAV - ${navController.currentBackStackEntryAsState().value?.destination?.route.toString()}")
-                                            "error in MainActivity TopAppBar"
-                                        }
-                                    },
-                                )
-                            },
-//                            title = {Text(startDestination.label)},
-                            navigationIcon = {
-                                IconButton(onClick = {
-                                    navController.navigateUp()
-                                    if (activity.requestedOrientation != orientation.value) { // TODO fixme не работает
-                                        if (orientation.value == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
-                                            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-                                        }
-                                        if (orientation.value == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
-                                            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                                        }
-                                    }
-                                }) {
-                                    Icon(
-                                        Icons.Default.ArrowBack, // Кнопка назад
-                                        contentDescription = null,
-                                    )
-                                }
-                            },
-                        )
-                    },
                     bottomBar = {
                         val currentDestination =
                             navController
@@ -193,31 +157,31 @@ class MainActivity() : ComponentActivity() {
                             }
                         }
                     },
-                    floatingActionButton = {
-                        AnimatedVisibility(
-                            visible = navController.currentBackStackEntryAsState().value?.destination?.route == Destination.ALBUMS.route,
-                            enter = fadeIn(),
-                            exit = fadeOut(),
-                        ) {
-                            FloatingActionButton(onClick = {
-                                createAlbumDialogVisible.value = true
-                            }) {
-                                Icon(
-                                    Icons.Default.Add,
-                                    contentDescription = null,
-                                )
-                            }
-                        }
-                    },
+//                    floatingActionButton = {
+//                        AnimatedVisibility(
+//                            visible = navController.currentBackStackEntryAsState().value?.destination?.route == Destination.ALBUMS.route,
+//                            enter = fadeIn(),
+//                            exit = fadeOut(),
+//                        ) {
+//                            FloatingActionButton(onClick = {
+//                                createAlbumDialogVisible.value = true
+//                            }) {
+//                                Icon(
+//                                    Icons.Default.Add,
+//                                    contentDescription = null,
+//                                )
+//                            }
+//                        }
+//                    },
                     content = { paddingValues ->
                         AppNavHost(
                             navController,
                             startDestination,
                             modifier = Modifier.padding(paddingValues)
                         )
-                        if (createAlbumDialogVisible.value) {
-                            CreateAlbumDialog({}, createAlbumDialogVisible)
-                        }
+//                        if (createAlbumDialogVisible.value) {
+//                            CreateAlbumDialog({}, createAlbumDialogVisible)
+//                        }
                     },
                 )
                 MainDropdownMenu(navController)
@@ -339,12 +303,12 @@ fun AppNavHost(
         startDestination = startDestination.route,
     ) {
         composable(Destination.ALBUMS.route) {
-            AlbumsScreen(modifier, navController)
+            AlbumsScreenWithScaffold(modifier, navController)
         }
 
         composable(Destination.PICTURES.route + "/{bID}") { stackEntry ->
             val bID = stackEntry.arguments?.getString("bID").toString()
-            PicturesScreen(modifier, navController, bID)
+            PicturesScreenWithScaffold(modifier, navController, bID)
         } // TODO fixme нижнее меню перекрывает часть картинок, как-то надо на его высоту картинки приподнять
 
         composable(Destination.FULLSCREENIMG.route + "/{bID}/{mediaPosition}",
@@ -354,7 +318,7 @@ fun AppNavHost(
             )) { stackEntry ->
             val bID = stackEntry.arguments?.getString("bID").toString()
             val mediaPosition = stackEntry.arguments?.getInt("mediaPosition")
-            FullScreenViewPager(modifier, navController, bID, mediaPosition!!)
+            FullScreenViewPagerWithScaffold(modifier, navController, bID, mediaPosition!!)
         }
 
         composable(Destination.SEARCH_PHOTO.route) {

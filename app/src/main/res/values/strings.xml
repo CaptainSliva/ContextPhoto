@@ -32,16 +32,16 @@
     <string name="move">Переместить</string>
     <string name="to_album">В альбом</string>
     <string name="rotate">Повернуть</string>
-    <string name="login">Register</string>
-    <string name="register"></string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
 
     <!-- Заголовки -->
     <string name="require_permissions_title">Требуются разрешения</string>
     <string name="album_name_title">Имя альбома</string>
     <string name="add_comment_title">Добавить комментарий</string>
     <string name="add_photo_dialog_title">Добавление фото</string>
-    <string name="login_title"></string>
-    <string name="register_title"></string>
+    <string name="login_title">ЛОГИН</string>
+    <string name="register_title">РЕГИСТРАЦИЯ</string>
 
     <!-- Подписи -->
     <string name="rename_album_text">Переименование альбома</string>

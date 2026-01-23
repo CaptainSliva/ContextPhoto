@@ -56,6 +56,7 @@ import kotlin.collections.isNotEmpty
 import kotlin.collections.map
 import androidx.navigation.NavController
 import com.contextphoto.data.Destination
+import com.contextphoto.dialog.ChooseAlbumDialog
 import com.contextphoto.dialog.DeleteMediaDialog
 import com.contextphoto.ui.FullscreenViewModel
 
@@ -155,21 +156,21 @@ fun BottomMenuPictureScreen(mediaViewModel: MediaViewModel) {
     val toAlbumDialogVisible = rememberSaveable { mutableStateOf(false) }
     val commentateDialogVisible = rememberSaveable { mutableStateOf(false) }
     val deleteDialogVisible = rememberSaveable { mutableStateOf(false) }
-    val listMedia by mediaViewModel.listSelectedMedia.collectAsStateWithLifecycle()
+    val listSelectedMedia by mediaViewModel.listSelectedMedia.collectAsStateWithLifecycle()
 
     AnimatedVisibility(
         visible = toAlbumDialogVisible.value,
         enter = slideInVertically(),
         exit = slideOutVertically(),
     ) {
-
+        ChooseAlbumDialog({}, toAlbumDialogVisible, listSelectedMedia)
     }
     AnimatedVisibility(
         visible = commentateDialogVisible.value,
         enter = slideInVertically(),
         exit = slideOutVertically(),
     ) {
-        CommentateDialog({}, commentateDialogVisible, listMedia)
+        CommentateDialog({}, commentateDialogVisible, listSelectedMedia)
     }
     AnimatedVisibility(
         visible = deleteDialogVisible.value,
@@ -193,9 +194,9 @@ fun BottomMenuPictureScreen(mediaViewModel: MediaViewModel) {
                     .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
         ) {
-            ButtonShare(listMedia)
-            ButtonToAlbum(listMedia, toAlbumDialogVisible)
-            ButtonCommentate(listMedia, commentateDialogVisible)
+            ButtonShare(listSelectedMedia)
+            ButtonToAlbum(listSelectedMedia, toAlbumDialogVisible)
+            ButtonCommentate(listSelectedMedia, commentateDialogVisible)
             ButtonDelete(deleteDialogVisible, mediaViewModel)
         }
     }
@@ -306,7 +307,6 @@ fun ButtonCommentate(listSelectedMedia: List<Picture>, commentateDialogVisible: 
                 .padding(8.dp, 16.dp)
                 .clickable(
                     onClick = {
-                        //TODO fixme ("Запись комментария в БД"), после записи должно меню пропадать
                         commentateDialogVisible.value = true
                     }
                 ),
@@ -328,7 +328,7 @@ fun ButtonCommentate(listSelectedMedia: List<Picture>, commentateDialogVisible: 
 @Composable
 fun ButtonDelete(deleteDialogVisible: MutableState<Boolean>, mediaViewModel: MediaViewModel) {
     val context = LocalContext.current
-    Column( // TODO fixme со второго раза удаляет + у всех функций которые дублирует и список картинок и большая картинка нужно сделать проверку на listSelectedMsedia.isEmpty, и если пустой, тогда уже брать не его, а фотку по позиции
+    Column(
         modifier =
             Modifier
                 .padding(8.dp, 16.dp)
@@ -419,7 +419,6 @@ fun ButtonToAlbum(listSelectedMedia: List<Picture>, toAlbumDialogVisible: Mutabl
             .padding(8.dp, 16.dp)
             .clickable(
                 onClick = {
-                    TODO("Запуск экрана со списком альбомов, в нём выбирается один альбом, вызывается диалог копировать/переместить и пользователя возвращаю на экран с фотками в котором он был")
                     toAlbumDialogVisible.value = true
                 }
             ),

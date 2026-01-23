@@ -78,31 +78,6 @@ object FunctionsUri {
         }
     }
 
-    fun getImageDeleteUri(
-        context: Context,
-        path: String,
-    ): Uri? { // TODO можно любые парметры даостать, если в projection их указать
-        val cursor =
-            context.contentResolver.query(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                arrayOf(MediaStore.Images.Media._ID),
-                MediaStore.Images.Media.DATA + " = ?",
-                arrayOf(path),
-                null,
-            )
-        val uri =
-            if (cursor != null && cursor.moveToFirst()) {
-                ContentUris.withAppendedId(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)),
-                )
-            } else {
-                null
-            }
-        cursor?.close()
-        return uri
-    }
-
     fun convertUri(
         path: String,
         uri: Uri,

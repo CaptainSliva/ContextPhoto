@@ -4,14 +4,21 @@ import android.R.attr.orientation
 import android.content.pm.ActivityInfo
 import android.util.Log
 import android.view.View
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -19,7 +26,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -31,8 +42,10 @@ import com.contextphoto.data.AlbumCache
 import com.contextphoto.item.AlbumItem
 import com.contextphoto.ui.AlbumViewModel
 import com.contextphoto.data.Destination
+import com.contextphoto.dialog.CreateAlbumDialog
 import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.utils.FunctionsMediaStore.getListAlbums
+import com.google.common.math.Quantiles.scale
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -69,13 +82,14 @@ fun AlbumsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AlbumScreenWithScaffold(
+fun AlbumsScreenWithScaffold(
     modifier: Modifier = Modifier,
     navController: NavController,
     albumViewModel: AlbumViewModel = hiltViewModel()
 ) {
     albumViewModel.loadAlbumList()
     val albumList by albumViewModel.albumList.collectAsStateWithLifecycle()
+    val createAlbumDialogVisible = rememberSaveable { mutableStateOf(false) }
     Log.d("Albums", albumList.toString())
 
     Scaffold(
@@ -86,17 +100,34 @@ fun AlbumScreenWithScaffold(
                         Destination.ALBUMS.label
                     )
                 },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        navController.navigateUp()
-                    }) {
-                        Icon(
-                            Icons.Default.ArrowBack, // Кнопка назад
-                            contentDescription = null,
-                        )
-                    }
-                },
+//                navigationIcon = {
+//                    IconButton(onClick = {
+//                        navController.navigateUp()
+//                    }) {
+//                        Icon(
+//                            Icons.Default.ArrowBack, // Кнопка назад
+//                            contentDescription = null,
+//                        )
+//                    }
+//                },
             )
+        },
+        floatingActionButton = {
+            AnimatedVisibility(
+                visible = true,
+                enter = fadeIn(),
+                exit = fadeOut(),
+            ) {
+                FloatingActionButton(modifier = Modifier.padding(bottom = 80.dp),
+                    onClick = {
+                    createAlbumDialogVisible.value = true
+                }) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = null,
+                    )
+                }
+            }
         },
         content = { paddingValues ->
             LazyVerticalGrid(
@@ -113,6 +144,10 @@ fun AlbumScreenWithScaffold(
                         albumViewModel
                     )
                 }
+            }
+
+            if (createAlbumDialogVisible.value) {
+                CreateAlbumDialog({}, createAlbumDialogVisible, albumViewModel)
             }
         }
     )
