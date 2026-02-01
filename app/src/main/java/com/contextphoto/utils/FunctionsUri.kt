@@ -55,7 +55,7 @@ object FunctionsUri {
         }
     }
 
-    private fun getFileExtension(
+    private inline fun getFileExtension(
         context: Context,
         uri: Uri,
     ): String {
@@ -78,7 +78,7 @@ object FunctionsUri {
         }
     }
 
-    fun convertUri(
+    inline fun convertUri(
         path: String,
         uri: Uri,
     ): Uri =

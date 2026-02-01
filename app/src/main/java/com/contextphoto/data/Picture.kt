@@ -10,5 +10,6 @@ data class Picture(
     val path: String,
     val thumbnail: Bitmap,
     val duration: String,
-    var checked: Boolean
+    var checked: Boolean,
+    var haveComment: Boolean
 )

@@ -2,7 +2,6 @@ package com.contextphoto.dialog
 
 import android.app.Activity
 import android.net.Uri
-import android.opengl.Visibility
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.LocalActivity
@@ -12,24 +11,19 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -41,36 +35,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.contextphoto.FunBottomMenu
 import com.contextphoto.R
 import com.contextphoto.data.Album
 import com.contextphoto.data.Destination
 import com.contextphoto.data.Picture
 import com.contextphoto.db.Comment
 import com.contextphoto.db.CommentDatabase
-import com.contextphoto.menu.BottomMenuFullScreen
-import com.contextphoto.menu.BottomMenuPictureScreen
-import com.contextphoto.menu.PopupMenuAlbumScreen
 import com.contextphoto.ui.AlbumViewModel
 import com.contextphoto.ui.FullscreenViewModel
 import com.contextphoto.ui.MediaViewModel
@@ -85,13 +71,10 @@ import com.contextphoto.utils.FunctionsMediaStore.copyMediaToAlbum
 import com.contextphoto.utils.FunctionsMediaStore.deleteMediaFile
 import com.contextphoto.utils.FunctionsMediaStore.getNewAlbum
 import com.contextphoto.utils.FunctionsUri.handleSelectedMedia
-import com.google.common.collect.Multimaps.index
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import kotlin.collections.forEach
-import kotlin.collections.isNotEmpty
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -131,7 +114,7 @@ fun CreateAlbumDialog(
         enter = slideInVertically(),
         exit = slideOutVertically(),
     ) {
-        CopyMoveDialog(onDismissRequest, mutableState, listUri!!, albumName, {}, showCopyMoveDialog, albumViewModel, true)
+        CopyMoveDialog(onDismissRequest, mutableState, listUri!!, albumName, {}, showCopyMoveDialog, createAlbum = true)
     }
 
     ModalBottomSheet(
@@ -193,13 +176,18 @@ fun CopyMoveDialog(
     albumName: String,
     onDismissRequest: () -> Unit,
     mutableState: MutableState<Boolean>,
-    albumViewModel: AlbumViewModel,
-    createAlbum: Boolean = false
+    albumViewModel: AlbumViewModel = hiltViewModel(),
+    createAlbum: Boolean = false,
+    fromAlbumBid: String = "",
+    toAlbumBId: String = "",
+    mediaViewModel: MediaViewModel = hiltViewModel(),
     ) {
     val context = LocalContext.current
     val activity = LocalActivity.current!!
     val modifier = Modifier.fillMaxWidth()
     var findNewAlbumFlag = false
+    val coroutineScope = rememberCoroutineScope()
+
 
 //    LaunchedEffect({}) {
 //        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
@@ -225,30 +213,39 @@ fun CopyMoveDialog(
             Text(text = LocalContext.current.getString(R.string.to_album))
             Button(
                 onClick = {
-                    listUri.forEach {
-                        if (copyMediaToAlbum(context, it, albumName)) {
-                            if (it == listUri[listUri.size - 1]) {
-                                if (albumName in albumList.map { it.name } && createAlbum) {
-                                    Toast.makeText(
-                                        context,
-                                        "Альбом \"$albumName\" уже создан",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                    coroutineScope.launch {
+
+                        if (createAlbum) {
+                            listUri.forEach {
+                                if (copyMediaToAlbum(context, it, albumName)) {
+                                    if (it == listUri[listUri.size - 1]) {
+                                        if (albumName in albumList.map { it.name } && createAlbum) {
+                                            Toast.makeText(
+                                                context,
+                                                "Альбом \"$albumName\" уже создан",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    } else {
+                                        Log.i("NEWNAME", "$albumName")
+                                        findNewAlbumFlag = true
+                                    }
+                                } else {
+                                    Toast.makeText(context, "IO ex ${it.path}", Toast.LENGTH_SHORT)
+                                        .show()
                                 }
                             }
-                            else {
-                                Log.i("NEWNAME", "$albumName")
-                                findNewAlbumFlag = true
-                            }
+                            if (findNewAlbumFlag) getNewAlbum(context, albumName, albumViewModel)
                         } else {
-                            Toast.makeText(context, "IO ex ${it.path}", Toast.LENGTH_SHORT).show()
+                            listUri.forEach { copyMediaToAlbum(context, it, albumName) }
+                            mediaViewModel.copyMediaToAlbum(toAlbumBId, listUri.size - 1)
                         }
+
+                        mutableState.value = false
+                        onDismissRequest()
+                        createAlbumState.value = false
+                        createAlbumDismiss()
                     }
-                    if (findNewAlbumFlag) getNewAlbum(context, albumName, albumViewModel)
-                    mutableState.value = false
-                    onDismissRequest()
-                    createAlbumState.value = false
-                    createAlbumDismiss()
                 },
                 modifier = modifier,
             ) {
@@ -256,33 +253,50 @@ fun CopyMoveDialog(
             }
             Button(
                 onClick = {
-                    listUri.forEach {
-                        val result = moveMediaToAlbum(context, activity,it, albumName)
-                        if (result == "Complete") {
-                            if (it == listUri[listUri.size - 1]) {
-                                if (albumName in albumList.map { it.name } && createAlbum) {
+                    coroutineScope.launch {
+
+                        if (createAlbum) {
+                            listUri.forEach {
+                                val result = moveMediaToAlbum(context, activity, it, albumName)
+                                if (result == "Complete") {
+                                    if (it == listUri[listUri.size - 1]) {
+                                        if (albumName in albumList.map { it.name }) {
+                                            Toast.makeText(
+                                                context,
+                                                "Альбом \"$albumName\" уже создан",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        } else {
+                                            Log.i("NEWNAME", "$albumName")
+                                            findNewAlbumFlag = true
+                                        }
+                                    }
+                                } else if (result == "NoDelete") {
                                     Toast.makeText(
                                         context,
-                                        "Альбом \"$albumName\" уже создан",
+                                        context.getString(R.string.cant_move),
                                         Toast.LENGTH_SHORT
                                     ).show()
-                                }
-                                else {
-                                    Log.i("NEWNAME", "$albumName")
-                                    findNewAlbumFlag = true
+                                } else {
+                                    Toast.makeText(context, "IO ex ${it.path}", Toast.LENGTH_SHORT)
+                                        .show()
                                 }
                             }
-                        } else if (result == "NoDelete") {
-                            Toast.makeText(context, context.getString(R.string.cant_move), Toast.LENGTH_SHORT).show()
+                            if (findNewAlbumFlag) getNewAlbum(context, albumName, albumViewModel)
                         } else {
-                            Toast.makeText(context, "IO ex ${it.path}", Toast.LENGTH_SHORT).show()
+                            listUri.forEach { moveMediaToAlbum(context, activity, it, albumName) }
+                            mediaViewModel.moveMediaToAlbum(
+                                toAlbumBId,
+                                fromAlbumBid,
+                                listUri.size - 1
+                            )
                         }
+
+                        mutableState.value = false
+                        onDismissRequest()
+                        createAlbumState.value = false
+                        createAlbumDismiss()
                     }
-                    if (findNewAlbumFlag) getNewAlbum(context, albumName, albumViewModel)
-                    mutableState.value = false
-                    onDismissRequest()
-                    createAlbumState.value = false
-                    createAlbumDismiss()
                 },
                 modifier = modifier,
             ) {
@@ -314,10 +328,10 @@ fun ChooseAlbumDialog(
     listSelectedMedia: List<Picture>,
     albumViewModel: AlbumViewModel = hiltViewModel()
 ) {
-    albumViewModel.loadAlbumList()
+    albumViewModel.getAlbumList()
     val albumList by albumViewModel.albumList.collectAsStateWithLifecycle()
-    val albumName by rememberSaveable { mutableStateOf("") }
-    val showCopyMoveDialog = rememberSaveable { mutableStateOf(false) }
+    var selectAlbum by remember { mutableStateOf<Album?>(null) }
+    val showCopyMoveDialog = remember { mutableStateOf(false) }
 
     Log.d("TAG_LIST", albumList.toString())
     Dialog(
@@ -336,10 +350,12 @@ fun ChooseAlbumDialog(
                 items(items = albumList) { album ->
                     Box(
                         modifier = Modifier
+                            .fillMaxWidth()
                             .padding(bottom = 3.dp)
                             .clickable(
                                 onClick = {
                                     showCopyMoveDialog.value = true
+                                    selectAlbum = album
                                     // TODO fixme не копируются фотки в альбомы созданные не мной
                                 }
                             )
@@ -366,15 +382,15 @@ fun ChooseAlbumDialog(
             }
         }
     }
-
     AnimatedVisibility(visible = showCopyMoveDialog.value) {
         CopyMoveDialog(onDismissRequest,
             dialogVisibility,
             listSelectedMedia.map { it.uri },
-            albumName,
+            selectAlbum!!.name,
             {},
             showCopyMoveDialog,
-            albumViewModel
+            fromAlbumBid = listSelectedMedia[0].bID,
+            toAlbumBId = selectAlbum!!.bID
         )
     }
 }
@@ -442,6 +458,7 @@ fun DeleteMediaDialog(
     onDismissRequest: () -> Unit,
     mutableState: MutableState<Boolean>,
     currentDestination: String,
+    bID: String,
     mediaViewModel: MediaViewModel = hiltViewModel(),
     fullscreenViewModel: FullscreenViewModel = hiltViewModel()
 ) {
@@ -471,8 +488,9 @@ fun DeleteMediaDialog(
             Text(text = context.getString(R.string.delete))
             Button(
                 onClick = {
+                    mediaViewModel.deleteMediaFromAlbum(bID, listSelectedMedia.size)
                     when (currentDestination) {
-                        Destination.PICTURES.route -> {
+                        Destination.PICTURES().route -> {
                             listSelectedMedia.forEach {
                                 if (deleteMediaFile(context, activity, it.uri)) {
                                     mediaViewModel.deletePicture(it)
@@ -480,13 +498,31 @@ fun DeleteMediaDialog(
 
                             }
                         }
-                        Destination.FULLSCREENIMG.route -> {
+                        Destination.FULLSCREENIMG().route -> {
                             if (deleteMediaFile(context, activity, listMedia[pos].uri)) {
                                 fullscreenViewModel.deletePicture(listMedia[pos])
-                                fullscreenViewModel.resetPicturePosition()
+                                fullscreenViewModel.deleteActionChange()
+                                println("${listMedia.size}    ${pos}")
+                                when {
+                                    (listMedia.size-1 == pos) -> {
+                                        fullscreenViewModel.updateMediaPosition(pos-1)
+                                        println("ONEEEE")
+                                    }
+//                                    (pos == 0) -> {
+//                                        fullscreenViewModel.updateMediaPosition(pos)
+//                                        println("TNEEEE")
+//                                        println("${fullscreenViewModel.mediaPosition.value}")
+//                                    }
+//                                    else -> {
+//                                        fullscreenViewModel.updateMediaPosition(pos)
+//                                        println("FNEEEE")
+//                                        println("${fullscreenViewModel.mediaPosition.value}")
+//                                    }
+                                }
                             }
                         }
                     }
+
                     mutableState.value = false
                     onDismissRequest()
                 },
@@ -585,86 +621,78 @@ fun RenameAlbumDialog( // TODO fixme сделать обновление наз�
 fun CommentateDialog(
     onDismissRequest: () -> Unit,
     mutableState: MutableState<Boolean>,
-    listSelectedMedia: List<Picture>
-) { // TODO fixme со второго раза показывает текст комментария
+    media: Picture
+) {
     val context = LocalContext.current
     var commentText by rememberSaveable { mutableStateOf("") }
-    var commentTextField by rememberSaveable { mutableStateOf("") }
     val modifier = Modifier.fillMaxWidth()
-//    val MIGRATION_1_2 = object : Migration(1, 2) {
-//        override fun migrate(db: SupportSQLiteDatabase) {
-//            db.execSQL("ALTER TABLE User ADD COLUMN email TEXT")
-//        }
-//    }
-    //val db = Room.databaseBuilder(context, CommentDatabase::class.java, "comment_database").addMigrations(MIGRATION_1_2).build()
+
     val db = CommentDatabase.getDatabse(context).commentDao()
     println(commentText)
-    listSelectedMedia.forEach {
-        LaunchedEffect(Unit) {
-            CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-                commentText = db.findImageByHash(md5(getThumbnail(context, it.uri)))?.image_comment ?: ""
-                println("In coroutine $commentText")
-            }
+
+    LaunchedEffect(Unit) {
+        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            commentText = db.findImageByHash(md5(getThumbnail(context, media.uri)))?.image_comment ?: commentText
         }
+    }
 
 
-        ModalBottomSheet(
-            onDismissRequest =
-                {
+    ModalBottomSheet(
+        onDismissRequest =
+            {
+                mutableState.value = false
+                onDismissRequest()
+            },
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = modifier.verticalScroll(rememberScrollState()),
+        ) {
+            Text(text = context.getString(R.string.commentate))
+            Image(contentDescription = null, bitmap = media.thumbnail.asImageBitmap(), contentScale = ContentScale.Crop)
+            OutlinedTextField(
+                value = commentText,
+                onValueChange = { commentText = it },
+                label = { "Enter text" },
+                placeholder = { "Hello World" },
+                modifier = Modifier.fillMaxWidth(),
+
+            )
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Button(onClick = {
                     mutableState.value = false
                     onDismissRequest()
-                },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = modifier.verticalScroll(rememberScrollState()),
-            ) {
-                Text(text = context.getString(R.string.commentate))
-                Image(contentDescription = null, bitmap = it.thumbnail.asImageBitmap(), contentScale = ContentScale.Crop)
-                OutlinedTextField(
-                    value = commentText,
-                    onValueChange = { commentText = it },
-                    label = { "Enter text" },
-                    placeholder = { "Hello World" },
-                    modifier = Modifier.fillMaxWidth(),
+                }) {
+                    Text(
+                        text = context.getString(R.string.cancel),
+                        color = Color.Red,
+                    )
+                }
 
-                )
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Button(onClick = {
-                        mutableState.value = false
-                        onDismissRequest()
-                    }) {
-                        Text(
-                            text = context.getString(R.string.cancel),
-                            color = Color.Red,
-                        )
-                    }
-
-                    Button(onClick = {
-                        if (commentText.trim() != "") {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                db.addComment(
-                                    Comment(
-                                        0,
-                                        it.uri.toString(),
-                                        md5(getThumbnail(context, it.uri)),
-                                        commentText.trim()
-                                    )
+                Button(onClick = {
+                    if (commentText.trim() != "") {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            db.addComment(
+                                Comment(
+                                    0,
+                                    media.uri.toString(),
+                                    md5(getThumbnail(context, media.uri)),
+                                    commentText.trim()
                                 )
-                            }
-                        } // TODO fixme add вызывать диалог для каждой выбранной фотки, сюда передаются фотки уже по одной для отображения и комментирования
-                        mutableState.value = false
-                        onDismissRequest()
-                    }) {
-                        Text(
-                            text = LocalContext.current.getString(R.string.ok),
-                            color = Color.White,
-                        )
-                    }
+                            )
+                        }
+                    } // TODO fixme add вызывать диалог для каждой выбранной фотки, сюда передаются фотки уже по одной для отображения и комментирования
+                    mutableState.value = false
+                    onDismissRequest()
+                }) {
+                    Text(
+                        text = LocalContext.current.getString(R.string.ok),
+                        color = Color.White,
+                    )
                 }
             }
         }

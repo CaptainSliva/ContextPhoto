@@ -1,15 +1,12 @@
 package com.contextphoto
 
 import android.app.Activity
-import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -23,19 +20,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarDefaults
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -63,24 +50,19 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.contextphoto.RequestPermissions.ComposePermissions
 import com.contextphoto.data.Destination
-import com.contextphoto.dialog.CreateAlbumDialog
 import com.contextphoto.menu.BottomMenuFullScreen
 import com.contextphoto.menu.BottomMenuPictureScreen
 import com.contextphoto.menu.MainDropdownMenu
 import com.contextphoto.ui.FullscreenViewModel
 import com.contextphoto.ui.MediaViewModel
-import com.contextphoto.ui.screen.AlbumsScreen
 import com.contextphoto.ui.screen.AlbumsScreenWithScaffold
-import com.contextphoto.ui.screen.FullScreenViewPager
 import com.contextphoto.ui.screen.FullScreenViewPagerWithScaffold
-import com.contextphoto.ui.screen.PicturesScreen
 import com.contextphoto.ui.screen.PicturesScreenWithScaffold
-import com.contextphoto.ui.screen.SearchPhotoScreen
+import com.contextphoto.ui.screen.SearchPhotoScreenWithScaffold
 import com.contextphoto.ui.screen.SettingsScreen
 import com.contextphoto.ui.theme.ContextPhotoTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -97,91 +79,30 @@ class MainActivity() : ComponentActivity() {
         setContent {
             ComposePermissions()
             val navController = rememberNavController()
-            val startDestination = Destination.ALBUMS
+            val startDestination = Destination.ALBUMS()
             val context = LocalContext.current
             val activity = context as Activity
-            var orientation = rememberSaveable { mutableStateOf(activity.requestedOrientation) }
             //var selectedDestination by rememberSaveable { mutableIntStateOf(startDestination.ordinal) }
-            //val albumViewModel = hiltViewModel<AlbumViewModel>()
-            //val mediaViewModel = hiltViewModel<MediaViewModel>()
 
 //            firebaseRealTimeDatabaseTest()
 //            firebaseFirestoreDatabaseTest()
 //            firebasePasswordAuth()
+        //    val MIGRATION_1_2 = object : Migration(1, 2) {
+        //        override fun migrate(db: SupportSQLiteDatabase) {
+        //            db.execSQL("ALTER TABLE User ADD COLUMN email TEXT")
+        //        }
+        //    }
+        //    val db = Room.databaseBuilder(context, CommentDatabase::class.java, "comment_database").addMigrations(MIGRATION_1_2).build()
 
 
             ContextPhotoTheme {
                 Scaffold(
-                    bottomBar = {
-                        val currentDestination =
-                            navController
-                                .currentBackStackEntryAsState()
-                                .value
-                                ?.destination
-                                ?.route
-                        if (currentDestination == Destination.ALBUMS.route) {
-                            AnimatedVisibility(
-                                currentDestination == Destination.ALBUMS.route,
-                                enter =
-                                    slideInVertically() +
-                                            expandVertically(
-                                                expandFrom = Alignment.Top,
-                                            ) +
-                                            fadeIn(
-                                                initialAlpha = 0.3f,
-                                            ),
-                                exit =
-                                    slideOutVertically() +
-                                            shrinkVertically(
-                                                shrinkTowards = Alignment.Top,
-                                            ) + fadeOut(),
-                            ) {
-                                NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
-                                    Destination.entries.slice(0..1).forEachIndexed { index, destination ->
-                                        NavigationBarItem(
-                                            selected = destination == Destination.ALBUMS,
-                                            onClick = {
-                                                if (destination == Destination.PICTURES) navController.navigate(Destination.PICTURES.route + "/")
-                                                else navController.navigate(route = destination.route)
-                                            },
-                                            icon = {
-                                                Icon(
-                                                    destination.icon,
-                                                    contentDescription = destination.contentDescription,
-                                                )
-                                            },
-                                            label = { Text(destination.label) },
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    },
-//                    floatingActionButton = {
-//                        AnimatedVisibility(
-//                            visible = navController.currentBackStackEntryAsState().value?.destination?.route == Destination.ALBUMS.route,
-//                            enter = fadeIn(),
-//                            exit = fadeOut(),
-//                        ) {
-//                            FloatingActionButton(onClick = {
-//                                createAlbumDialogVisible.value = true
-//                            }) {
-//                                Icon(
-//                                    Icons.Default.Add,
-//                                    contentDescription = null,
-//                                )
-//                            }
-//                        }
-//                    },
                     content = { paddingValues ->
                         AppNavHost(
                             navController,
                             startDestination,
                             modifier = Modifier.padding(paddingValues)
                         )
-//                        if (createAlbumDialogVisible.value) {
-//                            CreateAlbumDialog({}, createAlbumDialogVisible)
-//                        }
                     },
                 )
                 MainDropdownMenu(navController)
@@ -199,13 +120,13 @@ fun ShowBottomMenu(
 ) {
 
     when (currentDestination) {
-        Destination.PICTURES.route -> {
+        Destination.PICTURES().route -> {
             FunBottomMenu(mediaViewModel.bottomMenuVisible.collectAsStateWithLifecycle().value,
                 { BottomMenuPictureScreen(mediaViewModel) }
             )
         }
 
-        Destination.FULLSCREENIMG.route -> {
+        Destination.FULLSCREENIMG().route -> {
             val visible = fullScreenViewModel.bottomMenuFullScreenVisible.collectAsStateWithLifecycle().value
             if (commentText != null) InfinityScrollableText(visible, commentText, { fullScreenViewModel.changeStateBottomMenuFullScreen() })
             FunBottomMenu(visible,
@@ -220,19 +141,10 @@ fun FunBottomMenu(visible: Boolean,
       bootmFun: @Composable () -> Unit) {
     AnimatedVisibility(
         visible,
-        enter =
-            slideInVertically() +
-                    expandVertically(
-                        expandFrom = Alignment.Top,
-                    ) +
-                    fadeIn(
-                        initialAlpha = 0.3f,
-                    ),
-        exit =
-            slideOutVertically() +
-                    shrinkVertically(
-                        shrinkTowards = Alignment.Top,
-                    ) + fadeOut(),
+        enter = slideInVertically(initialOffsetY = {500}) +
+                fadeIn(initialAlpha = 0.3f),
+        exit = slideOutVertically(targetOffsetY = {600}) +
+                fadeOut(),
     ) {
         //Box(modifier = Modifier.fillMaxSize().background(Color.Red))
         bootmFun()
@@ -283,6 +195,7 @@ fun InfinityScrollableText(
                 Modifier
                     .fillMaxWidth()
                     .padding(top = 12.dp)
+                    .padding(horizontal = 8.dp)
                     .height(freeSpace.dp+offsetY.value.dp),
                 color = Color.White,
             )
@@ -302,30 +215,28 @@ fun AppNavHost(
         navController,
         startDestination = startDestination.route,
     ) {
-        composable(Destination.ALBUMS.route) {
+        composable(Destination.ALBUMS().route) {
             AlbumsScreenWithScaffold(modifier, navController)
         }
 
-        composable(Destination.PICTURES.route + "/{bID}") { stackEntry ->
+        composable(Destination.PICTURES().route + "/{bID}") { stackEntry ->
             val bID = stackEntry.arguments?.getString("bID").toString()
             PicturesScreenWithScaffold(modifier, navController, bID)
         } // TODO fixme нижнее меню перекрывает часть картинок, как-то надо на его высоту картинки приподнять
 
-        composable(Destination.FULLSCREENIMG.route + "/{bID}/{mediaPosition}",
+        composable(Destination.FULLSCREENIMG().route + "/{mediaPosition}",
             arguments = listOf(
-                navArgument("bID") {type = NavType.StringType},
                 navArgument("mediaPosition") {type = NavType.IntType}
             )) { stackEntry ->
-            val bID = stackEntry.arguments?.getString("bID").toString()
             val mediaPosition = stackEntry.arguments?.getInt("mediaPosition")
-            FullScreenViewPagerWithScaffold(modifier, navController, bID, mediaPosition!!)
+            FullScreenViewPagerWithScaffold(modifier, navController, mediaPosition!!)
         }
 
-        composable(Destination.SEARCH_PHOTO.route) {
-            SearchPhotoScreen(modifier, navController)
+        composable(Destination.SEARCH_PHOTO().route) {
+            SearchPhotoScreenWithScaffold(modifier, navController)
         }
 
-        composable(Destination.SETTINGS.route) {
+        composable(Destination.SETTINGS().route) {
             SettingsScreen(modifier, navController)
         }
     }

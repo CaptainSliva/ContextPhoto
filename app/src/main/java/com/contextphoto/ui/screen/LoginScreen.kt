@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,87 +52,110 @@ import com.contextphoto.ui.theme.ContextPhotoTheme
 fun LoginScreen() {
     val context = LocalContext.current
     var isShowPassword by rememberSaveable {mutableStateOf(false)}
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Surface(
+        color = Color.White,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
     ) {
-        val email = rememberSaveable { mutableStateOf(TextFieldValue()) }
-        val password = rememberSaveable { mutableStateOf(TextFieldValue()) }
 
-        Text(text = context.getString(R.string.login_title), style = androidx.compose.ui.text.TextStyle(fontSize = 40.sp))
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(text = context.getString(R.string.email)) },
-            value = email.value,
-            onValueChange = { email.value = it },
-            leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
-            textStyle = TextStyle(fontSize = 20.sp))
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(text = context.getString(R.string.password)) },
-            value = password.value,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            onValueChange = { password.value = it },
-            leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
-            trailingIcon = {
-                val description = if (isShowPassword) "Show Password" else "Hide Password"
-                val iconImage =
-                    if (isShowPassword) R.drawable.eyeclosed else R.drawable.eye_closed
-                IconButton(onClick = {
-                    (!isShowPassword).also { isShowPassword = it }
-                }) {
-                    Icon(
-                        painter = painterResource(id = iconImage),
-                        contentDescription = description,
-                    )
-                }
-            },
-            textStyle = TextStyle(fontSize = 20.sp)
-        )
-    }
-
-    Column(modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Bottom) {
-        Button(
-            onClick = { },
-            shape = RoundedCornerShape(50.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .height(50.dp),
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = context.getString(R.string.login),
-                color = Color.White,
-                fontSize = 20.sp
+            val email = rememberSaveable { mutableStateOf("") }
+            val password = rememberSaveable { mutableStateOf("") }
+
+            Text(
+                text = context.getString(R.string.login_title),
+                style = androidx.compose.ui.text.TextStyle(fontSize = 40.sp)
+            )
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = context.getString(R.string.email)) },
+                value = email.value,
+                onValueChange = { email.value = it },
+                leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
+                textStyle = TextStyle(fontSize = 20.sp)
+            )
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = context.getString(R.string.password)) },
+                value = password.value,
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                onValueChange = { password.value = it },
+                leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
+                trailingIcon = {
+                    val description = if (isShowPassword) "Show Password" else "Hide Password"
+                    val iconImage =
+                        if (isShowPassword) R.drawable.eyeclosed else R.drawable.eye_closed
+                    IconButton(onClick = {
+                        (!isShowPassword).also { isShowPassword = it }
+                    }) {
+                        Icon(
+                            painter = painterResource(id = iconImage),
+                            contentDescription = description,
+                        )
+                    }
+                },
+                textStyle = TextStyle(fontSize = 20.sp)
             )
         }
-        Spacer(modifier = Modifier.height(16.dp))
-        Box(contentAlignment = Alignment.Center) {
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-            Text(text = context.getString(R.string.alternative_login),
-                fontSize = 20.sp,
-                modifier = Modifier.background(Color.White)
+
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Button(
+                onClick = { },
+                shape = RoundedCornerShape(50.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp)
+                    .height(50.dp),
+            ) {
+                Text(
+                    text = context.getString(R.string.login),
+                    color = Color.White,
+                    fontSize = 20.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                HorizontalDivider(modifier = Modifier.weight(1f))
+                Text(
+                    text = context.getString(R.string.alternative_login),
+                    fontSize = 20.sp,
+                    modifier = Modifier.background(Color.Unspecified).padding(10.dp)
+                )
+                HorizontalDivider(modifier = Modifier.weight(1f))
+            }
+
+            Image(
+                painter = painterResource(R.drawable.google),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(48.dp)
+                    .border(2.dp, color = Color.LightGray, shape = RoundedCornerShape(20))
+                    .padding(8.dp)
             )
+            Text(
+                context.getString(R.string.login_bottom_text),
+                color = Color.Cyan,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier
+                    .clickable(onClick = {
+                    })
+            )
+
+
         }
-
-        Image(painter = painterResource(R.drawable.google),
-            contentDescription = null,
-            modifier = Modifier
-                .size(48.dp)
-                .border(2.dp, color = Color.LightGray, shape = RoundedCornerShape(20))
-                .padding(8.dp)
-        )
-        Text(context.getString(R.string.login_bottom_text),
-            color = Color.Cyan,
-            textDecoration = TextDecoration.Underline,
-            modifier = Modifier
-                .clickable(onClick = {
-                })
-        )
-
-
     }
 }
 
@@ -139,97 +163,121 @@ fun LoginScreen() {
 fun RegisterScreen() {
     val context = LocalContext.current
     var isShowPassword by rememberSaveable {mutableStateOf(false)}
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Surface(
+        color = Color.White,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(28.dp)
     ) {
-        val email = rememberSaveable { mutableStateOf(TextFieldValue()) }
-        val password = rememberSaveable { mutableStateOf(TextFieldValue()) }
-        val checkedPrivacy = rememberSaveable { mutableStateOf(false) }
-
-        Text(text = context.getString(R.string.register_title), style = TextStyle(fontSize = 40.sp))
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(text = context.getString(R.string.email)) },
-            value = email.value,
-            onValueChange = { email.value = it },
-            leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
-            textStyle = TextStyle(fontSize = 20.sp))
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(text = context.getString(R.string.password)) },
-            value = password.value,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            onValueChange = { password.value = it },
-            leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
-            trailingIcon = {
-                val description = if (isShowPassword) "Show Password" else "Hide Password"
-                val iconImage =
-                    if (isShowPassword) R.drawable.eyeclosed else R.drawable.eye_closed
-                IconButton(onClick = {
-                    (!isShowPassword).also { isShowPassword = it }
-                }) {
-                    Icon(
-                        painter = painterResource(id = iconImage),
-                        contentDescription = description,
-                    )
-                }
-            },
-            textStyle = TextStyle(fontSize = 20.sp)
-            )
-
-        Row {
-            Checkbox(checked = checkedPrivacy.value,
-                onCheckedChange = {
-                    checkedPrivacy.value = !checkedPrivacy.value
-                })
-            Text(context.getString(R.string.privacy_policy))
-        }
-
-    }
-
-    Column(modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Bottom) {
-        Button(
-            onClick = { },
-            shape = RoundedCornerShape(50.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .height(50.dp),
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = context.getString(R.string.register),
-                color = Color.White,
-                fontSize = 20.sp)
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Box(contentAlignment = Alignment.Center) {
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp))
-            Text(text = context.getString(R.string.alternative_login),
-                fontSize = 20.sp,
-                modifier = Modifier.background(Color.White)
+            val email = rememberSaveable { mutableStateOf("") }
+            val password = rememberSaveable { mutableStateOf("") }
+            val checkedPrivacy = rememberSaveable { mutableStateOf(false) }
+
+            Text(
+                text = context.getString(R.string.register_title),
+                style = TextStyle(fontSize = 40.sp)
             )
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = context.getString(R.string.email)) },
+                value = email.value,
+                onValueChange = { email.value = it },
+                leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
+                textStyle = TextStyle(fontSize = 20.sp)
+            )
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                label = { Text(text = context.getString(R.string.password)) },
+                value = password.value,
+                visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                onValueChange = { password.value = it },
+                leadingIcon = { Icon(Icons.Outlined.Lock, contentDescription = null) },
+                trailingIcon = {
+                    val description = if (isShowPassword) "Show Password" else "Hide Password"
+                    val iconImage =
+                        if (isShowPassword) R.drawable.eyeclosed else R.drawable.eye_closed
+                    IconButton(onClick = {
+                        (!isShowPassword).also { isShowPassword = it }
+                    }) {
+                        Icon(
+                            painter = painterResource(id = iconImage),
+                            contentDescription = description,
+                        )
+                    }
+                },
+                textStyle = TextStyle(fontSize = 20.sp)
+            )
+
+            Row {
+                Checkbox(
+                    checked = checkedPrivacy.value,
+                    onCheckedChange = {
+                        checkedPrivacy.value = !checkedPrivacy.value
+                    })
+                Text(context.getString(R.string.privacy_policy))
+            }
+
         }
-        
-        Image(painter = painterResource(R.drawable.google),
-            contentDescription = null,
-            modifier = Modifier
-                .size(48.dp)
-                .border(2.dp, color = Color.LightGray, shape = RoundedCornerShape(20))
-                .padding(8.dp)
-        )
-        Text(context.getString(R.string.register_bottom_text),
-            color = Color.Cyan,
-            textDecoration = TextDecoration.Underline,
-            modifier = Modifier
-                .clickable(onClick = {
 
-                })
-        )
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom
+        ) {
+            Button(
+                onClick = { },
+                shape = RoundedCornerShape(50.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp)
+                    .height(50.dp),
+            ) {
+                Text(
+                    text = context.getString(R.string.register),
+                    color = Color.White,
+                    fontSize = 20.sp
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                HorizontalDivider(modifier = Modifier.weight(1f))
+                Text(
+                    text = context.getString(R.string.alternative_login),
+                    fontSize = 20.sp,
+                    modifier = Modifier.background(Color.Unspecified).padding(10.dp)
+                )
+                HorizontalDivider(modifier = Modifier.weight(1f))
+            }
+
+            Image(
+                painter = painterResource(R.drawable.google),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(48.dp)
+                    .border(2.dp, color = Color.LightGray, shape = RoundedCornerShape(20))
+                    .padding(8.dp)
+            )
+            Text(
+                context.getString(R.string.register_bottom_text),
+                color = Color.Cyan,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier
+                    .clickable(onClick = {
+
+                    })
+            )
 
 
+        }
     }
 }
 

@@ -1,22 +1,23 @@
 package com.contextphoto
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
-import android.widget.Toast
+import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
+import android.net.Uri
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.core.content.ContextCompat.checkSelfPermission
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.contextphoto.ui.AlbumViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.PermissionStatus
-import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.shouldShowRationale
 
 
@@ -90,62 +91,49 @@ object RequestPermissions {
 
     @OptIn(ExperimentalPermissionsApi::class)
     @Composable
-    fun ComposePermissions() {
-        val context = LocalContext.current
-
-        // Register and remember the permission state
-        val callPermissionState = rememberPermissionState(android.Manifest.permission.READ_MEDIA_IMAGES)
-
-        // Utility function to calculate the state based on the PermissionState
-        fun getScreenState(state: PermissionState) = when (state.status) {
-            is PermissionStatus.Denied -> PermissionScreenState(
-                title = "Call a phone", buttonText = "Grant permission"
+    fun ComposePermissions(
+        albumViewModel: AlbumViewModel = hiltViewModel()
+    ) {
+        val mediaPermissionState = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            rememberMultiplePermissionsState(
+                listOf(
+                    android.Manifest.permission.READ_MEDIA_IMAGES,
+                    android.Manifest.permission.READ_MEDIA_VIDEO
+                )
             )
-
-            PermissionStatus.Granted -> PermissionScreenState(
-                title = "You can now call!", buttonText = "Call"
+        } else {
+            rememberMultiplePermissionsState(
+                listOf(
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                )
             )
         }
 
-        // Defines the PermissionScreen UI based on the permission state and user interactions
-        var screenState by remember(callPermissionState.status) {
-            mutableStateOf(getScreenState(callPermissionState))
+        val allPermissionsGranted = mediaPermissionState.permissions.all { it.status == PermissionStatus.Granted }
+        val anyPermanentlyDenied = mediaPermissionState.permissions.any {
+            it.status is PermissionStatus.Denied && !it.status.shouldShowRationale
         }
 
-        PermissionScreen(
-            state = screenState,
-            onClick = {
-                // Always request permissions in-context, provide a rationale if needed and check its status
-                // before using an API that requires a permission.
-                when (callPermissionState.status) {
-                    PermissionStatus.Granted -> {
-                        Toast.makeText(context, "Faking a call...", Toast.LENGTH_SHORT).show()
-                    }
-
-                    is PermissionStatus.Denied -> {
-                        if (callPermissionState.status.shouldShowRationale) {
-                            // Update our UI based on the user interaction by showing a rationale
-                            screenState = PermissionScreenState(
-                                title = "Call a phone",
-                                buttonText = "Grant permission",
-                                rationale = "In order to perform the call you need to grant access by accepting the next permission dialog.\n\nWould you like to continue?"
-                            )
-                        } else {
-                            // Directly launch the system permission dialog
-                            callPermissionState.launchPermissionRequest()
-                        }
-                    }
-                }
-            },
-            onRationaleReply = { accepted ->
-                if (accepted) {
-                    callPermissionState.launchPermissionRequest()
-                }
-
-                // Reset the state after user interaction
-                screenState = getScreenState(callPermissionState)
+        if (allPermissionsGranted) {
+            albumViewModel.loadAlbumsStateChange(true)
+        }
+        else if (anyPermanentlyDenied) {
+            LaunchedEffect(Unit) {
+                mediaPermissionState.launchMultiplePermissionRequest()
             }
-        )
+        }
+        else {
+            if (!mediaPermissionState.shouldShowRationale) {
+                val context = LocalContext.current
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.fromParts("package", context.packageName, null)
+                }
+                context.startActivity(intent)
+
+            }
+        }
+
     }
 
 }

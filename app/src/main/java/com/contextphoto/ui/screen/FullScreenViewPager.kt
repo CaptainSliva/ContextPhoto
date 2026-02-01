@@ -1,27 +1,17 @@
 package com.contextphoto.ui.screen
 
+import android.app.Activity
 import android.util.Log
+import androidx.activity.compose.LocalActivity
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.Scaffold
@@ -39,206 +29,171 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.Bottom
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.toSize
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowCompat.enableEdgeToEdge
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.contextphoto.InfinityScrollableText
-import com.contextphoto.R
+import androidx.navigation.compose.rememberNavController
 import com.contextphoto.ShowBottomMenu
 import com.contextphoto.data.Destination
-import com.contextphoto.data.Picture
 import com.contextphoto.db.CommentDatabase
-import com.contextphoto.item.AlbumItem
+import com.contextphoto.item.CustomVideoUI
 import com.contextphoto.item.ImageUI
 import com.contextphoto.item.VideoUI
 import com.contextphoto.ui.FullscreenViewModel
 import com.contextphoto.utils.FunctionsBitmap.md5
-import com.contextphoto.utils.FunctionsMediaStore.getImageDate
 import com.contextphoto.utils.FunctionsUri.convertUri
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.coroutineScope
+import com.davemorrissey.labs.subscaleview.ImageSource.uri
+import dagger.hilt.android.internal.managers.FragmentComponentManager.findActivity
 import kotlinx.coroutines.launch
-import java.io.File
-import java.time.format.TextStyle
-
-@Composable
-fun FullScreenViewPager(
-    modifier: Modifier = Modifier,
-    navController: NavController,
-    bID: String,
-    mediaPosotion: Int,
-    fullScreenViewModel: FullscreenViewModel = hiltViewModel(),
-) {
-    //fullScreenViewModel.resetPicturePosition()
-    fullScreenViewModel.loadPictureList(bID)
-    fullScreenViewModel.updateMediaPosition(mediaPosotion)
-    val coroutineScope = rememberCoroutineScope()
-    val db = CommentDatabase.getDatabse(LocalContext.current).commentDao()
-    val previousPage = rememberSaveable { mutableStateOf(0) }
-    val listMedia by fullScreenViewModel.listMedia.collectAsStateWithLifecycle()
-    val mediaPosotion by fullScreenViewModel.mediaPosition.collectAsStateWithLifecycle()
-    val pagerState = rememberPagerState(initialPage = mediaPosotion, pageCount = { listMedia.size })
-    val commentText = rememberSaveable {mutableStateOf<String?>(null)}
-
-    Log.d("POSITION page", mediaPosotion.toString())
-    HorizontalPager(state = pagerState) { page ->
-        val media = listMedia[page]
-        previousPage.value = page
-        fullScreenViewModel.updateMediaPosition(pagerState.settledPage)
-
-
-        Box(modifier = Modifier
-            .fillMaxSize()
-        ) {
-            fullScreenViewModel.updateMediaPosition(pagerState.currentPage)
-            if (convertUri(media.path, media.uri).toString().contains("video")) {
-                VideoUI(media.uri, { fullScreenViewModel.changeStateBottomMenuFullScreen() })
-            } else {
-                ImageUI(media.uri, media.path, { fullScreenViewModel.changeStateBottomMenuFullScreen() })
-            }
-            LaunchedEffect(page) {
-                coroutineScope.launch {
-                    commentText.value = db.findImageByHash(md5(media.thumbnail))?.image_comment
-                }
-            }
-        }
-    }
-
-    LaunchedEffect(mediaPosotion) {
-        if (mediaPosotion == 0) {
-            coroutineScope.launch {
-                try {
-                    pagerState.animateScrollToPage(previousPage.value-10)
-                } catch (e: Exception) {
-                    try {
-                        pagerState.animateScrollToPage(previousPage.value - 10)
-                    } catch (e: Exception) {
-                        navController.navigateUp()
-                    }
-                }
-            }
-        }
-    }
-
-    ShowBottomMenu(Destination.FULLSCREENIMG.route, fullScreenViewModel = fullScreenViewModel, commentText = commentText.value)
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FullScreenViewPagerWithScaffold(
     modifier: Modifier = Modifier,
     navController: NavController,
-    bID: String,
-    mediaPosotion: Int,
+    mediaPosotionStart: Int,
     fullScreenViewModel: FullscreenViewModel = hiltViewModel(),
 ) {
-    fullScreenViewModel.loadPictureList(bID)
-    fullScreenViewModel.updateMediaPosition(mediaPosotion)
+    fullScreenViewModel.loadPictureList()
+    fullScreenViewModel.updateMediaPosition(mediaPosotionStart)
+
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val db = CommentDatabase.getDatabse(LocalContext.current).commentDao()
-    val previousPage = rememberSaveable { mutableStateOf(0) }
     val listMedia by fullScreenViewModel.listMedia.collectAsStateWithLifecycle()
     val mediaPosotion by fullScreenViewModel.mediaPosition.collectAsStateWithLifecycle()
+    val dateInfoList by fullScreenViewModel.dateInfoList.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(initialPage = mediaPosotion, pageCount = { listMedia.size })
     val commentText = rememberSaveable {mutableStateOf<String?>(null)}
+    val deleteAction = fullScreenViewModel.deleteAction.collectAsStateWithLifecycle()
+    val window = LocalActivity.current!!.window
+    val visibleMenu = fullScreenViewModel.bottomMenuFullScreenVisible.collectAsStateWithLifecycle()
+
+//    LaunchedEffect(Unit) {
+//        val activity = context as Activity
+//        activity?.window?.let { window ->
+//            WindowCompat.setDecorFitsSystemWindows(window, false)
+//
+//        }
+//    }
 
     Log.d("POSITION page", mediaPosotion.toString())
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        val dateInfoList = getImageDate(LocalContext.current, listMedia[mediaPosotion].path)
-                        Text(
-                            dateInfoList[0],
-                            fontSize = 20.sp
-                        )
-                        Text(
-                            dateInfoList[1],
-                            fontSize = 13.sp
-                        )
-                    }
+            AnimatedVisibility(
+                visible = visibleMenu.value,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                TopAppBar(
+                    title = {
+                        Column {
+                            Text(
+                                dateInfoList[0],
+                                fontSize = 20.sp
+                            )
+                            Text(
+                                dateInfoList[1],
+                                fontSize = 13.sp
+                            )
+                        }
 
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        navController.navigateUp()
-                    }) {
-                        Icon(
-                            Icons.Default.ArrowBack, // Кнопка назад
-                            contentDescription = null,
-                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            navController.navigateUp()
+                        }) {
+                            Icon(
+                                Icons.Default.ArrowBack, // Кнопка назад
+                                contentDescription = null,
+                            )
+                        }
+                    },
+                )
+            }
+            LaunchedEffect (visibleMenu.value) {
+                val insetsController = WindowCompat.getInsetsController(window, window!!.decorView)
+
+                if (!visibleMenu.value) {
+                    insetsController.apply {
+                        hide(WindowInsetsCompat.Type.statusBars())
+                        hide(WindowInsetsCompat.Type.navigationBars())
+                        systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                     }
-                },
-            )
+                }
+
+                else {
+                    insetsController.apply {
+                        show(WindowInsetsCompat.Type.statusBars())
+                        show(WindowInsetsCompat.Type.navigationBars())
+                        systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
+                    }
+                }
+
+            }
+
         },
         content = { paddingValues ->
-            HorizontalPager(state = pagerState) { page ->
+            HorizontalPager(modifier = Modifier.padding(paddingValues), state = pagerState) { page ->
                 val media = listMedia[page]
-                previousPage.value = page
-                fullScreenViewModel.updateMediaPosition(pagerState.settledPage)
-
+                Log.d("URI LOG", media.uri.toString())
+                Log.d("page LOG", page.toString())
+                Log.d("pagerState LOG", pagerState.settledPage.toString())
+                fullScreenViewModel.updateMediaPosition(pagerState.settledPage) // pagerState.settledPage
+                fullScreenViewModel.updateDateInfo(LocalContext.current, page)
 
                 Box(modifier = Modifier
-                    .fillMaxSize().padding(paddingValues)
+                    .fillMaxSize()
+                    .background(Color.Black)
                 ) {
-                    fullScreenViewModel.updateMediaPosition(pagerState.currentPage)
+                    LaunchedEffect(pagerState.settledPage) {
+                        if (convertUri(listMedia[pagerState.settledPage].path, listMedia[pagerState.settledPage].uri).toString().contains("video")) {
+                            fullScreenViewModel.changeMediaType(true)
+                        }
+                        else fullScreenViewModel.changeMediaType(false)
+                    }
                     if (convertUri(media.path, media.uri).toString().contains("video")) {
-                        VideoUI(media.uri, { fullScreenViewModel.changeStateBottomMenuFullScreen() })
+                        //fullScreenViewModel.changeStateBottomMenuFullScreen(true)
+                        //VideoUI(media.uri, { fullScreenViewModel.changeStateBottomMenuFullScreen() }, // Для комментария видео стоит null тк иначе я вижу просто чёрный экран
+                        //    { ShowBottomMenu(Destination.FULLSCREENIMG().route, fullScreenViewModel = fullScreenViewModel, commentText = null) })
+                        CustomVideoUI(media.uri)
                     } else {
                         ImageUI(media.uri, media.path, { fullScreenViewModel.changeStateBottomMenuFullScreen() })
+                        ShowBottomMenu(Destination.FULLSCREENIMG().route, fullScreenViewModel = fullScreenViewModel, commentText = commentText.value)
                     }
-                    LaunchedEffect(page) {
+                    LaunchedEffect(pagerState.settledPage) {
                         coroutineScope.launch {
-                            commentText.value = db.findImageByHash(md5(media.thumbnail))?.image_comment
+                            commentText.value = db.findImageByHash(md5(listMedia[pagerState.settledPage].thumbnail))?.image_comment
                         }
                     }
                 }
             }
+
 
             LaunchedEffect(mediaPosotion) {
-                if (mediaPosotion == 0) {
+                if (deleteAction.value) {
                     coroutineScope.launch {
                         try {
-                            pagerState.animateScrollToPage(previousPage.value-10)
+                            pagerState.animateScrollToPage(mediaPosotion)
                         } catch (e: Exception) {
-                            try {
-                                pagerState.animateScrollToPage(previousPage.value - 10)
-                            } catch (e: Exception) {
-                                navController.navigateUp()
-                            }
+                            navController.navigateUp()
                         }
+                        //fullScreenViewModel.deleteActionChange()
                     }
                 }
-            }
 
-            ShowBottomMenu(Destination.FULLSCREENIMG.route, fullScreenViewModel = fullScreenViewModel, commentText = commentText.value)
+            }
         }
     )
 
-}
 
+}

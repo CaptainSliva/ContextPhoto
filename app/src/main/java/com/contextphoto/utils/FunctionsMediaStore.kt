@@ -1,6 +1,5 @@
 package com.contextphoto.utils
 
-import android.R.attr.type
 import android.app.Activity
 import android.app.RecoverableSecurityException
 import android.content.ContentUris
@@ -14,6 +13,7 @@ import android.util.Log
 import com.contextphoto.data.Album
 import com.contextphoto.data.PERMISSION_DELETE_REQUEST_CODE
 import com.contextphoto.data.Picture
+import com.contextphoto.db.CommentDatabase
 import com.contextphoto.ui.AlbumViewModel
 import com.contextphoto.utils.FunctionsApp.durationTranslate
 import com.contextphoto.utils.FunctionsBitmap.getThumbnail
@@ -59,21 +59,24 @@ object FunctionsMediaStore {
                 null,
                 sortOrder,
             )?.use { cursor ->
+                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
                 val bucketIdColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_ID)
                 val bucketNameColumn =
                     cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
 
                 while (cursor.moveToNext()) {
                     val bucketId = cursor.getString(bucketIdColumn)
+                    val uri = cursor.getLong(idColumn)
 
                     var count = 1
                     if (itemsCount[bucketId] != null) {
                         count = itemsCount[bucketId]!! + 1
                         albums.forEach {
-                            if (it.bID == bucketId) { // TODO fixme работает не пойми как /- грузить все альбомы в список и выдавать их ViewModel
+                            if (it.bID == bucketId) {
                                 it.itemsCount = count
-                                // Если не брать каждый раз превью, тогда считает количество медиа в альбоме нормально но если брать, тогда и превью скорее всего не то, и количество медиа на цифре.
-                                it.thumbnail = getThumbnail(context, ContentUris.withAppendedId(contentUri, cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))))
+                                Log.d("TAG URI", uri.toString())
+
+                                it.thumbnail = getThumbnail(context, ContentUris.withAppendedId(contentUri, uri))
                             }
                         }
                     }
@@ -115,10 +118,6 @@ object FunctionsMediaStore {
                     }
                 }
             }
-//        albums.forEach {
-//            viewModel.addAlbum(it)
-//        }
-//        viewModel.changeState(false)
         return albums
     }
 
@@ -153,12 +152,14 @@ object FunctionsMediaStore {
                 selectionArgs,
                 sortOrder,
             )?.use { cursor ->
+                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
                 val bucketIdColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_ID)
                 val bucketNameColumn =
                     cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
 
                 while (cursor.moveToNext()) {
                     val bucketId = cursor.getString(bucketIdColumn)
+                    val uri = cursor.getLong(idColumn)
 
                     var count = 1
                     if (itemsCount[bucketId] != null) {
@@ -166,6 +167,9 @@ object FunctionsMediaStore {
                         albums.forEach {
                             if (it.bID == bucketId) {
                                 it.itemsCount = count
+                                Log.d("TAG URI", uri.toString())
+
+                                it.thumbnail = getThumbnail(context, ContentUris.withAppendedId(contentUri, uri))
                             }
                         }
                     }
@@ -205,10 +209,6 @@ object FunctionsMediaStore {
                         viewModel.addAlbum(album)
                     }
                 }
-//                albums.forEach {
-//                    viewModel.updateAlbum(it)
-//                }
-//                viewModel.changeState(false)
             }
         return albums
     }
@@ -263,7 +263,7 @@ object FunctionsMediaStore {
                             contentUri,
                             id,
                         )
-                    val duration = cursor.getInt(durationColumn)
+                    val duration = cursor.getInt(durationColumn).toLong()
                     n++
                     if (duration > 0) {
                         val thumbnail =
@@ -283,6 +283,7 @@ object FunctionsMediaStore {
                                 thumbnail,
                                 durationTranslate(duration),
                                 false,
+                                false
                             ),
                         )
                     } else {
@@ -295,7 +296,7 @@ object FunctionsMediaStore {
                                 ),
                             )
                         println("image $n $id $uri, $path $bucketId $dateAdded")
-                        listMedia.add(Picture(bucketId, uri, path, thumbnail, "", false))
+                        listMedia.add(Picture(bucketId, uri, path, thumbnail, "", false, false))
                     }
                 }
             }
@@ -307,13 +308,13 @@ object FunctionsMediaStore {
         sourceUri: Uri,
         albumName: String,
     ): Boolean {
-        Log.d("Soure uri", sourceUri.toString())
+        Log.d("copyMediaToAlbum", sourceUri.toString())
         val contentResolver = context.contentResolver
         var filePath = File("1")
         try {
             filePath = File(getRealPathFromUri(context, sourceUri))
         } catch (e: Exception) {
-            Log.d("E: copyMediaToAlbum", e.toString())
+            Log.d("copyMediaToAlbum", e.toString())
             return false
         }
 
@@ -335,7 +336,7 @@ object FunctionsMediaStore {
                     )
 
                     Log.i(
-                        "Path",
+                        "copyMediaToAlbum",
                         "${MediaStore.MediaColumns.RELATIVE_PATH}, ${Environment.DIRECTORY_PICTURES}/ContextPhoto/$albumName",
                     )
 
@@ -475,6 +476,7 @@ object FunctionsMediaStore {
                         path,
                         thumbnail!!,
                         if (duration > 0) duration.toString() else "",
+                        false,
                         false
                     )
                 )
@@ -484,7 +486,7 @@ object FunctionsMediaStore {
         return mediaFiles[0]
     }
 
-    fun getImageDate(
+    inline fun getImageDate(
         context: Context,
         path: String,
     ): List<String> { // TODO можно любые парметры даостать, если в projection их указать

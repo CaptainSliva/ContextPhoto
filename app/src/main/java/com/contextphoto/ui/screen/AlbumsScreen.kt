@@ -5,8 +5,12 @@ import android.content.pm.ActivityInfo
 import android.util.Log
 import android.view.View
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -21,6 +25,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -28,6 +35,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
@@ -52,34 +60,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
-@Composable
-fun AlbumsScreen(
-    modifier: Modifier = Modifier,
-    navController: NavController,
-    albumViewModel: AlbumViewModel = hiltViewModel()
-) {
-
-    albumViewModel.loadAlbumList()
-    val albumList by albumViewModel.albumList.collectAsStateWithLifecycle()
-    Log.d("Albums", albumList.toString())
-
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(1),
-        modifier = modifier,
-    ) {
-        items(
-            items = albumList,
-        ) { album ->
-            AlbumItem(
-                album,
-                Modifier.padding(0.dp, 2.dp),
-                onItemClick = { navController.navigate(Destination.PICTURES.route + "/${album.bID}") },
-                albumViewModel
-            )
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlbumsScreenWithScaffold(
@@ -87,8 +67,14 @@ fun AlbumsScreenWithScaffold(
     navController: NavController,
     albumViewModel: AlbumViewModel = hiltViewModel()
 ) {
-    albumViewModel.loadAlbumList()
+    LaunchedEffect(albumViewModel.loadAlbums.collectAsStateWithLifecycle()) {
+        CoroutineScope(Dispatchers.IO).launch {
+            albumViewModel.loadAlbumList()
+        }
+    }
+
     val albumList by albumViewModel.albumList.collectAsStateWithLifecycle()
+
     val createAlbumDialogVisible = rememberSaveable { mutableStateOf(false) }
     Log.d("Albums", albumList.toString())
 
@@ -97,7 +83,7 @@ fun AlbumsScreenWithScaffold(
             TopAppBar(
                 title = {
                     Text(
-                        Destination.ALBUMS.label
+                        Destination.ALBUMS().label
                     )
                 },
 //                navigationIcon = {
@@ -112,13 +98,36 @@ fun AlbumsScreenWithScaffold(
 //                },
             )
         },
+        bottomBar = {
+            NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
+                listOf(Destination.ALBUMS(), Destination.PICTURES()).forEach { destination ->
+                    NavigationBarItem(
+                        selected = destination is Destination.ALBUMS,
+                        onClick = {
+                            when (destination) {
+                                is Destination.ALBUMS -> navController.navigate(route = destination.route)
+                                is Destination.PICTURES -> navController.navigate(Destination.PICTURES().route + "/")
+                                else -> {}
+                            }
+                        },
+                        icon = {
+                            Icon(
+                                destination.icon,
+                                contentDescription = destination.contentDescription,
+                            )
+                        },
+                        label = { Text(destination.label) },
+                    )
+                }
+            }
+        },
         floatingActionButton = {
             AnimatedVisibility(
                 visible = true,
                 enter = fadeIn(),
                 exit = fadeOut(),
             ) {
-                FloatingActionButton(modifier = Modifier.padding(bottom = 80.dp),
+                FloatingActionButton(
                     onClick = {
                     createAlbumDialogVisible.value = true
                 }) {
@@ -140,7 +149,7 @@ fun AlbumsScreenWithScaffold(
                     AlbumItem(
                         album,
                         Modifier.padding(0.dp, 2.dp),
-                        onItemClick = { navController.navigate(Destination.PICTURES.route + "/${album.bID}") },
+                        onItemClick = { navController.navigate(Destination.PICTURES().route + "/${album.bID}") },
                         albumViewModel
                     )
                 }

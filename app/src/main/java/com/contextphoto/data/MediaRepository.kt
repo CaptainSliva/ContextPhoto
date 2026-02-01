@@ -4,6 +4,7 @@ import javax.inject.Inject
 
 class MediaRepository @Inject constructor(private val mediaCache: MediaCache) {
 
+    fun getLoadPicturesState() = mediaCache.loadPictures.value
     fun getPictureList() = mediaCache.listPicture.value
     fun loadPictureList(bID: String) = mediaCache.loadPictureList(bID)
     fun clearPictureList() = mediaCache.clearPictureList()
@@ -12,21 +13,18 @@ class MediaRepository @Inject constructor(private val mediaCache: MediaCache) {
         mediaCache.updatePictureList(mediaCache.listPicture.value.toMutableList().apply { add(picture) })
     }
 
-    fun deletePicture(picture: Picture?) {
-        mediaCache.updatePictureList(mediaCache.listPicture.value.toMutableList().apply { remove(picture) })
+    fun loadPicturesStateChange(state: Boolean? = null) {
+        if (state != null) {
+            mediaCache.loadPicturesState(state)
+        }
+        else {
+            mediaCache.loadPicturesState()
+        }
+
     }
 
-    fun updatePicture(picture: Picture) {
-        mediaCache.updatePictureList(
-            mediaCache.listPicture.value.toMutableList().map
-            {
-                if (it.bID == picture.bID) {
-                    picture
-                } else {
-                    it
-                }
-            }
-        )
+    fun deletePicture(picture: Picture?) {
+        mediaCache.updatePictureList(mediaCache.listPicture.value.toMutableList().apply { remove(picture) })
     }
 
     fun changePictureState(picID: String, state: Boolean) {
@@ -36,5 +34,5 @@ class MediaRepository @Inject constructor(private val mediaCache: MediaCache) {
     fun clearSelectedMedia() {
         mediaCache.clearSelectedMedia()
     }
-    
+
 }

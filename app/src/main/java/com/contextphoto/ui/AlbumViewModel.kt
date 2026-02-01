@@ -1,6 +1,7 @@
 package com.contextphoto.ui
 
 import android.content.Context
+import androidx.compose.runtime.snapshots.StateRecord
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.contextphoto.data.Album
@@ -17,25 +18,37 @@ class AlbumViewModel @Inject constructor(
     private val repository: AlbumRepository
 ) : ViewModel() {
     private val _albumList = MutableStateFlow<List<Album>>(emptyList())
-    private val _loadAlbumState = MutableStateFlow(true)
     private val _selectedAlbum = MutableStateFlow<Album?>(null)
+    private val _loadAlbums = MutableStateFlow<Boolean>(true)
     val albumList = _albumList.asStateFlow()
-    val loadAlbums = _loadAlbumState.asStateFlow()
+    val loadAlbums = _loadAlbums.asStateFlow()
     val selectedAlbum = _selectedAlbum.asStateFlow()
 
+    fun getAlbumList() {
+        viewModelScope.launch {
+            _albumList.value = repository.getAlbumList()
+        }
+    }
+
     fun loadAlbumList() {
-        if (loadAlbums.value) {
+        if (repository.getLoadAlbumsState()) {
             viewModelScope.launch {
                 _albumList.value = repository.loadAlbumList()
             }
         }
-        _loadAlbumState.value = false
+        repository.loadAlbumsStateChange(false)
+    }
+
+    fun loadAlbumsStateChange(state: Boolean) {
+        repository.loadAlbumsStateChange(state)
+        _loadAlbums.value = state
     }
 
     fun addAlbum(album: Album) {
         viewModelScope.launch {
             repository.addAlbum(album)
-            _albumList.value = repository.getAlbumList()}
+            _albumList.value = repository.getAlbumList()
+        }
     }
 
     fun deleteAlbum(album: Album?) {
@@ -64,7 +77,19 @@ class AlbumViewModel @Inject constructor(
         _selectedAlbum.value = album
     }
 
-    fun changeStateAlbum(state: Boolean = true) {
-        _loadAlbumState.value = state
+    fun changeStateAlbum() {
+        repository.loadAlbumsStateChange()
     }
+//
+//    fun deleteMediaFromAlbum(bID: String, count: Int) {
+//        repository.deleteMediaFromAlbum(bID, count)
+//    }
+//
+//    fun moveMediaToAlbum(bIDTo: String, bIDFrom: String, count: Int) {
+//        repository.moveMediaToAlbum(bIDTo, bIDFrom, count)
+//    }
+//
+//    fun copyMediaToAlbum(bID: String, count: Int) {
+//        repository.copyMediaToAlbum(bID, count)
+//    }
 }

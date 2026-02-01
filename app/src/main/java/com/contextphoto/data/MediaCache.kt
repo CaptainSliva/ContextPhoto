@@ -4,12 +4,16 @@ import android.content.Context
 import com.contextphoto.utils.FunctionsMediaStore.getAllMedia
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
+import jakarta.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+@Singleton
 class MediaCache @Inject constructor(@param:ApplicationContext private val context: Context) {
     private val _listPicture = MutableStateFlow<List<Picture>>(emptyList())
+    private val _loadPictureState = MutableStateFlow(true)
     val listPicture = _listPicture.asStateFlow()
+    val loadPictures = _loadPictureState.asStateFlow()
 
     fun loadPictureList(bID: String): List<Picture> {
         _listPicture.value = getAllMedia(context, bID)
@@ -34,6 +38,16 @@ class MediaCache @Inject constructor(@param:ApplicationContext private val conte
         _listPicture.value.forEach {
             it.checked = false
         }
+    }
+
+    fun loadPicturesState(state: Boolean? = null) {
+        if (state != null) {
+            _loadPictureState.value = state
+        }
+        else {
+            _loadPictureState.value = !_loadPictureState.value
+        }
+
     }
 
 }

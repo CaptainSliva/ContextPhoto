@@ -94,7 +94,7 @@ import com.contextphoto.utils.FunctionsBitmap.md5
     }
 
     @Composable
-    fun PictureItem(mediaPosition: Int, picture: Picture, modifier: Modifier = Modifier, onItemClick: () -> Unit, mediaViewModel: MediaViewModel, haveComment: Boolean) {
+    fun PictureItem(mediaPosition: Int, picture: Picture, modifier: Modifier = Modifier, onItemClick: () -> Unit, mediaViewModel: MediaViewModel) {
         val checkboxVisible = mediaViewModel.bottomMenuVisible.collectAsStateWithLifecycle()
         val listSelectedMedia by mediaViewModel.listSelectedMedia.collectAsState()
         Box(//contentAlignment = Alignment.BottomCenter,
@@ -122,7 +122,7 @@ import com.contextphoto.utils.FunctionsBitmap.md5
             Icon(
                 painter = painterResource(R.drawable.text),
                 contentDescription = null,
-                modifier = Modifier.size(26.dp).alpha(if (haveComment) 1f else 0f).padding(4.dp),
+                modifier = Modifier.size(26.dp).alpha(if (picture.haveComment) 1f else 0f).padding(4.dp),
                 tint = Color.White
             )
 

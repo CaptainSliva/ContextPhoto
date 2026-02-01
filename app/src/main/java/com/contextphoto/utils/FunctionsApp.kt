@@ -2,7 +2,9 @@ package com.contextphoto.utils
 
 import android.R.attr.data
 import android.R.attr.password
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.util.Log
 import android.view.MenuItem
 import android.widget.Toast
@@ -21,7 +23,7 @@ import kotlin.jvm.java
 
 object FunctionsApp {
 
-    fun durationTranslate(milliseconds: Int): String {
+    inline fun durationTranslate(milliseconds: Long): String {
         val seconds = milliseconds / 1000
         val hours = seconds / 3600
         val minutes = (seconds % 3600) / 60
@@ -98,6 +100,7 @@ object FunctionsApp {
 //        Firebase.auth.signOut()
 
     }
+
 }
 
 data class City(
