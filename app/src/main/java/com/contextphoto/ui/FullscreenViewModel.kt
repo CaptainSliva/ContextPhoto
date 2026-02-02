@@ -20,18 +20,14 @@ class FullscreenViewModel @Inject constructor(
     private val albumRepository: AlbumRepository
 ): ViewModel() {
     private val _listMedia = MutableStateFlow<List<Picture>>(emptyList())
-    private val _loadPictureState = MutableStateFlow<Boolean>(true)
     private val _mediaPosition = MutableStateFlow(0)
     private val _bottomMenuFullScreenVisible = MutableStateFlow(false)
     private val _dateInfoList = MutableStateFlow<List<String>>(listOf("", ""))
-    private val _isVideo = MutableStateFlow(false)
     private val _deleteAction = MutableStateFlow(false)
     val listMedia = _listMedia.asStateFlow()
-    val loadPictureState = _loadPictureState.asStateFlow()
     val mediaPosition = _mediaPosition.asStateFlow()
     val bottomMenuFullScreenVisible = _bottomMenuFullScreenVisible.asStateFlow()
     val dateInfoList = _dateInfoList.asStateFlow()
-    val isVideo = _isVideo.asStateFlow()
     val deleteAction = _deleteAction.asStateFlow()
 
     fun loadPictureList() {
@@ -55,10 +51,6 @@ class FullscreenViewModel @Inject constructor(
 
     fun updateDateInfo(context: android.content.Context, pos: Int) {
         _dateInfoList.value = getImageDate(context, _listMedia.value[pos].path)
-    }
-
-    fun changeMediaType(isVideo: Boolean) {
-        _isVideo.value = isVideo
     }
 
     fun changeStateBottomMenuFullScreen(state: Boolean? = null) {

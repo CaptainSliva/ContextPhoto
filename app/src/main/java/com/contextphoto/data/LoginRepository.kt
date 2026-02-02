@@ -5,13 +5,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import jakarta.inject.Inject
 
 class LoginRepository @Inject constructor(private val fireBaseSource: FireBaseSource) {
-    fun signUpUser(email: String, password: String) = fireBaseSource.signUpUser(email, password)
 
-    fun signInUser(email: String, password: String) = fireBaseSource.signInUser(email, password)
+    fun signInWithGoogle(gso: GoogleSignInAccount) = fireBaseSource.signInWithGoogle(gso)
 
-    fun saveUser(email: String, password: String) = fireBaseSource.saveUser(email, password)
-
-    fun signInWithGoogle(acct: GoogleSignInAccount) = fireBaseSource.signInWithGoogle(acct)
-
-    fun fetchUser() = fireBaseSource.fetchUser()
+    fun signOut() = fireBaseSource.signOut()
 }

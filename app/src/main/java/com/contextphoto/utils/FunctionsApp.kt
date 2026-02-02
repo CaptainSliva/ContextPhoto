@@ -1,25 +1,32 @@
 package com.contextphoto.utils
 
 import android.R.attr.data
-import android.R.attr.password
 import android.app.Activity
 import android.content.Context
-import android.content.ContextWrapper
+import android.content.Intent
 import android.util.Log
-import android.view.MenuItem
-import android.widget.Toast
-import androidx.fragment.app.FragmentManager
-import androidx.room.Room
-import com.contextphoto.data.Album
-import com.contextphoto.data.Picture
+import androidx.core.app.ActivityCompat.startActivityForResult
+import androidx.core.content.ContextCompat.getString
+import androidx.core.content.ContextCompat.startActivity
+import androidx.credentials.Credential
+import androidx.credentials.CustomCredential
+import com.contextphoto.R
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.google.firebase.Firebase
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
-import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.database
 import com.google.firebase.firestore.firestore
-import org.w3c.dom.Comment
+import com.google.rpc.context.AttributeContext.Auth
 import kotlin.jvm.java
+
 
 object FunctionsApp {
 
@@ -86,20 +93,6 @@ object FunctionsApp {
             .addOnFailureListener { e -> Log.w(TAG, "Error updating document", e) }
     }
 
-    fun firebasePasswordAuth() {
-        val auth = Firebase.auth
-
-        auth.createUserWithEmailAndPassword("email", "password")
-//        Thread.sleep(2000)
-//        auth.signInWithEmailAndPassword("email", "password")
-//        Thread.sleep(2000)
-//        Firebase.auth.signOut()
-//        Thread.sleep(2000)
-//        auth.signInWithEmailAndPassword("email", "password")
-//        Thread.sleep(2000)
-//        Firebase.auth.signOut()
-
-    }
 
 }
 

@@ -1,5 +1,6 @@
 package com.contextphoto.ui.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.room.util.TableInfo
+import com.contextphoto.data.Destination
 import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.ui.theme.ContextPhotoTheme
 
@@ -23,7 +25,14 @@ fun SettingsScreen(modifier: Modifier = Modifier,
         Text("Импорт из файла")
         Text("Экспорт в файл")
         Divider(modifier = Modifier.fillMaxWidth().padding(0.dp, 8.dp))
-        Text("Авторизация/регистрация/logout")
+        Text("Авторизация/регистрация/logout",
+            modifier = Modifier.clickable(
+                onClick = {
+                    navController.navigate(
+                        Destination.Login().route
+                    )
+                }
+            ))
         Text("Импорт из Firebase")
         Text("Экспорт в Firebase")
     }

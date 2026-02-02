@@ -1,5 +1,12 @@
 package com.contextphoto.ui.screen
 
+import android.R.attr.data
+import android.app.Activity
+import android.content.Intent
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -30,6 +37,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -45,19 +53,65 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.Navigation.findNavController
 import com.contextphoto.R
+import com.contextphoto.data.LoginViewModel
 import com.contextphoto.ui.theme.ContextPhotoTheme
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignIn.getClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
+import com.google.android.gms.common.api.ApiException
 
 @Composable
-fun LoginScreen() {
+fun LoginScreen(loginViewModel: LoginViewModel = hiltViewModel()) {
     val context = LocalContext.current
     var isShowPassword by rememberSaveable {mutableStateOf(false)}
+    val errorMessage = remember { mutableStateOf("") }
     Surface(
         color = Color.White,
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
+
+
+        val googleSignInLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.StartActivityForResult() // Контракт для запуска активити
+        ) { result ->
+
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data: Intent? = result.data
+
+                try {
+                    // Пытаемся получить аккаунт
+                    val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+                    val account = task.getResult(ApiException::class.java)
+
+                    // Если успешно, передаем в ViewModel
+                    account?.let {
+                        loginViewModel.signInWithGoogle(it)
+                    }
+
+                } catch (e: ApiException) {
+                    // Обрабатываем ошибку
+                    errorMessage.value = when (e.statusCode) {
+                        GoogleSignInStatusCodes.SIGN_IN_CANCELLED -> "Вход отменен"
+                        GoogleSignInStatusCodes.SIGN_IN_FAILED -> "Ошибка входа"
+                        else -> "Ошибка: ${e.message}"
+                    }
+                    e.printStackTrace()
+                }
+            } else {
+                // Пользователь нажал "Назад" или отменил
+                errorMessage.value = "Вход отменен"
+            }
+        }
+
 
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -109,7 +163,18 @@ fun LoginScreen() {
             verticalArrangement = Arrangement.Bottom
         ) {
             Button(
-                onClick = { },
+                onClick = {
+
+                    val signInIntent = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                        .requestIdToken(context.getString(R.string.default_web_client_id))
+                        .requestEmail()
+                        .build()
+
+                    val gso = getClient(context, signInIntent)
+                    val email =
+                    // Запускаем активити через launcher
+                    googleSignInLauncher.launch(gso.signInIntent)
+                },
                 shape = RoundedCornerShape(50.dp),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -122,6 +187,9 @@ fun LoginScreen() {
                     fontSize = 20.sp
                 )
             }
+            Text(text = errorMessage.value,
+                modifier = Modifier.clickable(onClick = {loginViewModel.signOut()})
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
             Row(
@@ -151,6 +219,7 @@ fun LoginScreen() {
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier
                     .clickable(onClick = {
+                        loginViewModel.signOut()
                     })
             )
 
@@ -160,7 +229,7 @@ fun LoginScreen() {
 }
 
 @Composable
-fun RegisterScreen() {
+fun RegisterScreen(loginViewModel: LoginViewModel = hiltViewModel()) {
     val context = LocalContext.current
     var isShowPassword by rememberSaveable {mutableStateOf(false)}
     Surface(

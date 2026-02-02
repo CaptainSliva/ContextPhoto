@@ -155,17 +155,18 @@ fun FullScreenViewPagerWithScaffold(
                     .fillMaxSize()
                     .background(Color.Black)
                 ) {
-                    LaunchedEffect(pagerState.settledPage) {
-                        if (convertUri(listMedia[pagerState.settledPage].path, listMedia[pagerState.settledPage].uri).toString().contains("video")) {
-                            fullScreenViewModel.changeMediaType(true)
-                        }
-                        else fullScreenViewModel.changeMediaType(false)
-                    }
+
                     if (convertUri(media.path, media.uri).toString().contains("video")) {
                         //fullScreenViewModel.changeStateBottomMenuFullScreen(true)
                         //VideoUI(media.uri, { fullScreenViewModel.changeStateBottomMenuFullScreen() }, // Для комментария видео стоит null тк иначе я вижу просто чёрный экран
                         //    { ShowBottomMenu(Destination.FULLSCREENIMG().route, fullScreenViewModel = fullScreenViewModel, commentText = null) })
-                        CustomVideoUI(media.uri)
+                        CustomVideoUI(media.uri,
+                            commentText.value,
+                            fullScreenViewModel,
+                            {ShowBottomMenu(Destination.FULLSCREENIMG().route, fullScreenViewModel = fullScreenViewModel, commentText = commentText.value, isVideo = true)},
+                            { fullScreenViewModel.changeStateBottomMenuFullScreen() }
+                        )
+
                     } else {
                         ImageUI(media.uri, media.path, { fullScreenViewModel.changeStateBottomMenuFullScreen() })
                         ShowBottomMenu(Destination.FULLSCREENIMG().route, fullScreenViewModel = fullScreenViewModel, commentText = commentText.value)

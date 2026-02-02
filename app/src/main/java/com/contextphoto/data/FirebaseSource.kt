@@ -12,16 +12,12 @@ import jakarta.inject.Inject
 
 class FireBaseSource @Inject constructor(private val firebaseAuth: FirebaseAuth, private val firestore: FirebaseFirestore) {
 
-    fun signUpUser(email:String, password:String) = firebaseAuth.createUserWithEmailAndPassword(email,password)
+    fun signInWithGoogle(gso: GoogleSignInAccount) = firebaseAuth.signInWithCredential(
+        GoogleAuthProvider.getCredential(gso.idToken,null))
 
-    fun signInUser(email: String, password: String) = firebaseAuth.signInWithEmailAndPassword(email,password)
-
-    fun saveUser(email: String, password:String) = firestore.collection("users").document(email).set(User(email, password))
-
-    fun signInWithGoogle(acct: GoogleSignInAccount) = firebaseAuth.signInWithCredential(
-        GoogleAuthProvider.getCredential(acct.idToken,null))
-
-    fun fetchUser()=firestore.collection("users").get()
+    fun signOut() {
+        firebaseAuth.signOut()
+    }
 
     fun saveComments(uId: String, comments: List<Comment>) {
         comments.forEach {
@@ -33,9 +29,3 @@ class FireBaseSource @Inject constructor(private val firebaseAuth: FirebaseAuth,
         firestore.collection("comments").document(uId).delete()
     }
 }
-
-
-data class User(
-    val email: String,
-    val password: String
-)

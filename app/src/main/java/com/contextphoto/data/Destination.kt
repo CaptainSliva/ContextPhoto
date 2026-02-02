@@ -23,16 +23,6 @@ sealed class Destination(
         Destination("search_photo", "Поиск по комментарию", Icons.Default.Menu, "SearchPhoto")
 
     class SETTINGS : Destination("settings", "Настройки", Icons.Default.Menu, "Settings")
+    class Login : Destination("login", "Логин", Icons.Default.Menu, "Login")
+    class Registration : Destination("registration", "Регистрация", Icons.Default.Menu, "Registration")
 }
-//enum class Destination( // TODO refactor sealed interface вместо enum class Destination
-//    val route: String,
-//    val label: String,
-//    val icon: ImageVector,
-//    val contentDescription: String
-//) {
-//    ALBUMS("albums", "Альбомы", Icons.Default.Build, "Album"),
-//    PICTURES("pictures", "Все фото", Icons.Default.Warning, "Picture"),
-//    FULLSCREENIMG("full_screen_img", "Картинка", Icons.Default.AccountBox, "Full"),
-//    SEARCH_PHOTO("search_photo", "Поиск по комментарию", Icons.Default.Menu, "SearchPhoto"),
-//    SETTINGS("settings", "Настройки", Icons.Default.Menu, "Settings"),
-//}

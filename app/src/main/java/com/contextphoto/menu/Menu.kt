@@ -90,16 +90,16 @@ fun MainDropdownMenu(navController: NavController) {
                 onDismissRequest = { expanded = false },
             ) {
                 DropdownMenuItem(
-                    text = { Text(context.getString(R.string.menu_settings)) },
+                    text = { Text(context.getString(R.string.menu_search_photo)) },
                     onClick = {
-                        navController.navigate(Destination.SETTINGS().route)
+                        navController.navigate(Destination.SEARCH_PHOTO().route)
                         expanded = false
                     },
                 )
                 DropdownMenuItem(
-                    text = { Text(context.getString(R.string.menu_search_photo)) },
+                    text = { Text(context.getString(R.string.menu_settings)) },
                     onClick = {
-                        navController.navigate(Destination.SEARCH_PHOTO().route)
+                        navController.navigate(Destination.SETTINGS().route)
                         expanded = false
                     },
                 )
@@ -219,9 +219,9 @@ fun BottomMenuPictureScreen(mediaViewModel: MediaViewModel) {
             horizontalArrangement = Arrangement.Center,
         ) {
             ButtonShare(listSelectedMedia)
-            ButtonToAlbum(listSelectedMedia, toAlbumDialogVisible)
-            ButtonCommentate(listSelectedMedia, commentateDialogVisible)
-            ButtonDelete(deleteDialogVisible, mediaViewModel)
+            ButtonToAlbum(toAlbumDialogVisible)
+            ButtonCommentate(commentateDialogVisible)
+            ButtonDelete(deleteDialogVisible)
         }
     }
 
@@ -234,7 +234,61 @@ fun BottomMenuFullScreen(fullscreenViewModel: FullscreenViewModel) {
     val deleteDialogVisible = rememberSaveable { mutableStateOf(false) }
     val listMedia by fullscreenViewModel.listMedia.collectAsStateWithLifecycle()
     val pos = fullscreenViewModel.mediaPosition.collectAsStateWithLifecycle()
-    val isVideo = fullscreenViewModel.isVideo.collectAsStateWithLifecycle()
+    AnimatedVisibility(
+        visible = shareDialogVisible.value,
+        enter = slideInVertically(),
+        exit = slideOutVertically(),
+    ) {
+    }
+
+    AnimatedVisibility(
+        visible = commentateDialogVisible.value,
+        enter = slideInVertically(),
+        exit = slideOutVertically(),
+    ) {
+        CommentateDialog({}, commentateDialogVisible, listMedia[pos.value])
+    }
+
+    AnimatedVisibility(
+        visible = deleteDialogVisible.value,
+        enter = slideInVertically(),
+        exit = slideOutVertically(),
+    ) {
+        DeleteMediaDialog(
+            {},
+            deleteDialogVisible,
+            Destination.FULLSCREENIMG().route,
+            listMedia[0].bID,
+            fullscreenViewModel = fullscreenViewModel
+        )
+    }
+
+    Column(modifier = Modifier.fillMaxHeight(),//if (!isVideo.value) Modifier.fillMaxHeight() else Modifier,
+        verticalArrangement = Arrangement.Bottom) {
+        Row(
+            modifier =
+                Modifier
+                    .background(Color.Black)
+                    .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            ButtonShare(listOf(listMedia[pos.value]))
+            ButtonRotate()
+            ButtonCommentate(commentateDialogVisible)
+            ButtonDelete(deleteDialogVisible, fullscreenViewModel)
+
+        }
+    }
+
+}
+
+@Composable// FullScreen поделиться, повернуть, комментировать, удалить
+fun BottomMenuFullScreenVideo(fullscreenViewModel: FullscreenViewModel) {
+    val shareDialogVisible = rememberSaveable { mutableStateOf(false) }
+    val commentateDialogVisible = rememberSaveable { mutableStateOf(false) }
+    val deleteDialogVisible = rememberSaveable { mutableStateOf(false) }
+    val listMedia by fullscreenViewModel.listMedia.collectAsStateWithLifecycle()
+    val pos = fullscreenViewModel.mediaPosition.collectAsStateWithLifecycle()
     AnimatedVisibility(
         visible = shareDialogVisible.value,
         enter = slideInVertically(),
@@ -263,7 +317,7 @@ fun BottomMenuFullScreen(fullscreenViewModel: FullscreenViewModel) {
         )
     }
 
-    Column(modifier = Modifier.fillMaxHeight(),//if (!isVideo.value) Modifier.fillMaxHeight() else Modifier,
+    Column(modifier = Modifier.fillMaxWidth(),//if (!isVideo.value) Modifier.fillMaxHeight() else Modifier,
         verticalArrangement = Arrangement.Bottom) {
         Row(
             modifier =
@@ -274,7 +328,7 @@ fun BottomMenuFullScreen(fullscreenViewModel: FullscreenViewModel) {
         ) {
             ButtonShare(listOf(listMedia[pos.value]))
             ButtonRotate()
-            ButtonCommentate(listOf(listMedia[pos.value]), commentateDialogVisible)
+            ButtonCommentate(commentateDialogVisible)
             ButtonDelete(deleteDialogVisible, fullscreenViewModel)
 
         }
@@ -325,7 +379,7 @@ fun ButtonShare(listSelectedMedia: List<Picture>) {
 }
 
 @Composable
-fun ButtonCommentate(listSelectedMedia: List<Picture>, commentateDialogVisible: MutableState<Boolean>) {
+fun ButtonCommentate(commentateDialogVisible: MutableState<Boolean>) {
     val context = LocalContext.current
     Column(
         modifier =
@@ -352,7 +406,7 @@ fun ButtonCommentate(listSelectedMedia: List<Picture>, commentateDialogVisible: 
 }
 
 @Composable
-fun ButtonDelete(deleteDialogVisible: MutableState<Boolean>, mediaViewModel: MediaViewModel) {
+fun ButtonDelete(deleteDialogVisible: MutableState<Boolean>) {
     val context = LocalContext.current
     Column(
         modifier =
@@ -442,7 +496,7 @@ fun ButtonRotate() {
 }
 
 @Composable
-fun ButtonToAlbum(listSelectedMedia: List<Picture>, toAlbumDialogVisible: MutableState<Boolean>) {
+fun ButtonToAlbum(toAlbumDialogVisible: MutableState<Boolean>) {
     val context = LocalContext.current
     Column(
         modifier = Modifier

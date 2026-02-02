@@ -1,6 +1,7 @@
 package com.contextphoto.item
 
 import android.R.attr.onClick
+import android.R.attr.visible
 import android.graphics.PointF
 import android.net.Uri
 import android.util.Log
@@ -8,6 +9,11 @@ import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
 import android.view.ViewGroup
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -46,6 +52,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.contextphoto.InfinityScrollableText
 import com.contextphoto.R
 import com.contextphoto.ui.FullscreenViewModel
 import com.contextphoto.utils.FunctionsApp.durationTranslate
@@ -68,6 +76,8 @@ import kotlin.math.min
 @Composable
 fun CustomVideoUI(
     uri: Uri,
+    commentText: String? = null,
+    fullscreenViewModel: FullscreenViewModel,
     bottomMfenu: @Composable () -> Unit = {},
     onClick: () -> Unit = {}
 ) {
@@ -83,6 +93,7 @@ fun CustomVideoUI(
     var currentPosition by remember { mutableLongStateOf(0L) }
     val totalDuration = remember { mutableLongStateOf(0L) }
     var isPlaying by remember { mutableStateOf(false) }
+    val isVisible = fullscreenViewModel.bottomMenuFullScreenVisible.collectAsStateWithLifecycle()
 
     val playerListener = object : Player.Listener {
         override fun onPositionDiscontinuity(
@@ -92,18 +103,25 @@ fun CustomVideoUI(
         ) {
             currentPosition = newPosition.positionMs
         }
+        override fun onPlaybackStateChanged(state: Int) {
+            when (state) {
+                Player.STATE_IDLE -> "Idle"
+                Player.STATE_BUFFERING -> "Buffering"
+                Player.STATE_READY -> totalDuration.value = exoPlayer.duration
+                Player.STATE_ENDED -> currentPosition = totalDuration.value
+                else -> "Unknown"
+            }
+        }
     }
     LaunchedEffect(Unit) {
         while (true) {
             delay(16)
-            if (exoPlayer.playbackState == Player.STATE_ENDED) {
-                currentPosition = totalDuration.value
-            }
             if (exoPlayer.isPlaying) {
                 currentPosition = exoPlayer.currentPosition
             }
         }
     }
+
 
 
     LaunchedEffect(exoPlayer) {
@@ -119,7 +137,9 @@ fun CustomVideoUI(
 
     DisposableEffect(
         AndroidView(
-            modifier = Modifier.clickable(onClick = {onClick()}),
+            modifier = Modifier.clickable(onClick = {
+                onClick()
+            }),
             factory = {
                 PlayerView(context).apply {
                     layoutParams =
@@ -143,90 +163,88 @@ fun CustomVideoUI(
         }
     }
 
-
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Bottom
+    AnimatedVisibility(visible = isVisible.value,
+            enter = slideInVertically(initialOffsetY = {500}) +
+            fadeIn(initialAlpha = 0.3f),
+        exit = slideOutVertically(targetOffsetY = {600}) +
+                fadeOut()
     ) {
-        totalDuration.value = exoPlayer.duration
-
-        // Кнопки управления
-        Row(
+        if (commentText != null) InfinityScrollableText(isVisible.value, commentText, { onClick() }, offset=47)
+        Column(
             modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Bottom
         ) {
-            IconButton(
-                onClick = {
-                    val newPosition = max(0L, exoPlayer.currentPosition - 5000)
-                    exoPlayer.seekTo(newPosition)
-                    currentPosition = newPosition
-                }
-            ) {
-                Icon(Icons.Default.ArrowBack, "Назад 5 сек",
-                    tint = Color.White)
-            }
 
-            IconButton(
-                onClick = {
-                    if (isPlaying) {
-                        exoPlayer.pause()
-                        isPlaying = false
-                    } else {
-                        exoPlayer.play()
-                        isPlaying = true
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Black),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Время
+                Text(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    text = durationTranslate(currentPosition),
+                    color = Color.White
+                )
+
+                // Кнопка управления
+                IconButton(
+                    onClick = {
+                        if (isPlaying) {
+                            exoPlayer.pause()
+                            isPlaying = false
+                        } else {
+                            exoPlayer.play()
+                            isPlaying = true
+                        }
                     }
-                }
-            ) {
-                Icon(
-                    if (isPlaying) Icons.Default.Close else Icons.Default.PlayArrow,
-                    if (isPlaying) "Пауза" else "Воспроизвести",
-                    tint = Color.White
-                )
-            }
-
-            IconButton(
-                onClick = {
-                    val newPosition = min(
-                        exoPlayer.duration,
-                        exoPlayer.currentPosition + 5000
+                ) {
+                    Icon(
+                        if (isPlaying) Icons.Default.Close else Icons.Default.PlayArrow,
+                        if (isPlaying) "Пауза" else "Воспроизвести",
+                        tint = Color.White
                     )
-                    exoPlayer.seekTo(newPosition)
-                    currentPosition = newPosition
                 }
-            ) {
-                Icon(Icons.Default.Refresh, "Вперед 5 сек",
-                    tint = Color.White)
-            }
-        }
 
-        // Ползунок прогресса
-        Column(verticalArrangement = Arrangement.Bottom) {
-            Slider(
-                value = if (totalDuration.value > 0) currentPosition.toFloat() / totalDuration.value else 0f,
-                onValueChange = { newValue ->
-                    currentPosition = (newValue * totalDuration.value).toLong()
-                    exoPlayer.seekTo(currentPosition)
-                },
-                onValueChangeFinished = {
-                    // Действие после отпускания ползунка
-                    exoPlayer.seekTo(currentPosition)
-                    println("Перемотано на: ${durationTranslate(currentPosition)}")
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = SliderDefaults.colors(
-                    thumbColor = Color.Red,
-                    activeTrackColor = Color.Red,
-                    inactiveTrackColor = Color.Gray.copy(alpha = 0.3f)
+                // Время
+                Text(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    text = durationTranslate(totalDuration.value),
+                    color = Color.White
                 )
-            )
+            }
+
+            // Ползунок прогресса
+            Box(modifier = Modifier.background(Color.Black)) {
+                Slider(
+                    value = if (totalDuration.value > 0) currentPosition.toFloat() / totalDuration.value else 0f,
+                    onValueChange = { newValue ->
+                        currentPosition = (newValue * totalDuration.value).toLong()
+                        exoPlayer.seekTo(currentPosition)
+                    },
+                    onValueChangeFinished = {
+                        // Действие после отпускания ползунка
+                        exoPlayer.seekTo(currentPosition)
+                        println("Перемотано на: ${durationTranslate(currentPosition)}")
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    colors = SliderDefaults.colors(
+                        thumbColor = Color.Red,
+                        activeTrackColor = Color.Red,
+                        inactiveTrackColor = Color.Gray.copy(alpha = 0.3f)
+                    )
+                )
+            }
+            bottomMfenu()
         }
-        bottomMfenu()
     }
+
 }
 
 

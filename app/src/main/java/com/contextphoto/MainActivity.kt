@@ -1,7 +1,9 @@
 package com.contextphoto
 
+import android.R.attr.onClick
 import android.app.Activity
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -27,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Bottom
@@ -44,8 +46,12 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -54,18 +60,26 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.contextphoto.RequestPermissions.ComposePermissions
 import com.contextphoto.data.Destination
+import com.contextphoto.data.LoginViewModel
 import com.contextphoto.menu.BottomMenuFullScreen
+import com.contextphoto.menu.BottomMenuFullScreenVideo
 import com.contextphoto.menu.BottomMenuPictureScreen
 import com.contextphoto.menu.MainDropdownMenu
 import com.contextphoto.ui.FullscreenViewModel
 import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.ui.screen.AlbumsScreenWithScaffold
 import com.contextphoto.ui.screen.FullScreenViewPagerWithScaffold
+import com.contextphoto.ui.screen.LoginScreen
 import com.contextphoto.ui.screen.PicturesScreenWithScaffold
+import com.contextphoto.ui.screen.RegisterScreen
 import com.contextphoto.ui.screen.SearchPhotoScreenWithScaffold
 import com.contextphoto.ui.screen.SettingsScreen
 import com.contextphoto.ui.theme.ContextPhotoTheme
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.firebase.auth.EmailAuthProvider
+import com.google.firebase.auth.GoogleAuthProvider
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 // Виды todo
 // TODO add
@@ -86,7 +100,31 @@ class MainActivity() : ComponentActivity() {
 
 //            firebaseRealTimeDatabaseTest()
 //            firebaseFirestoreDatabaseTest()
-//            firebasePasswordAuth()
+            //firebaseAuth(context, activity)
+
+
+
+
+
+            val webClientId = "113904399220611091178"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         //    val MIGRATION_1_2 = object : Migration(1, 2) {
         //        override fun migrate(db: SupportSQLiteDatabase) {
         //            db.execSQL("ALTER TABLE User ADD COLUMN email TEXT")
@@ -117,6 +155,7 @@ fun ShowBottomMenu(
     mediaViewModel: MediaViewModel = hiltViewModel(),
     fullScreenViewModel: FullscreenViewModel = hiltViewModel(),
     commentText: String? = null,
+    isVideo: Boolean = false,
 ) {
 
     when (currentDestination) {
@@ -128,10 +167,22 @@ fun ShowBottomMenu(
 
         Destination.FULLSCREENIMG().route -> {
             val visible = fullScreenViewModel.bottomMenuFullScreenVisible.collectAsStateWithLifecycle().value
-            if (commentText != null) InfinityScrollableText(visible, commentText, { fullScreenViewModel.changeStateBottomMenuFullScreen() })
-            FunBottomMenu(visible,
-                { BottomMenuFullScreen(fullScreenViewModel) }
-            )
+
+            when (isVideo) {
+                true -> {
+                    FunBottomMenu(visible,
+                        { BottomMenuFullScreenVideo(fullScreenViewModel) }
+                    )
+                }
+
+                else -> {
+                    if (commentText != null) InfinityScrollableText(visible, commentText, { fullScreenViewModel.changeStateBottomMenuFullScreen() })
+                    FunBottomMenu(visible,
+                        { BottomMenuFullScreen(fullScreenViewModel) }
+                    )
+                }
+            }
+
         }
     }
 }
@@ -155,9 +206,11 @@ fun FunBottomMenu(visible: Boolean,
 fun InfinityScrollableText(
     visible: Boolean,
     commentText: String,
-    onClick: () -> Unit)
+    onClick: () -> Unit,
+    offset: Int = 0
+)
 {
-    val freeSpace = 167
+    val freeSpace = 167+offset
     val brush = Brush.verticalGradient(listOf(colorResource(R.color.medium_transparant_black), colorResource(R.color.dark_black_overlay), Color.Black))
     val offsetX = remember { mutableStateOf(0f) }
     val offsetY = remember { mutableStateOf(0f) }
@@ -238,6 +291,12 @@ fun AppNavHost(
 
         composable(Destination.SETTINGS().route) {
             SettingsScreen(modifier, navController)
+        }
+        composable(Destination.Login().route) {
+            LoginScreen()
+        }
+        composable(Destination.Registration().route) {
+            RegisterScreen()
         }
     }
 }
