@@ -2,20 +2,16 @@ package com.contextphoto.ui.screen
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.room.util.TableInfo
 import com.contextphoto.data.Destination
-import com.contextphoto.ui.MediaViewModel
-import com.contextphoto.ui.theme.ContextPhotoTheme
+import com.contextphoto.menu.MainDropdownMenu
 
 @Composable
 fun SettingsScreen(modifier: Modifier = Modifier,
@@ -36,6 +32,7 @@ fun SettingsScreen(modifier: Modifier = Modifier,
         Text("Импорт из Firebase")
         Text("Экспорт в Firebase")
     }
+    MainDropdownMenu(navController)
 }
 
 //@Preview(showBackground = true)

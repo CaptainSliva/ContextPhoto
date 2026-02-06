@@ -9,15 +9,15 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -35,11 +35,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -49,9 +51,9 @@ import com.contextphoto.ShowBottomMenu
 import com.contextphoto.data.Destination
 import com.contextphoto.db.CommentDatabase
 import com.contextphoto.item.PictureItem
+import com.contextphoto.menu.MainDropdownMenu
 import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.utils.FunctionsBitmap.md5
-import com.contextphoto.utils.FunctionsMediaStore.getImageDate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -72,27 +74,50 @@ fun PicturesScreenWithScaffold(
 
     val context = LocalContext.current
     val db = CommentDatabase.getDatabse(context).commentDao()
-    val haveComment = remember { mutableStateOf(false) }
     val listMedia by mediaViewModel.listMedia.collectAsStateWithLifecycle()
     val albumName by mediaViewModel.albumName.collectAsStateWithLifecycle()
+    val groupedMedia =
+        remember(listMedia) {
+            listMedia.groupBy { media ->
+                media.date[0]
+            }
+        }
 
     val otboinik = 10
     val defaultTextSize = 14f
-    val dateVisible = rememberSaveable {mutableStateOf(true)}
-    val counterFlag = rememberSaveable {mutableStateOf(0)}
-    val countOfPhotoLine = rememberSaveable {mutableStateOf(3)}
-    val fontSize = rememberSaveable {mutableStateOf(defaultTextSize)}
+    val dateVisible = rememberSaveable { mutableStateOf(true) }
+    val counterFlag = rememberSaveable { mutableStateOf(0) }
+    val countOfPhotoLine = rememberSaveable { mutableStateOf(3) }
+    val fontSize = rememberSaveable { mutableStateOf(defaultTextSize) }
+    val mediaPosition = mediaViewModel.mediaPosition.collectAsStateWithLifecycle()
+    val newPosition = rememberLazyGridState(0)
+    val coroutineScope = rememberCoroutineScope()
 
     Log.d("Pictures", listMedia.toString())
     when (countOfPhotoLine.value) {
-        1 -> {fontSize.value = 28f}
-        2 -> {fontSize.value = 18f}
-        3 -> {fontSize.value = defaultTextSize}
+        1 -> {
+            fontSize.value = 28f
+        }
+
+        2 -> {
+            fontSize.value = 18f
+        }
+
+        3 -> {
+            fontSize.value = defaultTextSize
+        }
+
         4 -> {
             fontSize.value = 11f
             dateVisible.value = true
-        } // visible date and divider
-        5 -> {dateVisible.value = false} // invisible date and divider
+        }
+
+        // visible date and divider
+        5 -> {
+            dateVisible.value = false
+        }
+
+        // invisible date and divider
         6 -> {}
     }
 
@@ -101,7 +126,7 @@ fun PicturesScreenWithScaffold(
             TopAppBar(
                 title = {
                     Text(
-                        albumName
+                        albumName,
                     )
                 },
                 navigationIcon = {
@@ -116,6 +141,7 @@ fun PicturesScreenWithScaffold(
                     }
                 },
             )
+            MainDropdownMenu(navController)
         },
         bottomBar = {
             val stateBottomMenu by mediaViewModel.bottomMenuVisible.collectAsStateWithLifecycle()
@@ -123,22 +149,29 @@ fun PicturesScreenWithScaffold(
                 AnimatedVisibility(
                     visible = !stateBottomMenu,
                     enter = slideInVertically(),
-                    exit = shrinkVertically(shrinkTowards = Alignment.Top)
+                    exit = shrinkVertically(shrinkTowards = Alignment.Top),
                 ) {
                     NavigationBar(windowInsets = NavigationBarDefaults.windowInsets) {
-                        listOf(Destination.ALBUMS(), Destination.PICTURES()).forEach{ destination ->
+                        listOf(Destination.Albums(), Destination.Pictures()).forEach { destination ->
                             NavigationBarItem(
-                                selected = destination is Destination.PICTURES,
+                                selected = destination is Destination.Pictures,
                                 onClick = {
                                     when (destination) {
-                                        is Destination.ALBUMS -> navController.navigate(route = destination.route)
-                                        is Destination.PICTURES -> navController.navigate(Destination.PICTURES().route + "/")
+                                        is Destination.Albums -> {
+                                            mediaViewModel.loadAlbumsStateChange(true)
+                                            navController.navigate(route = destination.route)
+                                        }
+
+                                        is Destination.Pictures -> {
+                                            navController.navigate(Destination.Pictures().route + "/")
+                                        }
+
                                         else -> {}
                                     }
                                 },
                                 icon = {
                                     Icon(
-                                        destination.icon,
+                                        painterResource(destination.icon),
                                         contentDescription = destination.contentDescription,
                                     )
                                 },
@@ -147,85 +180,105 @@ fun PicturesScreenWithScaffold(
                         }
                     }
                 }
-
             }
         },
         content = { paddingValues ->
+
             Log.d("fontSize", fontSize.value.toString())
             Log.d("countOfPhotoLine", countOfPhotoLine.value.toString())
-            Box(modifier.fillMaxSize()
-                .pointerInput(Unit) {
-                    detectTransformGestures() { _, _, f1, _ ->
-                        if (f1 < 1) { // Увеличение масштаба
-                            counterFlag.value += 1
-                            if (counterFlag.value == otboinik) {
-                                counterFlag.value = 0
-                                countOfPhotoLine.value += if (countOfPhotoLine.value < 6) 1 else 0
+            Box(
+                modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectTransformGestures { _, _, f1, _ ->
+                            if (f1 < 1) { // Увеличение масштаба
+                                counterFlag.value += 1
+                                if (counterFlag.value == otboinik) {
+                                    counterFlag.value = 0
+                                    countOfPhotoLine.value += if (countOfPhotoLine.value < 6) 1 else 0
+                                }
+                            } else { // Уменьшение масштаба
+                                counterFlag.value += 1
+                                if (counterFlag.value == otboinik) {
+                                    counterFlag.value = 0
+                                    countOfPhotoLine.value -= if (countOfPhotoLine.value > 1) 1 else 0
+                                }
                             }
                         }
-                        else {  // Уменьшение масштаба
-                            counterFlag.value += 1
-                            if (counterFlag.value == otboinik) {
-                                counterFlag.value = 0
-                                countOfPhotoLine.value -= if (countOfPhotoLine.value > 1) 1 else 0
-                            }
-                        }
-                    }
-                }) {
+                    },
+            ) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(countOfPhotoLine.value),
-                    modifier = modifier
-                        .padding(paddingValues)
-                        .fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 80.dp)
+                    modifier =
+                        modifier
+                            .padding(paddingValues)
+                            .fillMaxSize(),
+                    state = newPosition,
+                    contentPadding = PaddingValues(bottom = 80.dp),
                 ) {
-                    items(items = listMedia) { media ->
-                        val mediaIndex = listMedia.indexOf(media)
-                        LaunchedEffect(Unit) {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                haveComment.value = (db.findImageByHash(md5(media.thumbnail))?.image_comment ?: "") != ""
-                                listMedia[mediaIndex].haveComment = haveComment.value
-                                Log.d("commentTag", db.findImageByHash(md5(media.thumbnail))?.image_comment?:"")
-                                Log.d("HAVEcommentTag", listMedia[mediaIndex].haveComment.toString())
+                    groupedMedia.forEach { (date, mediaList) ->
+                        item(
+                            span = { GridItemSpan(maxLineSpan) },
+                        ) {
+                            AnimatedVisibility(
+                                visible = dateVisible.value,
+                                enter = expandVertically(expandFrom = Alignment.Top),
+                                exit = shrinkVertically(shrinkTowards = Alignment.Top),
+                            ) {
+                                Column(
+                                    modifier = Modifier.fillMaxWidth().animateItem(),
+                                ) {
+                                    Text(
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .padding(start = 4.dp, top = 4.dp),
+                                        text = date,
+                                        fontSize = fontSize.value.sp,
+                                    )
+                                    HorizontalDivider()
+                                    Spacer(Modifier.padding(2.dp))
+                                }
                             }
                         }
-                        Column() {
-                            AnimatedVisibility(visible = dateVisible.value,
-                                enter = expandVertically(expandFrom = Alignment.Top),
-                                exit = shrinkVertically(shrinkTowards = Alignment.Top)
-                            ) {
-                                Column() {
-                                    Spacer(Modifier.padding(2.dp))
-                                    HorizontalDivider()
-                                    Text(modifier = Modifier.padding(start = 4.dp),
-                                        text = getImageDate(LocalContext.current, media.path)[0],
-                                        fontSize = fontSize.value.sp)
+
+                        items(items = mediaList, key = { media -> media.path }) { media ->
+                            val mediaIndex = listMedia.indexOf(media)
+                            val haveComment = remember { mutableStateOf(false) }
+
+                            LaunchedEffect(Unit) {
+                                CoroutineScope(Dispatchers.Default).launch {
+                                    haveComment.value = (db.findImageByHash(md5(media.thumbnail))?.image_comment ?: "") != ""
+                                    listMedia[mediaIndex].haveComment = haveComment.value
                                 }
                             }
 
-                            Row() {
-                                PictureItem(
-                                    mediaIndex,
-                                    media,
-                                    Modifier.padding(1.dp),
-                                    onItemClick = {
-                                        navController.navigate(
-                                            Destination.FULLSCREENIMG().route + "/${
-                                                mediaIndex
-                                            }"
-                                        )
-                                    },
-                                    mediaViewModel,
-                                )
-                            }
+                            PictureItem(
+                                mediaIndex,
+                                media,
+                                Modifier.padding(1.dp).animateItem(),
+                                onItemClick = {
+                                    navController.navigate(Destination.FullScreenImg().route)
+                                },
+                                mediaViewModel,
+                            )
                         }
                     }
-
-                    //item { Spacer(modifier = Modifier.height(80.dp)) }
                 }
-                ShowBottomMenu(Destination.PICTURES().route, mediaViewModel =  mediaViewModel)
-            }
-        }
-    )
 
+                ShowBottomMenu(Destination.Pictures().route, mediaViewModel = mediaViewModel)
+            }
+
+            LaunchedEffect(mediaPosition.value) {
+                coroutineScope.launch {
+                    println("New index photo ${mediaPosition.value}")
+                    newPosition.scrollToItem(
+                        mediaPosition.value,
+//                        index = mediaPosition.value,
+//                        scrollOffset = 0
+                    )
+                }
+            }
+        },
+    )
 }

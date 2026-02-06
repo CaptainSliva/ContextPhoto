@@ -1,18 +1,14 @@
 package com.contextphoto.ui.screen
 
-import android.R.attr.data
 import android.app.Activity
-import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -48,30 +44,31 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.Navigation.findNavController
 import com.contextphoto.R
 import com.contextphoto.data.LoginViewModel
 import com.contextphoto.ui.theme.ContextPhotoTheme
+import com.contextphoto.utils.FunctionsApp.googleLogin
+import com.contextphoto.utils.FunctionsApp.googleLogout
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignIn.getClient
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.auth.api.signin.GoogleSignInStatusCodes
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 
 @Composable
 fun LoginScreen(loginViewModel: LoginViewModel = hiltViewModel()) {
     val context = LocalContext.current
     var isShowPassword by rememberSaveable {mutableStateOf(false)}
     val errorMessage = remember { mutableStateOf("") }
+    lateinit var mGoogleSignInClient: GoogleSignInClient
+    lateinit var firebaseAuth: FirebaseAuth
     Surface(
         color = Color.White,
         modifier = Modifier
@@ -79,35 +76,33 @@ fun LoginScreen(loginViewModel: LoginViewModel = hiltViewModel()) {
             .padding(16.dp)
     ) {
 
-
         val googleSignInLauncher = rememberLauncherForActivityResult(
             contract = ActivityResultContracts.StartActivityForResult() // Контракт для запуска активити
         ) { result ->
 
             if (result.resultCode == Activity.RESULT_OK) {
-                val data: Intent? = result.data
-
+                val task: Task<GoogleSignInAccount> = GoogleSignIn.getSignedInAccountFromIntent(result.data)
                 try {
-                    // Пытаемся получить аккаунт
-                    val task = GoogleSignIn.getSignedInAccountFromIntent(data)
-                    val account = task.getResult(ApiException::class.java)
-
-                    // Если успешно, передаем в ViewModel
-                    account?.let {
-                        loginViewModel.signInWithGoogle(it)
+                    val account: GoogleSignInAccount? = task.getResult(ApiException::class.java)
+                    if (account != null) {
+                        val credential = GoogleAuthProvider.getCredential(account.idToken, null)
+                        firebaseAuth.signInWithCredential(credential).addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                Toast.makeText(context, account.email, Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, account.displayName, Toast.LENGTH_SHORT).show()
+                                errorMessage.value = "${account.email} ${account.displayName}"
+                            }
+                        }
                     }
 
                 } catch (e: ApiException) {
-                    // Обрабатываем ошибку
-                    errorMessage.value = when (e.statusCode) {
-                        GoogleSignInStatusCodes.SIGN_IN_CANCELLED -> "Вход отменен"
-                        GoogleSignInStatusCodes.SIGN_IN_FAILED -> "Ошибка входа"
-                        else -> "Ошибка: ${e.message}"
-                    }
-                    e.printStackTrace()
+                    Toast.makeText(context, e.toString(), Toast.LENGTH_SHORT).show()
                 }
-            } else {
-                // Пользователь нажал "Назад" или отменил
+
+
+            }
+            else {
+                // Пользователь отменил вход
                 errorMessage.value = "Вход отменен"
             }
         }
@@ -164,16 +159,17 @@ fun LoginScreen(loginViewModel: LoginViewModel = hiltViewModel()) {
         ) {
             Button(
                 onClick = {
+                    if (GoogleSignIn.getLastSignedInAccount(context) != null) {
+                        FirebaseAuth.getInstance()
+                        googleLogout(context,
+                            { Toast.makeText(context, "Logging Out", Toast.LENGTH_SHORT).show() })
+                    }
+                    else {
+                        firebaseAuth = FirebaseAuth.getInstance()
+                        Toast.makeText(context, "Logging In", Toast.LENGTH_SHORT).show()
+                        googleSignInLauncher.launch(googleLogin(context))
+                    }
 
-                    val signInIntent = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                        .requestIdToken(context.getString(R.string.default_web_client_id))
-                        .requestEmail()
-                        .build()
-
-                    val gso = getClient(context, signInIntent)
-                    val email =
-                    // Запускаем активити через launcher
-                    googleSignInLauncher.launch(gso.signInIntent)
                 },
                 shape = RoundedCornerShape(50.dp),
                 modifier = Modifier
@@ -188,7 +184,11 @@ fun LoginScreen(loginViewModel: LoginViewModel = hiltViewModel()) {
                 )
             }
             Text(text = errorMessage.value,
-                modifier = Modifier.clickable(onClick = {loginViewModel.signOut()})
+                modifier = Modifier.clickable(onClick = {
+                    FirebaseAuth.getInstance()
+                    googleLogout(context,
+                        { Toast.makeText(context, "Logging Out", Toast.LENGTH_SHORT).show() })
+                })
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -219,7 +219,7 @@ fun LoginScreen(loginViewModel: LoginViewModel = hiltViewModel()) {
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier
                     .clickable(onClick = {
-                        loginViewModel.signOut()
+
                     })
             )
 

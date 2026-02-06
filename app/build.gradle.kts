@@ -5,7 +5,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
-    id("org.jlleitschuh.gradle.ktlint")
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
 }
@@ -26,7 +25,11 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // Enables code-related app optimization.
+            isMinifyEnabled = true
+
+            // Enables resource shrinking.
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -58,7 +61,6 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.fragment.compose)
-    implementation(libs.firebase.auth.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -73,50 +75,33 @@ dependencies {
     implementation("com.davemorrissey.labs:subsampling-scale-image-view:3.10.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("com.google.android.exoplayer:exoplayer:2.19.1")
-
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
-
     implementation("androidx.room:room-runtime:${room_version}")
     ksp("androidx.room:room-compiler:$room_version")
 
     implementation("androidx.navigation:navigation-compose:${nav_version}")
     implementation("androidx.navigation:navigation-common:${nav_version}")
-
     implementation("androidx.compose.material:material:${material_version}")
-
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
-
-    implementation("io.coil-kt:coil-compose:2.5.0")
 
     implementation("com.google.dagger:hilt-android:2.57.1")
     ksp("com.google.dagger:hilt-android-compiler:2.57.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
-
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
 
-    implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
-    //implementation("com.google.firebase:firebase-analytics")
+    implementation(platform("com.google.firebase:firebase-bom:34.8.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("androidx.credentials:credentials:1.3.0")
-    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-    implementation("com.google.firebase:firebase-database")
-    implementation(platform("com.google.firebase:firebase-bom:34.7.0"))
-    implementation("com.google.firebase:firebase-firestore")
-    implementation ("com.google.android.gms:play-services-auth:21.3.0")
 
-    // implementation("androidx.media3:media3-exoplayer:1.8.0")
-    // implementation("androidx.media3:media3-ui:1.8.0")
-}
-ktlint {
-    version.set("1.7.1")
-    debug.set(true)
-    enableExperimentalRules.set(true)
-    additionalEditorconfig.set(
-        mapOf(
-            "max_line_length" to "off",
-            "ktlint_function_naming_ignore_when_annotated_with" to "Composable",
-        ),
-    )
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+    implementation("com.google.firebase:firebase-firestore")
+
+    implementation("androidx.security:security-crypto:1.1.0")
+
+    implementation("com.pinterest.ktlint:ktlint-cli:1.8.0")
+    runtimeOnly("com.pinterest.ktlint:ktlint-ruleset-standard:1.8.0")
+    // comment after set registration
+    implementation("com.google.android.gms:play-services-auth:21.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
 }

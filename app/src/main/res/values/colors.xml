@@ -10,5 +10,6 @@
     <color name="light_transparant_black">#26000000</color>
     <color name="medium_transparant_black">#4D000000</color>
     <color name="dark_black_overlay">#66000000</color>
+    <color name="light_blue">#227CEF</color>
 
 </resources>

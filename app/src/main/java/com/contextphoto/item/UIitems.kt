@@ -1,10 +1,6 @@
 package com.contextphoto.item
 
-import android.R.attr.onClick
-import android.R.attr.visible
-import android.graphics.PointF
 import android.net.Uri
-import android.util.Log
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
@@ -20,24 +16,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Slider
 import androidx.compose.material.SliderDefaults
 import androidx.compose.material.Text
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -50,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -58,18 +45,13 @@ import com.contextphoto.R
 import com.contextphoto.ui.FullscreenViewModel
 import com.contextphoto.utils.FunctionsApp.durationTranslate
 import com.davemorrissey.labs.subscaleview.ImageSource
-import com.davemorrissey.labs.subscaleview.ImageSource.uri
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.PlayerView
-import com.google.android.exoplayer2.ui.StyledPlayerView
 import kotlinx.coroutines.delay
 import java.io.File
-import kotlin.math.max
-import kotlin.math.min
-
 
 // https://kotlincodes.com/kotlin/jetpack-compose-kotlin/jetpack-compose-media-player-integration/
 // https://gorkemkara.net/responsive-video-playback-jetpack-compose-exoplayer/
@@ -79,40 +61,43 @@ fun CustomVideoUI(
     commentText: String? = null,
     fullscreenViewModel: FullscreenViewModel,
     bottomMfenu: @Composable () -> Unit = {},
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
 ) {
     val context = LocalContext.current
-    val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
-            val mediaItem = MediaItem.fromUri(uri)
-            setMediaItem(mediaItem)
-            prepare()
-            playWhenReady = false
+    val exoPlayer =
+        remember {
+            ExoPlayer.Builder(context).build().apply {
+                val mediaItem = MediaItem.fromUri(uri)
+                setMediaItem(mediaItem)
+                prepare()
+                playWhenReady = false
+            }
         }
-    }
     var currentPosition by remember { mutableLongStateOf(0L) }
     val totalDuration = remember { mutableLongStateOf(0L) }
     var isPlaying by remember { mutableStateOf(false) }
     val isVisible = fullscreenViewModel.bottomMenuFullScreenVisible.collectAsStateWithLifecycle()
 
-    val playerListener = object : Player.Listener {
-        override fun onPositionDiscontinuity(
-            oldPosition: Player.PositionInfo,
-            newPosition: Player.PositionInfo,
-            reason: Int
-        ) {
-            currentPosition = newPosition.positionMs
-        }
-        override fun onPlaybackStateChanged(state: Int) {
-            when (state) {
-                Player.STATE_IDLE -> "Idle"
-                Player.STATE_BUFFERING -> "Buffering"
-                Player.STATE_READY -> totalDuration.value = exoPlayer.duration
-                Player.STATE_ENDED -> currentPosition = totalDuration.value
-                else -> "Unknown"
+    val playerListener =
+        object : Player.Listener {
+            override fun onPositionDiscontinuity(
+                oldPosition: Player.PositionInfo,
+                newPosition: Player.PositionInfo,
+                reason: Int,
+            ) {
+                currentPosition = newPosition.positionMs
+            }
+
+            override fun onPlaybackStateChanged(state: Int) {
+                when (state) {
+                    Player.STATE_IDLE -> "Idle"
+                    Player.STATE_BUFFERING -> "Buffering"
+                    Player.STATE_READY -> totalDuration.value = exoPlayer.duration
+                    Player.STATE_ENDED -> currentPosition = totalDuration.value
+                    else -> "Unknown"
+                }
             }
         }
-    }
     LaunchedEffect(Unit) {
         while (true) {
             delay(16)
@@ -121,8 +106,6 @@ fun CustomVideoUI(
             }
         }
     }
-
-
 
     LaunchedEffect(exoPlayer) {
         exoPlayer.addListener(playerListener)
@@ -137,9 +120,10 @@ fun CustomVideoUI(
 
     DisposableEffect(
         AndroidView(
-            modifier = Modifier.clickable(onClick = {
-                onClick()
-            }),
+            modifier =
+                Modifier.clickable(onClick = {
+                    onClick()
+                }),
             factory = {
                 PlayerView(context).apply {
                     layoutParams =
@@ -154,41 +138,44 @@ fun CustomVideoUI(
             },
             update = { view ->
                 view.player = exoPlayer
-
-            }
-        )
+            },
+        ),
     ) {
         onDispose {
             exoPlayer.release()
         }
     }
 
-    AnimatedVisibility(visible = isVisible.value,
-            enter = slideInVertically(initialOffsetY = {500}) +
-            fadeIn(initialAlpha = 0.3f),
-        exit = slideOutVertically(targetOffsetY = {600}) +
-                fadeOut()
+    AnimatedVisibility(
+        visible = isVisible.value,
+        enter =
+            slideInVertically(initialOffsetY = { 500 }) +
+                fadeIn(initialAlpha = 0.3f),
+        exit =
+            slideOutVertically(targetOffsetY = { 600 }) +
+                fadeOut(),
     ) {
-        if (commentText != null) InfinityScrollableText(isVisible.value, commentText, { onClick() }, offset=47)
+        if (commentText != null) InfinityScrollableText(isVisible.value, commentText, { onClick() }, offset = 47)
         Column(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier =
+                Modifier
+                    .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Bottom
+            verticalArrangement = Arrangement.Bottom,
         ) {
-
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.Black),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .background(Color.Black),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 // Время
                 Text(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     text = durationTranslate(currentPosition),
-                    color = Color.White
+                    color = Color.White,
                 )
 
                 // Кнопка управления
@@ -201,12 +188,18 @@ fun CustomVideoUI(
                             exoPlayer.play()
                             isPlaying = true
                         }
-                    }
+                    },
                 ) {
                     Icon(
-                        if (isPlaying) Icons.Default.Close else Icons.Default.PlayArrow,
+                        if (isPlaying) {
+                            painterResource(
+                                R.drawable.baseline_pause_32,
+                            )
+                        } else {
+                            painterResource(R.drawable.baseline_play_arrow_32)
+                        },
                         if (isPlaying) "Пауза" else "Воспроизвести",
-                        tint = Color.White
+                        tint = Color.White,
                     )
                 }
 
@@ -214,7 +207,7 @@ fun CustomVideoUI(
                 Text(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     text = durationTranslate(totalDuration.value),
-                    color = Color.White
+                    color = Color.White,
                 )
             }
 
@@ -227,100 +220,23 @@ fun CustomVideoUI(
                         exoPlayer.seekTo(currentPosition)
                     },
                     onValueChangeFinished = {
-                        // Действие после отпускания ползунка
                         exoPlayer.seekTo(currentPosition)
-                        println("Перемотано на: ${durationTranslate(currentPosition)}")
+                        if (currentPosition + 1 >= totalDuration.value) currentPosition = totalDuration.value
+                        println("Перемотано на: $currentPosition")
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    colors = SliderDefaults.colors(
-                        thumbColor = Color.Red,
-                        activeTrackColor = Color.Red,
-                        inactiveTrackColor = Color.Gray.copy(alpha = 0.3f)
-                    )
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                    colors =
+                        SliderDefaults.colors(
+                            thumbColor = Color.Red,
+                            activeTrackColor = Color.Red,
+                            inactiveTrackColor = Color.Gray.copy(alpha = 0.3f),
+                        ),
                 )
             }
             bottomMfenu()
-        }
-    }
-
-}
-
-
-@Composable
-fun VideoUI(
-    uri: Uri,
-    onClick: () -> Unit = {},
-    BottomMenuFullscreen: @Composable () -> Unit = {}
-) {
-    val context = LocalContext.current
-    val exoPlayer =
-        remember {
-            ExoPlayer.Builder(context).build().apply {
-                val mediaItem = MediaItem.Builder().setUri(uri).build()
-                setMediaItem(mediaItem)
-                prepare()
-                playWhenReady = false
-            }
-        }
-
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .weight(10f)
-        ) {
-            AndroidView(
-                factory = {
-                    StyledPlayerView(context).apply {
-                        layoutParams =
-                            ViewGroup.LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                                ViewGroup.LayoutParams.MATCH_PARENT,
-                            )
-
-                        this.player = exoPlayer
-
-                        // Автоматическое скрытие контролов
-//                        controllerAutoShow = false
-
-                        // Обработка касаний
-                        controllerHideOnTouch = true
-
-                        val gestureDetector =
-                            GestureDetector(object : SimpleOnGestureListener() {
-                                override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                                    onClick()
-                                    return true
-                                }
-                            })
-                        setOnTouchListener { _, event ->
-                            gestureDetector.onTouchEvent(event)
-                        }
-                    }
-                },
-                update = { view ->
-                    // Обновление при необходимости
-                },
-            )
-
-        }
-
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            BottomMenuFullscreen()
-        }
-    }
-
-
-    DisposableEffect(Unit) {
-        onDispose {
-            exoPlayer.release()
         }
     }
 }
@@ -329,7 +245,7 @@ fun VideoUI(
 fun ImageUI(
     uri: Uri,
     path: String,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
 ) {
     AndroidView(
         factory = { ctx ->
@@ -342,12 +258,14 @@ fun ImageUI(
                 setImage(ImageSource.uri(Uri.fromFile(File(path))))
 
                 val gestureDetector =
-                    GestureDetector(object : SimpleOnGestureListener() {
-                        override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                            onClick()
-                            return true
-                        }
-                    })
+                    GestureDetector(
+                        object : SimpleOnGestureListener() {
+                            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                                onClick()
+                                return true
+                            }
+                        },
+                    )
 
                 setOnTouchListener { v, event ->
                     gestureDetector.onTouchEvent(event)

@@ -1,25 +1,23 @@
-package com.contextphoto
+package com.contextphoto.utils
 
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
-import android.net.Uri
 import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityCompat.requestPermissions
-import androidx.core.content.ContextCompat.checkSelfPermission
+import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.contextphoto.ui.AlbumViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionStatus
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.shouldShowRationale
-
 
 object RequestPermissions {
     @Composable
@@ -33,7 +31,7 @@ object RequestPermissions {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
         )
         when {
-            checkSelfPermission(
+            ContextCompat.checkSelfPermission(
                 context,
                 listPermissions[0],
             ) == PackageManager.PERMISSION_GRANTED -> {
@@ -52,7 +50,7 @@ object RequestPermissions {
             }
 
             else -> {
-                requestPermissions(
+                ActivityCompat.requestPermissions(
                     LocalActivity.current,
                     listPermissions,
                     100,
@@ -97,15 +95,15 @@ object RequestPermissions {
         val mediaPermissionState = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             rememberMultiplePermissionsState(
                 listOf(
-                    android.Manifest.permission.READ_MEDIA_IMAGES,
-                    android.Manifest.permission.READ_MEDIA_VIDEO
+                    Manifest.permission.READ_MEDIA_IMAGES,
+                    Manifest.permission.READ_MEDIA_VIDEO
                 )
             )
         } else {
             rememberMultiplePermissionsState(
                 listOf(
-                    android.Manifest.permission.READ_EXTERNAL_STORAGE,
-                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
                 )
             )
         }

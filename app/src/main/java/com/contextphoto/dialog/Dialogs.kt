@@ -81,7 +81,7 @@ import kotlinx.coroutines.launch
 fun CreateAlbumDialog(
     onDismissRequest: () -> Unit,
     mutableState: MutableState<Boolean>,
-    albumViewModel: AlbumViewModel
+    albumViewModel: AlbumViewModel,
 ) {
     val context = LocalContext.current
     val modifier = Modifier.fillMaxWidth()
@@ -93,7 +93,7 @@ fun CreateAlbumDialog(
             contract = ActivityResultContracts.PickMultipleVisualMedia(),
         ) { uris ->
             if (uris.isNotEmpty()) {
-                //mutableState.value = false
+                // mutableState.value = false
                 showCopyMoveDialog.value = true
                 listUri = uris.toList()
             }
@@ -104,7 +104,7 @@ fun CreateAlbumDialog(
         ) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 val data = handleSelectedMedia(result.data)
-                //mutableState.value = false
+                // mutableState.value = false
                 showCopyMoveDialog.value = true
                 listUri = data
             }
@@ -132,7 +132,7 @@ fun CreateAlbumDialog(
             Text(text = context.getString(R.string.create_album_text))
             OutlinedTextField(
                 value = albumName,
-                onValueChange = {if (it.length <= 52 )  albumName = it},
+                onValueChange = { if (it.length <= 52) albumName = it },
                 supportingText = {
                     Text(context.getString(R.string.max_name_album_chars))
                 },
@@ -181,13 +181,12 @@ fun CopyMoveDialog(
     fromAlbumBid: String = "",
     toAlbumBId: String = "",
     mediaViewModel: MediaViewModel = hiltViewModel(),
-    ) {
+) {
     val context = LocalContext.current
     val activity = LocalActivity.current!!
     val modifier = Modifier.fillMaxWidth()
     var findNewAlbumFlag = false
     val coroutineScope = rememberCoroutineScope()
-
 
 //    LaunchedEffect({}) {
 //        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
@@ -208,30 +207,31 @@ fun CopyMoveDialog(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = modifier.align(Alignment.CenterHorizontally)
+            modifier = modifier.align(Alignment.CenterHorizontally),
         ) {
             Text(text = LocalContext.current.getString(R.string.to_album))
             Button(
                 onClick = {
                     coroutineScope.launch {
-
                         if (createAlbum) {
                             listUri.forEach {
                                 if (copyMediaToAlbum(context, it, albumName)) {
                                     if (it == listUri[listUri.size - 1]) {
                                         if (albumName in albumList.map { it.name } && createAlbum) {
-                                            Toast.makeText(
-                                                context,
-                                                "Альбом \"$albumName\" уже создан",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
+                                            Toast
+                                                .makeText(
+                                                    context,
+                                                    "Альбом \"$albumName\" уже создан",
+                                                    Toast.LENGTH_SHORT,
+                                                ).show()
                                         }
                                     } else {
                                         Log.i("NEWNAME", "$albumName")
                                         findNewAlbumFlag = true
                                     }
                                 } else {
-                                    Toast.makeText(context, "IO ex ${it.path}", Toast.LENGTH_SHORT)
+                                    Toast
+                                        .makeText(context, "IO ex ${it.path}", Toast.LENGTH_SHORT)
                                         .show()
                                 }
                             }
@@ -254,31 +254,33 @@ fun CopyMoveDialog(
             Button(
                 onClick = {
                     coroutineScope.launch {
-
                         if (createAlbum) {
                             listUri.forEach {
                                 val result = moveMediaToAlbum(context, activity, it, albumName)
                                 if (result == "Complete") {
                                     if (it == listUri[listUri.size - 1]) {
                                         if (albumName in albumList.map { it.name }) {
-                                            Toast.makeText(
-                                                context,
-                                                "Альбом \"$albumName\" уже создан",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
+                                            Toast
+                                                .makeText(
+                                                    context,
+                                                    "Альбом \"$albumName\" уже создан",
+                                                    Toast.LENGTH_SHORT,
+                                                ).show()
                                         } else {
                                             Log.i("NEWNAME", "$albumName")
                                             findNewAlbumFlag = true
                                         }
                                     }
                                 } else if (result == "NoDelete") {
-                                    Toast.makeText(
-                                        context,
-                                        context.getString(R.string.cant_move),
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    Toast
+                                        .makeText(
+                                            context,
+                                            context.getString(R.string.cant_move),
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
                                 } else {
-                                    Toast.makeText(context, "IO ex ${it.path}", Toast.LENGTH_SHORT)
+                                    Toast
+                                        .makeText(context, "IO ex ${it.path}", Toast.LENGTH_SHORT)
                                         .show()
                                 }
                             }
@@ -288,7 +290,7 @@ fun CopyMoveDialog(
                             mediaViewModel.moveMediaToAlbum(
                                 toAlbumBId,
                                 fromAlbumBid,
-                                listUri.size - 1
+                                listUri.size - 1,
                             )
                         }
 
@@ -326,7 +328,7 @@ fun ChooseAlbumDialog(
     onDismissRequest: () -> Unit,
     dialogVisibility: MutableState<Boolean>,
     listSelectedMedia: List<Picture>,
-    albumViewModel: AlbumViewModel = hiltViewModel()
+    albumViewModel: AlbumViewModel = hiltViewModel(),
 ) {
     albumViewModel.getAlbumList()
     val albumList by albumViewModel.albumList.collectAsStateWithLifecycle()
@@ -338,59 +340,64 @@ fun ChooseAlbumDialog(
         onDismissRequest = {
             onDismissRequest()
             dialogVisibility.value = false
-        }
+        },
     ) {
         Surface(
             shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             LazyColumn(modifier = Modifier.padding(8.dp)) {
-
-
                 items(items = albumList) { album ->
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 3.dp)
-                            .clickable(
-                                onClick = {
-                                    showCopyMoveDialog.value = true
-                                    selectAlbum = album
-                                    // TODO fixme не копируются фотки в альбомы созданные не мной
-                                }
-                            )
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 3.dp)
+                                .clickable(
+                                    onClick = {
+                                        showCopyMoveDialog.value = true
+                                        selectAlbum = album
+                                        // TODO fixme не копируются фотки в альбомы созданные не мной
+                                    },
+                                ),
                     ) {
-                        Row(horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically)
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
+                        )
                         {
-                            Image(bitmap = album.thumbnail.asImageBitmap(), contentDescription = null,
+                            Image(
+                                bitmap = album.thumbnail.asImageBitmap(),
+                                contentDescription = null,
                                 contentScale = ContentScale.Crop,
-                                modifier = Modifier.size(65.dp)
+                                modifier = Modifier.size(65.dp),
                             )
                             Column(
-                                modifier = Modifier.padding(start = 6.dp)
+                                modifier = Modifier.padding(start = 6.dp),
                             ) {
-                                Text(text = album.name,
+                                Text(
+                                    text = album.name,
                                     maxLines = 2,
                                     style = MaterialTheme.typography.titleLarge,
-                                    fontSize = 14.sp)
+                                    fontSize = 14.sp,
+                                )
                             }
                         }
-
                     }
                 }
             }
         }
     }
     AnimatedVisibility(visible = showCopyMoveDialog.value) {
-        CopyMoveDialog(onDismissRequest,
+        CopyMoveDialog(
+            onDismissRequest,
             dialogVisibility,
             listSelectedMedia.map { it.uri },
             selectAlbum!!.name,
             {},
             showCopyMoveDialog,
             fromAlbumBid = listSelectedMedia[0].bID,
-            toAlbumBId = selectAlbum!!.bID
+            toAlbumBId = selectAlbum!!.bID,
         )
     }
 }
@@ -407,7 +414,7 @@ fun DeleteAlbumDialog(
 
     val selectAlbum by viewModel.selectedAlbum.collectAsStateWithLifecycle()
     val album = remember { selectAlbum?.copy() }
-    val albumName = remember { selectAlbum!!.name}
+    val albumName = remember { selectAlbum!!.name }
     val albumPath = remember { selectAlbum!!.path }
 
     ModalBottomSheet(
@@ -426,7 +433,6 @@ fun DeleteAlbumDialog(
             Text(text = "${context.getString(R.string.delete_album_text)} $albumName}?")
             Button(
                 onClick = {
-
                     showDeleteAlbumMessage(context, albumName, albumPath)
                     viewModel.deleteAlbum(album)
                     mutableState.value = false
@@ -460,7 +466,7 @@ fun DeleteMediaDialog(
     currentDestination: String,
     bID: String,
     mediaViewModel: MediaViewModel = hiltViewModel(),
-    fullscreenViewModel: FullscreenViewModel = hiltViewModel()
+    fullscreenViewModel: FullscreenViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val activity = LocalActivity.current!!
@@ -495,17 +501,17 @@ fun DeleteMediaDialog(
                                 if (deleteMediaFile(context, activity, it.uri)) {
                                     mediaViewModel.deletePicture(it)
                                 }
-
                             }
                         }
+
                         Destination.FULLSCREENIMG().route -> {
                             if (deleteMediaFile(context, activity, listMedia[pos].uri)) {
                                 fullscreenViewModel.deletePicture(listMedia[pos])
                                 fullscreenViewModel.deleteActionChange()
-                                println("${listMedia.size}    ${pos}")
+                                println("${listMedia.size}    $pos")
                                 when {
-                                    (listMedia.size-1 == pos) -> {
-                                        fullscreenViewModel.updateMediaPosition(pos-1)
+                                    (listMedia.size - 1 == pos) -> {
+                                        fullscreenViewModel.updateMediaPosition(pos - 1)
                                         println("ONEEEE")
                                     }
 //                                    (pos == 0) -> {
@@ -600,9 +606,8 @@ fun RenameAlbumDialog( // TODO fixme сделать обновление наз�
                         viewModel.updateAlbum(Album(album!!.bID, albumName, album!!.itemsCount, album!!.thumbnail, album!!.path))
                         mutableState.value = false
                         onDismissRequest()
-
                     } else {
-                    Toast.makeText(context, context.getString(R.string.enter_name), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.enter_name), Toast.LENGTH_SHORT).show()
                     }
                     Log.i("NEWNAME", "$albumName")
                 }) {
@@ -621,8 +626,9 @@ fun RenameAlbumDialog( // TODO fixme сделать обновление наз�
 fun CommentateDialog(
     onDismissRequest: () -> Unit,
     mutableState: MutableState<Boolean>,
-    media: Picture
+    media: Picture,
 ) {
+    val oldComment = remember { mutableStateOf("") }
     val context = LocalContext.current
     var commentText by rememberSaveable { mutableStateOf("") }
     val modifier = Modifier.fillMaxWidth()
@@ -632,10 +638,10 @@ fun CommentateDialog(
 
     LaunchedEffect(Unit) {
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-            commentText = db.findImageByHash(md5(getThumbnail(context, media.uri)))?.image_comment ?: commentText
+            commentText = db.findImageByHash(md5(getThumbnail(context, media.uri)))?.image_comment?.trim() ?: commentText.trim()
+            oldComment.value = commentText
         }
     }
-
 
     ModalBottomSheet(
         onDismissRequest =
@@ -657,7 +663,6 @@ fun CommentateDialog(
                 label = { "Enter text" },
                 placeholder = { "Hello World" },
                 modifier = Modifier.fillMaxWidth(),
-
             )
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -674,18 +679,34 @@ fun CommentateDialog(
                 }
 
                 Button(onClick = {
-                    if (commentText.trim() != "") {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            db.addComment(
-                                Comment(
-                                    0,
-                                    media.uri.toString(),
-                                    md5(getThumbnail(context, media.uri)),
-                                    commentText.trim()
+                    CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+                        val commentText = commentText.trim()
+                        val imagHash = md5(getThumbnail(context, media.uri))
+                        when {
+                            commentText.length == 0 && oldComment.value.length != 0 -> {
+                                db.deleteCommentByHash(imagHash)
+                            }
+
+                            commentText.length != 0 && oldComment.value.length == 0 -> {
+                                db.addComment(
+                                    Comment(
+                                        0,
+                                        media.uri.toString(),
+                                        md5(getThumbnail(context, media.uri)),
+                                        commentText,
+                                    ),
                                 )
-                            )
+                            }
+
+                            commentText.length != 0 && oldComment.value.length != 0 -> {
+                                db.replaceCommentByHash(
+                                    md5(getThumbnail(context, media.uri)),
+                                    commentText,
+                                )
+                            }
                         }
-                    } // TODO fixme add вызывать диалог для каждой выбранной фотки, сюда передаются фотки уже по одной для отображения и комментирования
+                    }
+
                     mutableState.value = false
                     onDismissRequest()
                 }) {
