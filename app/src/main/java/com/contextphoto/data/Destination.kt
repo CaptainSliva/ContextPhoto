@@ -1,27 +1,25 @@
 package com.contextphoto.data
 
-import androidx.compose.material.Icon
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.ui.graphics.vector.ImageVector
+import android.support.annotation.DrawableRes
+import com.contextphoto.R
 
-
-//sealed class Destinations {
-//    data class ALBUMS(val route: String = "albums", val label: String = "Альбомы", val icon: ImageVector = Icons.Default.Build, val contentDescription: String = "Album")  : Destinations()
-//}
-
-enum class Destination( // TODO refactor sealed interface вместо enum class Destination
+sealed class Destination(
     val route: String,
     val label: String,
-    val icon: ImageVector,
-    val contentDescription: String
+    @DrawableRes val icon: Int,
+    val contentDescription: String,
 ) {
-    ALBUMS("albums", "Альбомы", Icons.Default.Build, "Album"),
-    PICTURES("pictures", "Все фото", Icons.Default.Warning, "Picture"),
-    FULLSCREENIMG("full_screen_img", "Картинка", Icons.Default.AccountBox, "Full"),
-    SEARCH_PHOTO("search_photo", "Поиск по комментарию", Icons.Default.Menu, "SearchPhoto"),
-    SETTINGS("settings", "Настройки", Icons.Default.Menu, "Settings"),
+    class Albums : Destination("albums", "Альбомы", R.drawable.outline_photo_album_24, "Album")
+
+    class Pictures : Destination("pictures", "Все фото", R.drawable.outline_image_24, "Picture")
+
+    class FullScreenImg : Destination("full_screen_img", "Картинка", R.drawable.ic_launcher_background, "Full")
+
+    class SearchPhoto : Destination("search_photo", "Поиск по комментарию", R.drawable.ic_launcher_background, "SearchPhoto")
+
+    class Settings : Destination("settings", "Настройки", R.drawable.ic_launcher_background, "Settings")
+
+    class Login : Destination("login", "Логин", R.drawable.ic_launcher_background, "Login")
+
+    class Registration : Destination("registration", "Регистрация", R.drawable.ic_launcher_background, "Registration")
 }

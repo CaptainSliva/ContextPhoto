@@ -1,27 +1,19 @@
 package com.contextphoto.utils
 
-import android.R.attr.data
-import android.R.attr.password
 import android.content.Context
+import android.content.Intent
 import android.util.Log
-import android.view.MenuItem
-import android.widget.Toast
-import androidx.fragment.app.FragmentManager
-import androidx.room.Room
-import com.contextphoto.data.Album
-import com.contextphoto.data.Picture
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
+import com.contextphoto.R
+import com.google.android.gms.auth.api.signin.GoogleSignIn.getClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.database
+import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.firestore
-import org.w3c.dom.Comment
-import kotlin.jvm.java
 
 object FunctionsApp {
-
-    fun durationTranslate(milliseconds: Int): String {
+    inline fun durationTranslate(milliseconds: Long): String {
         val seconds = milliseconds / 1000
         val hours = seconds / 3600
         val minutes = (seconds % 3600) / 60
@@ -33,46 +25,37 @@ object FunctionsApp {
         }
     }
 
-    fun firebaseRealTimeDatabaseTest() {
-        // Write a message to the database
-        val database = Firebase.database
-
-        val commentsDBRef = database.getReference().child("comments")
-        val usersDBRef = database.getReference().child("user")
-        commentsDBRef.child("comment1").setValue("Hello Firebase!!")
-        commentsDBRef.child("comment2").setValue("Hello World!!")
-        usersDBRef.child("uaser1").setValue("myUser")
-    }
-
     fun firebaseFirestoreDatabaseTest() {
         val TAG = "FireDataTest"
         val fdb = Firebase.firestore
 
         // Create a new user with a first and last name
-        var user = hashMapOf(
-            "first" to "Ada",
-            "last" to "Lovelace",
-            "born" to 1816,
-        )
+        var user =
+            hashMapOf(
+                "first" to "Ada",
+                "last" to "Lovelace",
+                "born" to 1816,
+            )
 
 // Add a new document with a generated ID
-        fdb.collection("users")
+        fdb
+            .collection("users")
             .add(user)
             .addOnSuccessListener { documentReference ->
                 Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference.id}")
-            }
-            .addOnFailureListener { e ->
+            }.addOnFailureListener { e ->
                 Log.w(TAG, "Error adding document", e)
             }
 
-        val city = City(
-            "Los Angeles",
-            "CA",
-            "USA",
-            false,
-            5000000L,
-            listOf("west_coast", "socal"),
-        )
+        val city =
+            City(
+                "Los Angeles",
+                "CA",
+                "USA",
+                false,
+                5000000L,
+                listOf("west_coast", "socal"),
+            )
         fdb.collection("cities").document("DC").set(city)
 
         val washingtonRef = fdb.collection("cities").document("DC")
@@ -84,19 +67,73 @@ object FunctionsApp {
             .addOnFailureListener { e -> Log.w(TAG, "Error updating document", e) }
     }
 
-    fun firebasePasswordAuth() {
-        val auth = Firebase.auth
+    fun googleLogin(context: Context): Intent {
+        FirebaseApp.initializeApp(context)
+        val gso =
+            GoogleSignInOptions
+                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(context.getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build()
+        val mGoogleSignInClient = getClient(context, gso)
+        return mGoogleSignInClient.signInIntent
+    }
 
-        auth.createUserWithEmailAndPassword("email", "password")
-//        Thread.sleep(2000)
-//        auth.signInWithEmailAndPassword("email", "password")
-//        Thread.sleep(2000)
-//        Firebase.auth.signOut()
-//        Thread.sleep(2000)
-//        auth.signInWithEmailAndPassword("email", "password")
-//        Thread.sleep(2000)
-//        Firebase.auth.signOut()
+    fun googleLogout(
+        context: Context,
+        f: () -> Unit,
+    ) {
+        val gso =
+            GoogleSignInOptions
+                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(context.getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build()
+        val mGoogleSignInClient = getClient(context, gso)
+        mGoogleSignInClient.signOut().addOnCompleteListener {
+            f()
+        }
+    }
 
+    fun espWrire(
+        context: Context,
+        name: String,
+    ) {
+        val masterKey =
+            MasterKey
+                .Builder(context)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+        val sharedPreferences =
+            EncryptedSharedPreferences.create(
+                context,
+                "secure_prefs",
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+            )
+        sharedPreferences
+            .edit()
+            .putString("name", name)
+            .apply()
+    }
+
+    fun espRead(context: Context): String {
+        val masterKey =
+            MasterKey
+                .Builder(context)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+        val sharedPreferences =
+            EncryptedSharedPreferences.create(
+                context,
+                "secure_prefs",
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+            )
+
+        return sharedPreferences.getString("name", "").toString()
     }
 }
 
@@ -104,7 +141,6 @@ data class City(
     val name: String? = null,
     val state: String? = null,
     val country: String? = null,
-    @field:JvmField // use this annotation if your Boolean field is prefixed with 'is'
     val isCapital: Boolean? = null,
     val population: Long? = null,
     val regions: List<String>? = null,

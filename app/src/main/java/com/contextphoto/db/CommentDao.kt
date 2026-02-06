@@ -19,7 +19,10 @@ interface CommentDao {
     suspend fun findImageByHash(hash: String): Comment?
 
     @Query("UPDATE comments SET image_comment = :comment WHERE image_hash = :imageHash")
-    suspend fun replaceCommentByHash(imageHash: String, comment: String): Int
+    suspend fun replaceCommentByHash(
+        imageHash: String,
+        comment: String,
+    ): Int
 
     @Query("DELETE FROM comments WHERE image_hash = :imageHash")
     suspend fun deleteCommentByHash(vararg imageHash: String)

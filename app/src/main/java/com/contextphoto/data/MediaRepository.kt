@@ -2,39 +2,59 @@ package com.contextphoto.data
 
 import javax.inject.Inject
 
-class MediaRepository @Inject constructor(private val mediaCache: MediaCache) {
+class MediaRepository
+    @Inject
+    constructor(
+        private val mediaCache: MediaCache,
+    ) {
+        fun getDB() = mediaCache.db
 
-    fun getPictureList() = mediaCache.listPicture.value
-    fun loadPictureList(bID: String) = mediaCache.loadPictureList(bID)
-    fun clearPictureList() = mediaCache.clearPictureList()
+        fun getLoadPicturesState() = mediaCache.loadPictures.value
 
-    fun addPicture(picture: Picture) {
-        mediaCache.updatePictureList(mediaCache.listPicture.value.toMutableList().apply { add(picture) })
-    }
+        fun getPictureList() = mediaCache.listPicture.value
 
-    fun deletePicture(picture: Picture?) {
-        mediaCache.updatePictureList(mediaCache.listPicture.value.toMutableList().apply { remove(picture) })
-    }
+        fun loadPictureList(bID: String) = mediaCache.loadPictureList(bID)
 
-    fun updatePicture(picture: Picture) {
-        mediaCache.updatePictureList(
-            mediaCache.listPicture.value.toMutableList().map
-            {
-                if (it.bID == picture.bID) {
-                    picture
-                } else {
-                    it
-                }
+        fun clearPictureList() = mediaCache.clearPictureList()
+
+        fun getMediaPosition() = mediaCache.mediaPosition.value
+
+        fun addPicture(picture: Picture) {
+            mediaCache.updatePictureList(
+                mediaCache.listPicture.value
+                    .toMutableList()
+                    .apply { add(picture) },
+            )
+        }
+
+        fun loadPicturesStateChange(state: Boolean? = null) {
+            if (state != null) {
+                mediaCache.loadPicturesState(state)
+            } else {
+                mediaCache.loadPicturesState()
             }
-        )
-    }
+        }
 
-    fun changePictureState(picID: String, state: Boolean) {
-        mediaCache.changePictureState(picID, state)
-    }
+        fun deletePicture(picture: Picture?) {
+            mediaCache.updatePictureList(
+                mediaCache.listPicture.value
+                    .toMutableList()
+                    .apply { remove(picture) },
+            )
+        }
 
-    fun clearSelectedMedia() {
-        mediaCache.clearSelectedMedia()
+        fun changePictureState(
+            picID: String,
+            state: Boolean,
+        ) {
+            mediaCache.changePictureState(picID, state)
+        }
+
+        fun clearSelectedMedia() {
+            mediaCache.clearSelectedMedia()
+        }
+
+        fun updateMediaPosition(pos: Int) {
+            mediaCache.updateMediaPosition(pos)
+        }
     }
-    
-}

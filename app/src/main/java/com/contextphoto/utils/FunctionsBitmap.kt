@@ -11,7 +11,7 @@ import java.nio.ByteBuffer
 import java.security.MessageDigest
 
 object FunctionsBitmap {
-    fun md5(bitmap: Bitmap): String { // На вход идёт Bitmap изображения
+    inline fun md5(bitmap: Bitmap): String { // На вход идёт Bitmap изображения
         val byteBuffer = ByteBuffer.allocate(bitmap.byteCount)
         bitmap.copyPixelsToBuffer(byteBuffer)
         val pixelData = byteBuffer.array()
