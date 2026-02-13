@@ -2,6 +2,7 @@ package com.contextphoto.data
 
 import android.graphics.Bitmap
 import android.net.Uri
+import androidx.compose.runtime.MutableState
 
 data class Picture(
     val bID: String,
@@ -10,6 +11,5 @@ data class Picture(
     val thumbnail: Bitmap,
     val date: List<String>,
     val duration: String,
-    var checked: Boolean,
-    var haveComment: Boolean,
+    val haveComment: MutableState<Boolean>,
 )

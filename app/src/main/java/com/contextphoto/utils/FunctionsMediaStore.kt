@@ -1,5 +1,8 @@
 package com.contextphoto.utils
 
+import android.R.attr.data
+import android.R.attr.text
+import android.R.id.message
 import android.app.Activity
 import android.app.RecoverableSecurityException
 import android.content.ContentUris
@@ -10,9 +13,12 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import com.contextphoto.data.Album
 import com.contextphoto.data.PERMISSION_DELETE_REQUEST_CODE
 import com.contextphoto.data.Picture
+import com.contextphoto.data.commentDatabase
 import com.contextphoto.ui.AlbumViewModel
 import com.contextphoto.utils.FunctionsApp.durationTranslate
 import com.contextphoto.utils.FunctionsBitmap.getThumbnail
@@ -24,6 +30,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jakarta.inject.Singleton
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -101,15 +110,18 @@ object FunctionsMediaStore {
 
                         println("name = $name")
                         println("thmb - $thumbnail")
-                        val album =
-                            Album(
-                                bucketId,
-                                name,
-                                1,
-                                thumbnail,
-                                File(path),
-                            )
-                        albums.add(album)
+                        if (thumbnail != null) {
+                            val album =
+                                Album(
+                                    bucketId,
+                                    name,
+                                    1,
+                                    thumbnail,
+                                    File(path),
+                                )
+                            albums.add(album)
+                        }
+
                     }
                 }
             }
@@ -192,16 +204,19 @@ object FunctionsMediaStore {
 
                         println("name = $name")
                         println("thmb - $thumbnail")
-                        val album =
-                            Album(
-                                bucketId,
-                                name,
-                                1,
-                                thumbnail,
-                                File(path),
-                            )
-                        albums.add(album)
-                        viewModel.addAlbum(album)
+                        if (thumbnail != null) {
+                            val album =
+                                Album(
+                                    bucketId,
+                                    name,
+                                    1,
+                                    thumbnail,
+                                    File(path),
+                                )
+                            albums.add(album)
+                            viewModel.addAlbum(album)
+                        }
+
                     }
                 }
             }
@@ -280,8 +295,7 @@ object FunctionsMediaStore {
                                 thumbnail,
                                 dateFormat.format(Date(dateAdded * 1000)).toString().split("\n"),
                                 durationTranslate(duration),
-                                false,
-                                false,
+                                mutableStateOf(false),
                             ),
                         )
                     } else {
@@ -294,18 +308,20 @@ object FunctionsMediaStore {
                                 ),
                             )
                         println("image $n $id $uri, $path $bucketId $dateAdded")
-                        listMedia.add(
-                            Picture(
-                                bucketId,
-                                uri,
-                                path,
-                                thumbnail,
-                                dateFormat.format(Date(dateAdded * 1000)).toString().split("\n"),
-                                "",
-                                false,
-                                false,
-                            ),
-                        )
+                        if (thumbnail != null) {
+                            listMedia.add(
+                                Picture(
+                                    bucketId,
+                                    uri,
+                                    path,
+                                    thumbnail,
+                                    dateFormat.format(Date(dateAdded * 1000)).toString().split("\n"),
+                                    "",
+                                    mutableStateOf(false),
+                                ),
+                            )
+                        }
+
                     }
                 }
             }
@@ -474,7 +490,7 @@ object FunctionsMediaStore {
                     val id = cursor.getLong(idColumn)
                     val bucketId = cursor.getString(bucketIdColumn)
                     val path = cursor.getString(pathColumn)
-                    val duration = cursor.getInt(durationColumn)
+                    val duration = cursor.getLong(durationColumn)
                     val dateAdded = cursor.getLong(dateAddedColumn)
 
                     val thumbnail =
@@ -483,18 +499,19 @@ object FunctionsMediaStore {
                         } else {
                             getThumbnail(context, ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id))
                         }
-                    mediaFiles.add(
-                        Picture(
-                            bucketId,
-                            uri,
-                            path,
-                            thumbnail!!,
-                            dateFormat.format(Date(dateAdded * 1000)).toString().split("\n"),
-                            if (duration > 0) duration.toString() else "",
-                            false,
-                            false,
-                        ),
-                    )
+                    if (thumbnail != null) {
+                        mediaFiles.add(
+                            Picture(
+                                bucketId,
+                                uri,
+                                path,
+                                thumbnail!!,
+                                dateFormat.format(Date(dateAdded * 1000)).toString().split("\n"),
+                                if (duration > 0) durationTranslate(duration) else "",
+                                mutableStateOf(false),
+                            ),
+                        )
+                    }
                 }
             }
 
@@ -534,7 +551,36 @@ object FunctionsMediaStore {
         return datePhoto.split("\n")
     }
 
-    fun importCommentsToFile() {}
+    @Singleton
+    fun deleteCommentsFile() {
+        val folder: File =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+        val file = File(folder, "$commentDatabase.txt")
+        file.delete()
+    }
 
-    fun exportCommentsFromFile() {}
+    @Singleton
+    fun importCommentsFromFile(): List<String> {
+        val folder: File =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+        val file = File(folder, "$commentDatabase.txt")
+        return if (file.exists()) {
+            file.readLines()
+        } else {
+            emptyList()
+        }
+    }
+
+    @Singleton
+    inline fun exportCommentsToFile(text: String) {
+        val folder: File =
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+        val file = File(folder, "$commentDatabase.txt")
+        if (file.exists()) {
+            file.appendText(text+"\n")
+        } else {
+            file.writeText(text+"\n")
+        }
+    }
 }
+

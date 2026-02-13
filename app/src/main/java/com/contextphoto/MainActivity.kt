@@ -2,7 +2,6 @@ package com.contextphoto
 
 import android.app.Activity
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -62,17 +61,12 @@ import com.contextphoto.ui.screen.LoginScreen
 import com.contextphoto.ui.screen.PicturesScreenWithScaffold
 import com.contextphoto.ui.screen.RegisterScreen
 import com.contextphoto.ui.screen.SearchPhotoScreenWithScaffold
-import com.contextphoto.ui.screen.SettingsScreen
+import com.contextphoto.ui.screen.SettingsScreenWithScaffold
 import com.contextphoto.ui.theme.ContextPhotoTheme
-import com.contextphoto.utils.FunctionsApp.espRead
-import com.contextphoto.utils.FunctionsApp.espWrire
 import com.contextphoto.utils.RequestPermissions.ComposePermissions
 import dagger.hilt.android.AndroidEntryPoint
 
-// Виды todo
-// TODO add
-// TODO fixme
-// TODO ask
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -87,11 +81,10 @@ class MainActivity : ComponentActivity() {
             // var selectedDestination by rememberSaveable { mutableIntStateOf(startDestination.ordinal) }
 
 //            firebaseFirestoreDatabaseTest()
-            espWrire(context, "myFirst secret name")
 
-            val espName = espRead(context)
-
-            Log.d("ESP", espName)
+//            espWrire(context, "myFirst secret name")
+//            val espName = espRead(context)
+//            Log.d("ESP", espName)
 
             //    val MIGRATION_1_2 = object : Migration(1, 2) {
             //        override fun migrate(db: SupportSQLiteDatabase) {
@@ -193,7 +186,9 @@ fun InfinityScrollableText(
     val offsetY = remember { mutableStateOf(0f) }
     var size by remember { mutableStateOf(Size.Zero) }
     Column(
-        modifier = Modifier.fillMaxHeight().alpha(alpha = if (visible) 1f else 0f),
+        modifier = Modifier
+            .fillMaxHeight()
+            .alpha(alpha = if (visible) 1f else 0f),
         verticalArrangement = Arrangement.Bottom,
     ) {
         println(offsetY.value)
@@ -211,12 +206,16 @@ fun InfinityScrollableText(
                             val newValue =
                                 Offset(
                                     x = summed.x.coerceIn(0f, size.width),
-                                    y = (original.y - dragAmount.y / 3.3f).coerceIn(0f, Constraints.Infinity.toFloat()),
+                                    y = (original.y - dragAmount.y / 3.3f).coerceIn(
+                                        0f,
+                                        Constraints.Infinity.toFloat()
+                                    ),
                                 )
                             offsetX.value = newValue.x
                             offsetY.value = newValue.y
                         }
-                    }.clickable(onClick = {
+                    }
+                    .clickable(onClick = {
                         onClick()
                         offsetY.value = 0f
                     })
@@ -266,13 +265,13 @@ fun AppNavHost(
         }
 
         composable(Destination.Settings().route) {
-            SettingsScreen(modifier, navController)
+            SettingsScreenWithScaffold(modifier, navController)
         }
         composable(Destination.Login().route) {
-            LoginScreen()
+            LoginScreen(navController)
         }
         composable(Destination.Registration().route) {
-            RegisterScreen()
+            RegisterScreen(navController)
         }
     }
 }

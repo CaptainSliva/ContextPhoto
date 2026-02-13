@@ -2,10 +2,9 @@ package com.contextphoto.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.contextphoto.data.AlbumRepository
-import com.contextphoto.data.MediaRepository
+import com.contextphoto.data.repository.AlbumRepository
+import com.contextphoto.data.repository.MediaRepository
 import com.contextphoto.data.Picture
-import com.contextphoto.utils.FunctionsMediaStore.getImageDate
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

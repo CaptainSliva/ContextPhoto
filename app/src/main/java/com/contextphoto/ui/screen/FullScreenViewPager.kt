@@ -1,10 +1,20 @@
 package com.contextphoto.ui.screen
 
+import android.R.attr.navigationIcon
 import android.util.Log
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -76,11 +87,12 @@ fun FullScreenViewPagerWithScaffold(
 
     Log.d("POSITION page", mediaPosotion.toString())
     Scaffold(
+        modifier = Modifier.background(Color.Black),
         topBar = {
             AnimatedVisibility(
                 visible = visibleMenu.value,
-                enter = fadeIn(),
-                exit = fadeOut(),
+                enter = expandVertically(),
+                exit = shrinkVertically(),
             ) {
                 TopAppBar(
                     title = {
@@ -105,6 +117,14 @@ fun FullScreenViewPagerWithScaffold(
                             )
                         }
                     },
+                    modifier = Modifier.background(Color.Black),
+                    colors = TopAppBarColors(
+                        containerColor = Color.Black,
+                        scrolledContainerColor = Color.White,
+                        navigationIconContentColor = Color.White,
+                        titleContentColor = Color.White,
+                        actionIconContentColor = Color.White
+                    )
                 )
             }
             LaunchedEffect(visibleMenu.value) {
@@ -114,13 +134,13 @@ fun FullScreenViewPagerWithScaffold(
                     insetsController.apply {
                         hide(WindowInsetsCompat.Type.statusBars())
                         hide(WindowInsetsCompat.Type.navigationBars())
-                        systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+//                        systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                     }
                 } else {
                     insetsController.apply {
                         show(WindowInsetsCompat.Type.statusBars())
                         show(WindowInsetsCompat.Type.navigationBars())
-                        systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
+//                        systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
                     }
                 }
             }

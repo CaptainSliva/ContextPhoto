@@ -12,6 +12,9 @@ interface CommentDao {
     @Query("SELECT * FROM comments")
     fun getAllComments(): Flow<List<Comment>>
 
+    @Query("DELETE FROM comments")
+    suspend fun dropAllComments()
+
     @Query("SELECT * FROM comments WHERE LOWER(image_comment) LIKE LOWER('%' || :comment || '%')")
     fun findImageByComment(comment: String): Flow<List<Comment>>
 
@@ -29,6 +32,9 @@ interface CommentDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addComment(comment: Comment)
+
+    @Insert
+    suspend fun addAllComments(comments: List<Comment>)
 
     @Delete
     suspend fun delete(vararg comments: Comment)
