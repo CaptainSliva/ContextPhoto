@@ -320,7 +320,7 @@ fun BottomMenuFullScreenVideo(fullscreenViewModel: FullscreenViewModel) {
         enter = slideInVertically(),
         exit = slideOutVertically(),
     ) {
-//        CommentateDialog({}, commentateDialogVisible, listOf(listMedia[pos.value]))
+        CommentateDialog({}, commentateDialogVisible, listMedia[pos.value])
     }
     AnimatedVisibility(
         visible = deleteDialogVisible.value,

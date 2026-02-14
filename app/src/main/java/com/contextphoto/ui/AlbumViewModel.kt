@@ -3,7 +3,7 @@ package com.contextphoto.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.contextphoto.data.Album
-import com.contextphoto.data.AlbumRepository
+import com.contextphoto.data.repository.AlbumRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow

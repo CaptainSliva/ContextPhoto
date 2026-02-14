@@ -1,8 +1,11 @@
-package com.contextphoto.data
+package com.contextphoto.data.datasource
 
 import android.content.Context
+import android.graphics.Bitmap
+import com.contextphoto.data.Picture
 import com.contextphoto.db.CommentDatabase
-import com.contextphoto.utils.FunctionsMediaStore.getAllMedia
+import com.contextphoto.utils.FunctionsBitmap.md5
+import com.contextphoto.utils.FunctionsMediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -21,10 +24,10 @@ class MediaCache
         val listPicture = _listPicture.asStateFlow()
         val loadPictures = _loadPictureState.asStateFlow()
         val mediaPosition = _mediaPosition.asStateFlow()
-        val db = CommentDatabase.getDatabse(context).commentDao()
+        val db = CommentDatabase.Companion.getDatabse(context).commentDao()
 
         fun loadPictureList(bID: String): List<Picture> {
-            _listPicture.value = getAllMedia(context, bID)
+            _listPicture.value = FunctionsMediaStore.getAllMedia(context, bID)
             return _listPicture.value
         }
 
@@ -36,19 +39,8 @@ class MediaCache
             _listPicture.value = emptyList()
         }
 
-        fun changePictureState(
-            picID: String,
-            state: Boolean,
-        ) {
-            _listPicture.value.forEach {
-                if (it.bID == picID) it.checked = state
-            }
-        }
-
-        fun clearSelectedMedia() {
-            _listPicture.value.forEach {
-                it.checked = false
-            }
+        suspend fun changeStatePictureComment(mediaIndex: Int, mediaThumbnail: Bitmap) {
+            _listPicture.value[mediaIndex].haveComment.value = (db.findImageByHash(md5(mediaThumbnail))?.image_comment ?: "") != ""
         }
 
         fun loadPicturesState(state: Boolean? = null) {

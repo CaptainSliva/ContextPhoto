@@ -22,10 +22,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -50,8 +52,12 @@ import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.utils.FunctionsMediaStore.getPictureFromUri
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,14 +70,22 @@ fun SearchPhotoScreenWithScaffold(
     val db = CommentDatabase.getDatabse(context).commentDao()
     var commentText by rememberSaveable { mutableStateOf("") }
     val checkRegister = rememberSaveable { mutableStateOf(false) }
-    val brush =
-        remember {
-            Brush.linearGradient(
-                colors = listOf(Color.Red, Color.Yellow, Color.Green, Color.Blue, Color.Magenta),
-            )
-        }
     val listMedia by mediaViewModel.listMedia.collectAsStateWithLifecycle()
     val numberFind = rememberSaveable { mutableStateOf(0) }
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(commentText, checkRegister.value) {
+        if (commentText.isNotBlank()) {
+            delay(300)
+            withContext(coroutineScope.coroutineContext) {
+                searchPhotoOnComment(mediaViewModel, numberFind, commentText, checkRegister.value, db, context)
+            }
+        }
+        else {
+            mediaViewModel.clearPictureList()
+            numberFind.value = 0
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -92,12 +106,12 @@ fun SearchPhotoScreenWithScaffold(
                     }
                 },
             )
-            MainDropdownMenu(navController)
+            //MainDropdownMenu(navController)
         },
         content = { paddingValues ->
             Column(
                 modifier =
-                    modifier
+                    Modifier
                         .fillMaxWidth()
                         .padding(paddingValues),
             ) {
@@ -114,17 +128,14 @@ fun SearchPhotoScreenWithScaffold(
                         value = commentText,
                         onValueChange = {
                             commentText = it
-                            searchPhotoOnComment(mediaViewModel, numberFind, it, checkRegister.value, db, context)
+//                            searchPhotoOnComment(mediaViewModel, numberFind, it, checkRegister.value, db, context)
                         },
                         label = { "Enter text" },
                         placeholder = { "Найти" },
                         supportingText = {
                             Text("Найдено: ${numberFind.value}")
                         },
-                        textStyle =
-                            androidx.compose.ui.text
-                                .TextStyle(brush = brush),
-                        modifier = Modifier.weight(8f), // TODO костыль, исправить так, что бы поле ввода текста кнопку справа не сдвигало за экран
+                        modifier = Modifier.weight(8f),
                     )
 
                     Text(
@@ -137,7 +148,6 @@ fun SearchPhotoScreenWithScaffold(
                                         commentText = ""
                                         numberFind.value = 0
                                         mediaViewModel.clearPictureList()
-                                        // TODO add очистить EditText и MediaList
                                     },
                                 ),
                     )
@@ -150,7 +160,7 @@ fun SearchPhotoScreenWithScaffold(
                         checked = checkRegister.value,
                         onCheckedChange = {
                             checkRegister.value = !checkRegister.value
-                            searchPhotoOnComment(mediaViewModel, numberFind, commentText, checkRegister.value, db, context)
+//                            searchPhotoOnComment(mediaViewModel, numberFind, commentText, checkRegister.value, db, context)
                         },
                         colors =
                             CheckboxDefaults.colors(
@@ -168,18 +178,18 @@ fun SearchPhotoScreenWithScaffold(
                     columns = GridCells.Fixed(3),
                     modifier = modifier,
                 ) {
-                    items(items = listMedia) { media ->
+                    items(items = listMedia, key = { media -> media.path }) { media ->
                         val mediaIndex = listMedia.indexOf(media)
-                        media.haveComment = true
+                        LaunchedEffect(Unit) {
+                            mediaViewModel.changeStatePictureComment(mediaIndex, media.thumbnail)
+                        }
                         PictureItem(
                             listMedia.indexOf(media),
                             media,
-                            Modifier.padding(1.dp),
+                            Modifier.padding(1.dp).animateItem(),
                             onItemClick = {
                                 navController.navigate(
-                                    Destination.FullScreenImg().route + "/${
-                                        mediaIndex
-                                    }",
+                                    Destination.FullScreenImg().route,
                                 )
                             },
                             mediaViewModel,
@@ -191,7 +201,7 @@ fun SearchPhotoScreenWithScaffold(
     )
 }
 
-private fun searchPhotoOnComment(
+private suspend fun searchPhotoOnComment(
     mediaViewModel: MediaViewModel,
     numberFind: MutableState<Int>,
     comment: String,

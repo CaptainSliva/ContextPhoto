@@ -73,9 +73,8 @@ dependencies {
     val nav_version = "2.9.6"
     val material_version = "1.7.4"
     implementation("com.davemorrissey.labs:subsampling-scale-image-view:3.10.0")
-    implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("com.github.bumptech.glide:glide:4.16.0") //
     implementation("com.google.android.exoplayer:exoplayer:2.19.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
     implementation("androidx.room:room-runtime:${room_version}")
     ksp("androidx.room:room-compiler:$room_version")
 
@@ -83,25 +82,25 @@ dependencies {
     implementation("androidx.navigation:navigation-common:${nav_version}")
     implementation("androidx.compose.material:material:${material_version}")
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
-    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
     implementation("com.google.dagger:hilt-android:2.57.1")
     ksp("com.google.dagger:hilt-android-compiler:2.57.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.3.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
 
-    implementation(platform("com.google.firebase:firebase-bom:34.8.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.9.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("androidx.credentials:credentials:1.3.0")
+    implementation("com.google.android.gms:play-services-auth:21.5.0")
 
-    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation("com.google.firebase:firebase-firestore")
 
     implementation("androidx.security:security-crypto:1.1.0")
+    implementation("com.google.code.gson:gson:2.13.2")
 
-    implementation("com.pinterest.ktlint:ktlint-cli:1.8.0")
-    runtimeOnly("com.pinterest.ktlint:ktlint-ruleset-standard:1.8.0")
+
     // comment after set registration
-    implementation("com.google.android.gms:play-services-auth:21.3.0")
-    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+
 }
+
+

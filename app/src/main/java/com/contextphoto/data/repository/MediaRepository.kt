@@ -1,5 +1,8 @@
-package com.contextphoto.data
+package com.contextphoto.data.repository
 
+import android.graphics.Bitmap
+import com.contextphoto.data.Picture
+import com.contextphoto.data.datasource.MediaCache
 import javax.inject.Inject
 
 class MediaRepository
@@ -43,15 +46,8 @@ class MediaRepository
             )
         }
 
-        fun changePictureState(
-            picID: String,
-            state: Boolean,
-        ) {
-            mediaCache.changePictureState(picID, state)
-        }
-
-        fun clearSelectedMedia() {
-            mediaCache.clearSelectedMedia()
+        suspend fun changeStatePictureComment(mediaIndex: Int, mediaThumbnail: Bitmap) {
+            mediaCache.changeStatePictureComment(mediaIndex, mediaThumbnail)
         }
 
         fun updateMediaPosition(pos: Int) {

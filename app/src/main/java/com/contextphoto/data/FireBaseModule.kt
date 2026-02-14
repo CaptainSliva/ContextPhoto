@@ -1,7 +1,5 @@
 package com.contextphoto.data
 
-import android.content.Context
-import com.contextphoto.R
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -22,14 +20,4 @@ class FireBaseModule {
     @Provides
     @Singleton
     fun provideFirestore() = FirebaseFirestore.getInstance()
-
-    @Provides
-    @Singleton
-    fun provideGso(
-        @ApplicationContext context: Context,
-    ) = GoogleSignInOptions
-        .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-        .requestIdToken(context.getString(R.string.default_web_client_id))
-        .requestEmail()
-        .build()
 }

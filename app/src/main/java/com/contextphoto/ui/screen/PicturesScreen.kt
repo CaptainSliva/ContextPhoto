@@ -18,6 +18,8 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -56,6 +58,7 @@ import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.utils.FunctionsBitmap.md5
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,7 +76,6 @@ fun PicturesScreenWithScaffold(
     }
 
     val context = LocalContext.current
-    val db = CommentDatabase.getDatabse(context).commentDao()
     val listMedia by mediaViewModel.listMedia.collectAsStateWithLifecycle()
     val albumName by mediaViewModel.albumName.collectAsStateWithLifecycle()
     val groupedMedia =
@@ -106,18 +108,16 @@ fun PicturesScreenWithScaffold(
         3 -> {
             fontSize.value = defaultTextSize
         }
-
+// visible date and divider
         4 -> {
             fontSize.value = 11f
             dateVisible.value = true
         }
-
-        // visible date and divider
+// invisible date and divider
         5 -> {
             dateVisible.value = false
         }
 
-        // invisible date and divider
         6 -> {}
     }
 
@@ -127,6 +127,9 @@ fun PicturesScreenWithScaffold(
                 title = {
                     Text(
                         albumName,
+                        modifier = Modifier
+                            .verticalScroll(rememberScrollState())
+                            .padding(end = 32.dp)
                     )
                 },
                 navigationIcon = {
@@ -213,7 +216,7 @@ fun PicturesScreenWithScaffold(
                         modifier
                             .padding(paddingValues)
                             .fillMaxSize(),
-                    state = newPosition,
+                    //state = newPosition,
                     contentPadding = PaddingValues(bottom = 80.dp),
                 ) {
                     groupedMedia.forEach { (date, mediaList) ->
@@ -232,7 +235,7 @@ fun PicturesScreenWithScaffold(
                                         modifier =
                                             Modifier
                                                 .fillMaxWidth()
-                                                .padding(start = 4.dp, top = 4.dp),
+                                                .padding(start = 4.dp, top = 4.dp).animateItem(),
                                         text = date,
                                         fontSize = fontSize.value.sp,
                                     )
@@ -244,12 +247,11 @@ fun PicturesScreenWithScaffold(
 
                         items(items = mediaList, key = { media -> media.path }) { media ->
                             val mediaIndex = listMedia.indexOf(media)
-                            val haveComment = remember { mutableStateOf(false) }
+                            //val haveComment = remember { mutableStateOf(false) }
 
                             LaunchedEffect(Unit) {
-                                CoroutineScope(Dispatchers.Default).launch {
-                                    haveComment.value = (db.findImageByHash(md5(media.thumbnail))?.image_comment ?: "") != ""
-                                    listMedia[mediaIndex].haveComment = haveComment.value
+                                CoroutineScope(Dispatchers.IO+SupervisorJob()).launch {
+                                    mediaViewModel.changeStatePictureComment(mediaIndex, media.thumbnail)
                                 }
                             }
 

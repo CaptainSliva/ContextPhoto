@@ -1,10 +1,11 @@
 package com.contextphoto.ui
 
+import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.contextphoto.data.AlbumRepository
+import com.contextphoto.data.repository.AlbumRepository
 import com.contextphoto.data.Destination
-import com.contextphoto.data.MediaRepository
+import com.contextphoto.data.repository.MediaRepository
 import com.contextphoto.data.Picture
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
@@ -71,7 +72,6 @@ class MediaViewModel
                 repository.deletePicture(pic)
                 _listMedia.value = repository.getPictureList()
             }
-            // deleteMediaFromAlbum(pic.bID, 1)
         }
 
         fun deletePictureByMove() {
@@ -94,10 +94,6 @@ class MediaViewModel
                     add(pic)
                 }
             }
-            viewModelScope.launch {
-                repository.changePictureState(pic.bID, true)
-                _listMedia.value = repository.getPictureList()
-            }
         }
 
         fun removeSelectMedia(pic: Picture) {
@@ -106,15 +102,10 @@ class MediaViewModel
                     remove(pic)
                 }
             }
-            viewModelScope.launch {
-                repository.changePictureState(pic.bID, false)
-                _listMedia.value = repository.getPictureList()
-            }
         }
 
         fun clearSelectedMedia() {
             _listSelectedMedia.value = emptyList()
-            repository.clearSelectedMedia()
         }
 
         fun changeStateBottomMenu(state: Boolean? = null) {
@@ -127,6 +118,13 @@ class MediaViewModel
 
         fun loadAlbumsStateChange(state: Boolean) {
             albumRepository.loadAlbumsStateChange(state)
+        }
+
+        fun changeStatePictureComment(mediaIndex: Int, mediaThumbnail: Bitmap) {
+            viewModelScope.launch {
+                repository.changeStatePictureComment(mediaIndex, mediaThumbnail)
+            }
+//            _listMedia.value = repository.getPictureList()
         }
 
         fun deleteMediaFromAlbum(

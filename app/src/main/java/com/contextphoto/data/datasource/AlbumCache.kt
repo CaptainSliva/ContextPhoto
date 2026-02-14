@@ -1,8 +1,9 @@
-package com.contextphoto.data
+package com.contextphoto.data.datasource
 
 import android.content.Context
 import android.util.Log
-import com.contextphoto.utils.FunctionsMediaStore.getListAlbums
+import com.contextphoto.data.Album
+import com.contextphoto.utils.FunctionsMediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
@@ -22,7 +23,7 @@ class AlbumCache
         val loadAlbums = _loadAlbumState.asStateFlow()
 
         fun loadAlbumList(): List<Album> {
-            _listAlbums.value = getListAlbums(context)
+            _listAlbums.value = FunctionsMediaStore.getListAlbums(context)
 
             Log.d("Album Cache", _listAlbums.value.toString())
             return _listAlbums.value

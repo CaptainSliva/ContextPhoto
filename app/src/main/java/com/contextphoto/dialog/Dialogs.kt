@@ -11,20 +11,27 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -46,6 +53,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -336,17 +344,18 @@ fun ChooseAlbumDialog(
     val showCopyMoveDialog = remember { mutableStateOf(false) }
 
     Log.d("TAG_LIST", albumList.toString())
-    Dialog(
-        onDismissRequest = {
-            onDismissRequest()
-            dialogVisibility.value = false
-        },
-    ) {
+//    Dialog(
+//        onDismissRequest = {
+//            onDismissRequest()
+//            dialogVisibility.value = false
+//        },
+//    ) {
         Surface(
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            LazyColumn(modifier = Modifier.padding(8.dp)) {
+            LazyColumn(modifier = Modifier.padding(8.dp),
+                contentPadding = PaddingValues(bottom = 80.dp)) {
                 items(items = albumList) { album ->
                     Box(
                         modifier =
@@ -387,7 +396,7 @@ fun ChooseAlbumDialog(
                 }
             }
         }
-    }
+//    }
     AnimatedVisibility(visible = showCopyMoveDialog.value) {
         CopyMoveDialog(
             onDismissRequest,
@@ -496,7 +505,7 @@ fun DeleteMediaDialog(
                 onClick = {
                     mediaViewModel.deleteMediaFromAlbum(bID, listSelectedMedia.size)
                     when (currentDestination) {
-                        Destination.PICTURES().route -> {
+                        Destination.Pictures().route -> {
                             listSelectedMedia.forEach {
                                 if (deleteMediaFile(context, activity, it.uri)) {
                                     mediaViewModel.deletePicture(it)
@@ -504,7 +513,7 @@ fun DeleteMediaDialog(
                             }
                         }
 
-                        Destination.FULLSCREENIMG().route -> {
+                        Destination.FullScreenImg().route -> {
                             if (deleteMediaFile(context, activity, listMedia[pos].uri)) {
                                 fullscreenViewModel.deletePicture(listMedia[pos])
                                 fullscreenViewModel.deleteActionChange()
@@ -514,11 +523,11 @@ fun DeleteMediaDialog(
                                         fullscreenViewModel.updateMediaPosition(pos - 1)
                                         println("ONEEEE")
                                     }
-//                                    (pos == 0) -> {
-//                                        fullscreenViewModel.updateMediaPosition(pos)
-//                                        println("TNEEEE")
-//                                        println("${fullscreenViewModel.mediaPosition.value}")
-//                                    }
+                                    (pos == 0) -> {
+                                        fullscreenViewModel.updateMediaPosition(pos+1)
+                                        println("TNEEEE")
+                                        println("${fullscreenViewModel.mediaPosition.value}")
+                                    }
 //                                    else -> {
 //                                        fullscreenViewModel.updateMediaPosition(pos)
 //                                        println("FNEEEE")
@@ -554,7 +563,7 @@ fun DeleteMediaDialog(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RenameAlbumDialog( // TODO fixme сделать обновление названия альбома в списке /- баг нашелся (не работает с альбомами которые не мои)
+fun RenameAlbumDialog( // TODO fixme (не работает с альбомами которые не мои)
     onDismissRequest: () -> Unit,
     mutableState: MutableState<Boolean>,
     viewModel: AlbumViewModel,
@@ -643,77 +652,91 @@ fun CommentateDialog(
         }
     }
 
-    ModalBottomSheet(
-        onDismissRequest =
-            {
-                mutableState.value = false
-                onDismissRequest()
-            },
-        modifier = Modifier.fillMaxWidth(),
+    Surface(
+        modifier = Modifier
+            .fillMaxSize(),
+        color = colorResource(R.color.medium_transparant_black)
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = modifier.verticalScroll(rememberScrollState()),
+        Box(
+            contentAlignment = Alignment.BottomCenter,
+            modifier = Modifier.fillMaxSize()
         ) {
-            Text(text = context.getString(R.string.commentate))
-            Image(contentDescription = null, bitmap = media.thumbnail.asImageBitmap(), contentScale = ContentScale.Crop)
-            OutlinedTextField(
-                value = commentText,
-                onValueChange = { commentText = it },
-                label = { "Enter text" },
-                placeholder = { "Hello World" },
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth(),
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = 70.dp)
             ) {
-                Button(onClick = {
-                    mutableState.value = false
-                    onDismissRequest()
-                }) {
-                    Text(
-                        text = context.getString(R.string.cancel),
-                        color = Color.Red,
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(text = context.getString(R.string.commentate))
+                    Image(
+                        contentDescription = null,
+                        bitmap = media.thumbnail.asImageBitmap(),
+                        contentScale = ContentScale.Crop
                     )
-                }
+                    OutlinedTextField(
+                        value = commentText,
+                        onValueChange = { commentText = it },
+                        modifier = modifier
+                            .heightIn(max = 160.dp)
+                            .padding(horizontal = 16.dp)
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = modifier
+                            .padding(horizontal = 16.dp),
+                    ) {
+                        Button(onClick = {
+                            mutableState.value = false
+                            onDismissRequest()
+                        }) {
+                            Text(
+                                text = context.getString(R.string.cancel),
+                                color = Color.Red,
+                            )
+                        }
 
-                Button(onClick = {
-                    CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-                        val commentText = commentText.trim()
-                        val imagHash = md5(getThumbnail(context, media.uri))
-                        when {
-                            commentText.length == 0 && oldComment.value.length != 0 -> {
-                                db.deleteCommentByHash(imagHash)
+                        Button(onClick = {
+                            CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+                                val commentText = commentText.trim()
+                                val imagHash = md5(getThumbnail(context, media.uri))
+                                when {
+                                    commentText.length == 0 && oldComment.value.length != 0 -> {
+                                        db.deleteCommentByHash(imagHash)
+                                    }
+
+                                    commentText.length != 0 && oldComment.value.length == 0 -> {
+                                        db.addComment(
+                                            Comment(
+                                                0,
+                                                media.uri.toString(),
+                                                md5(getThumbnail(context, media.uri)),
+                                                commentText,
+                                            ),
+                                        )
+                                    }
+
+                                    commentText.length != 0 && oldComment.value.length != 0 -> {
+                                        db.replaceCommentByHash(
+                                            md5(getThumbnail(context, media.uri)),
+                                            commentText,
+                                        )
+                                    }
+                                }
                             }
 
-                            commentText.length != 0 && oldComment.value.length == 0 -> {
-                                db.addComment(
-                                    Comment(
-                                        0,
-                                        media.uri.toString(),
-                                        md5(getThumbnail(context, media.uri)),
-                                        commentText,
-                                    ),
-                                )
-                            }
-
-                            commentText.length != 0 && oldComment.value.length != 0 -> {
-                                db.replaceCommentByHash(
-                                    md5(getThumbnail(context, media.uri)),
-                                    commentText,
-                                )
-                            }
+                            mutableState.value = false
+                            onDismissRequest()
+                        }) {
+                            Text(
+                                text = LocalContext.current.getString(R.string.ok),
+                                color = Color.White,
+                            )
                         }
                     }
-
-                    mutableState.value = false
-                    onDismissRequest()
-                }) {
-                    Text(
-                        text = LocalContext.current.getString(R.string.ok),
-                        color = Color.White,
-                    )
                 }
             }
         }

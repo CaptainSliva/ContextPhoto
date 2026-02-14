@@ -1,6 +1,7 @@
 package com.contextphoto.item
 
 import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +43,7 @@ import com.contextphoto.ui.AlbumViewModel
 import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.ui.theme.ContextPhotoTheme
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AlbumItem(
     album: Album,
@@ -99,6 +101,7 @@ fun AlbumItem(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PictureItem(
     mediaPosition: Int,
@@ -138,7 +141,7 @@ fun PictureItem(
         Icon(
             painter = painterResource(R.drawable.text_icon),
             contentDescription = null,
-            modifier = Modifier.size(26.dp).alpha(if (picture.haveComment) 1f else 0f).padding(start = 4.dp),
+            modifier = Modifier.size(26.dp).alpha(if (picture.haveComment.value) 1f else 0f).padding(start = 4.dp),
             tint = Color.White,
         )
 
@@ -173,17 +176,6 @@ fun PictureItem(
                     ),
                 // .border(1.dp, color = Color.White, shape = RoundedCornerShape(20)),
             )
-
-//                if (checkboxVisible.value) {
-//                    println("check")
-//                } else {
-//                    println("UNcheck")
-//                }
-            if (picture.haveComment) {
-                println("check")
-            } else {
-                println("UNcheck")
-            }
         }
     }
 }

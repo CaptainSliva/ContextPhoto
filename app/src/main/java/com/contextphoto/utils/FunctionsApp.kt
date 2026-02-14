@@ -1,16 +1,20 @@
 package com.contextphoto.utils
 
 import android.content.Context
-import android.content.Intent
+import android.content.ContextWrapper
 import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.contextphoto.R
-import com.google.android.gms.auth.api.signin.GoogleSignIn.getClient
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.Firebase
-import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.firestore
+import androidx.core.content.edit
+import com.contextphoto.db.CommentDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.forEach
+import kotlinx.coroutines.launch
 
 object FunctionsApp {
     inline fun durationTranslate(milliseconds: Long): String {
@@ -25,79 +29,29 @@ object FunctionsApp {
         }
     }
 
-    fun firebaseFirestoreDatabaseTest() {
+    fun firebaseFirestoreDatabaseTest(context: Context,) {
         val TAG = "FireDataTest"
         val fdb = Firebase.firestore
+        val db = CommentDatabase.getDatabse(context).commentDao()
 
-        // Create a new user with a first and last name
-        var user =
-            hashMapOf(
-                "first" to "Ada",
-                "last" to "Lovelace",
-                "born" to 1816,
-            )
-
-// Add a new document with a generated ID
-        fdb
-            .collection("users")
-            .add(user)
-            .addOnSuccessListener { documentReference ->
-                Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference.id}")
-            }.addOnFailureListener { e ->
-                Log.w(TAG, "Error adding document", e)
+        CoroutineScope(Dispatchers.IO).launch {
+            db.getAllComments().collect {
+                it.forEach { comment ->
+                    fdb.collection(espRead(context).first).add(comment)
+                        .addOnSuccessListener { documentReference ->
+                            Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference.id}")
+                        }.addOnFailureListener { e ->
+                            Log.w(TAG, "Error adding document", e)
+                        }
+                }
             }
-
-        val city =
-            City(
-                "Los Angeles",
-                "CA",
-                "USA",
-                false,
-                5000000L,
-                listOf("west_coast", "socal"),
-            )
-        fdb.collection("cities").document("DC").set(city)
-
-        val washingtonRef = fdb.collection("cities").document("DC")
-
-// Set the "isCapital" field of the city 'DC'
-        washingtonRef
-            .update("isCapital", true)
-            .addOnSuccessListener { Log.d(TAG, "DocumentSnapshot successfully updated!") }
-            .addOnFailureListener { e -> Log.w(TAG, "Error updating document", e) }
-    }
-
-    fun googleLogin(context: Context): Intent {
-        FirebaseApp.initializeApp(context)
-        val gso =
-            GoogleSignInOptions
-                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(context.getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build()
-        val mGoogleSignInClient = getClient(context, gso)
-        return mGoogleSignInClient.signInIntent
-    }
-
-    fun googleLogout(
-        context: Context,
-        f: () -> Unit,
-    ) {
-        val gso =
-            GoogleSignInOptions
-                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(context.getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build()
-        val mGoogleSignInClient = getClient(context, gso)
-        mGoogleSignInClient.signOut().addOnCompleteListener {
-            f()
         }
     }
 
-    fun espWrire(
+    fun espWrite(
         context: Context,
-        name: String,
+        email: String,
+        jwtToken: String,
     ) {
         val masterKey =
             MasterKey
@@ -113,12 +67,13 @@ object FunctionsApp {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
             )
         sharedPreferences
-            .edit()
-            .putString("name", name)
-            .apply()
+            .edit {
+                putString("email", email)
+                    .putString("jwtToken", jwtToken)
+            }
     }
 
-    fun espRead(context: Context): String {
+    fun espRead(context: Context): Pair<String, String> {
         val masterKey =
             MasterKey
                 .Builder(context)
@@ -133,7 +88,31 @@ object FunctionsApp {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
             )
 
-        return sharedPreferences.getString("name", "").toString()
+        return Pair(
+            sharedPreferences.getString("email", "").toString(),
+            sharedPreferences.getString("jwtToken", "").toString()
+        )
+    }
+
+    fun espClear(context: Context) {
+        val masterKey =
+            MasterKey
+                .Builder(context)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+        val sharedPreferences =
+            EncryptedSharedPreferences.create(
+                context,
+                "secure_prefs",
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+            )
+        sharedPreferences
+            .edit{
+                putString("email", "")
+                    .putString("jwtToken", "")
+            }
     }
 }
 
