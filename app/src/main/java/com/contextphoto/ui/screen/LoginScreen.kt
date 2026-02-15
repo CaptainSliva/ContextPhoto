@@ -21,8 +21,8 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -47,7 +47,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.contextphoto.R
 import com.contextphoto.data.Destination
-import com.contextphoto.data.debugSpeedrun
 import com.contextphoto.ui.LoginViewModel
 import com.contextphoto.ui.theme.ContextPhotoTheme
 import com.contextphoto.utils.FunctionsApp.espRead
@@ -128,8 +127,6 @@ fun LoginScreen(navController: NavController,
                             if (task.isSuccessful) {
                                 val token = task.result?.token
                                 espWrite(context, currentUser.value!!.email.toString(), token.toString())
-                                Log.d(debugSpeedrun, espRead(context).toString())
-                                Log.d(debugSpeedrun, token.toString())
                             }
                         }
 
@@ -261,8 +258,6 @@ fun RegisterScreen(navController: NavController,
                                     if (task.isSuccessful) {
                                         val token = task.result?.token
                                         espWrite(context, currentUser.value!!.email.toString(), token.toString())
-                                        Log.d(debugSpeedrun, espRead(context).toString())
-                                        Log.d(debugSpeedrun, token.toString())
                                     }
                                 }
                             }

@@ -150,6 +150,7 @@ fun SearchPhotoScreenWithScaffold(
                                         mediaViewModel.clearPictureList()
                                     },
                                 ),
+                        color = colorResource(R.color.light_blue)
                     )
                 }
                 Row(
@@ -176,7 +177,7 @@ fun SearchPhotoScreenWithScaffold(
 
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(3),
-                    modifier = modifier,
+                    modifier = Modifier.padding(paddingValues),
                 ) {
                     items(items = listMedia, key = { media -> media.path }) { media ->
                         val mediaIndex = listMedia.indexOf(media)

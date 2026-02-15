@@ -14,10 +14,12 @@ import com.google.firebase.firestore.firestore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.text.indexOf
 
 @Singleton
 class SettingsSource
@@ -29,28 +31,27 @@ class SettingsSource
 
     val db = CommentDatabase.getDatabse(context).commentDao()
 
-    fun getContext() = context
-
     fun getAllComments() = db.getAllComments()
 
     suspend fun importCommentsFromStorage(listComments: List<Comment>) {
 
         db.dropAllComments()
-        listComments.forEach {
-            println(it)
-        }
+//        listComments.forEach {
+//            println(it)
+//        }
         val allMedia = getAllMedia(context)
         val allHashes = listComments.map { it.image_hash }
         val listPatsh = mutableSetOf<String>()
         allMedia.forEach { media ->
             val hash = md5(getThumbnail(context, media.uri))
             if (hash in allHashes && media.path !in listPatsh) {
-                listComments.forEach { comment ->
-                    if (comment.image_hash == hash) {
-                        val newComment = comment.copy(image_uri = media.uri.toString())
-                        db.addComment(newComment)
-                    }
-                }
+                db.addComment(listComments[allHashes.indexOf(hash)].copy(image_uri = media.uri.toString()))
+//                listComments.forEach { comment ->
+//                    if (comment.image_hash == hash) {
+//                        val newComment = comment.copy(image_uri = media.uri.toString())
+//                        db.addComment(newComment)
+//                    }
+//                }
                 listPatsh.add(media.path)
             }
         }
@@ -59,15 +60,13 @@ class SettingsSource
     suspend fun exportCommentsToFirestore() {
         val fdb = Firebase.firestore
         deleteCommentsFromFirestore()
-        db.getAllComments().collect {
-            it.forEach { comment ->
-                fdb.collection(espRead(context).first).add(comment)
-                    .addOnSuccessListener { documentReference ->
-                        Log.d(tag, "Document added ${documentReference.id}")
-                    }.addOnFailureListener { e ->
-                        Log.w(tag, "Error adding document", e)
-                    }
-            }
+        db.getAllComments().first().forEach { comment ->
+            fdb.collection(espRead(context).first).add(comment)
+                .addOnSuccessListener { documentReference ->
+                    Log.d(tag, "Document added ${documentReference.id}")
+                }.addOnFailureListener { e ->
+                    Log.w(tag, "Error adding document", e)
+                }
         }
     }
 
@@ -108,6 +107,7 @@ class SettingsSource
             throw e
         }
     }
+
 
 
     companion object {

@@ -8,6 +8,7 @@ import com.contextphoto.utils.FunctionsMediaStore.deleteCommentsFile
 import com.contextphoto.utils.FunctionsMediaStore.exportCommentsToFile
 import com.contextphoto.utils.FunctionsMediaStore.importCommentsFromFile
 import com.google.gson.Gson
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import kotlin.jvm.java
 
@@ -21,13 +22,11 @@ class SettingsRepository
         try {
             deleteCommentsFile()
             val listComments = settingsSource.getAllComments()
-            listComments.collect {
-                it.forEach { comment ->
-                    val serializeComment = Gson().toJson(comment)
-                    Log.d("listComments", comment.toString())
-                    Log.d("GsonString", serializeComment)
-                    exportCommentsToFile(serializeComment)
-                }
+            listComments.first().forEach { comment ->
+                val serializeComment = Gson().toJson(comment)
+                Log.d("listComments", comment.toString())
+                Log.d("GsonString", serializeComment)
+                exportCommentsToFile(serializeComment)
             }
             return true
         }

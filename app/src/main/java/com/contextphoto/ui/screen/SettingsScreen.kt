@@ -1,12 +1,18 @@
 package com.contextphoto.ui.screen
 
+import android.R.attr.visible
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -28,9 +34,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -38,7 +46,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.contextphoto.R
 import com.contextphoto.data.Destination
-import com.contextphoto.data.debugSpeedrun
 import com.contextphoto.ui.SettingsViewModel
 import com.contextphoto.utils.FunctionsApp.espRead
 import com.contextphoto.utils.FunctionsApp.espWrite
@@ -65,7 +72,6 @@ fun SettingsScreenWithScaffold(modifier: Modifier = Modifier,
                     val token = task.result?.token
                     settingsViewModel.setToken(token?:"")
                     espWrite(context, espRead(context).first, settingsViewModel.getToken())
-                    Log.d(debugSpeedrun, token.toString())
                 }
             }
         }
@@ -92,132 +98,171 @@ fun SettingsScreenWithScaffold(modifier: Modifier = Modifier,
             )
         },
         content = { paddingValues ->
-            Column(modifier = Modifier
-                .fillMaxWidth()
-                .padding(paddingValues),
-                horizontalAlignment = Alignment.Start) {
-                Button(
-                    onClick = {
-                        corutineScope.launch {
-                            settingsViewModel.importCommentsFromStorage()
-                        }
-                    },
-                    shape = RoundedCornerShape(50.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(R.color.light_blue)
-                    ),
-                    modifier = buttonWidth
-                        .padding(14.dp)
-                        .height(50.dp)
-                ) {
-                    Text(context.getString(R.string.import_from_file))
-                }
+            Row(modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(horizontal = 8.dp)) {
 
-                Button(
-                    onClick = {
-                        corutineScope.launch {
-                            settingsViewModel.exportCommentsToStorage()
-                        }
-                    },
-                    shape = RoundedCornerShape(50.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(R.color.light_blue)
-                    ),
-                    modifier = buttonWidth
-                        .padding(14.dp)
-                        .height(50.dp)
+            Column(
+                modifier = Modifier
+                    .weight(0.7f),
+                horizontalAlignment = Alignment.Start
                 ) {
-                    Text(context.getString(R.string.export_to_file))
-                }
-                Divider(modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(0.dp, 8.dp))
-
-                Button(
-                    onClick = {
-                        navController.navigate(
-                            Destination.Login().route
-                        )
-                    },
-                    shape = RoundedCornerShape(50.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(R.color.light_blue)
-                    ),
-                    modifier = buttonWidth
-                        .padding(14.dp)
-                        .height(50.dp)
-                ) {
-                    Text(context.getString(R.string.enter_in_account))
-                }
-
-                Button(
-                    onClick = {
-                        val idToken = settingsViewModel.getToken()
-                        val espData = espRead(context)
-//                Log.d(debugSpeedrun, espData.second)
-//                Log.d(debugSpeedrun, idToken)
-//                println(espData.second == idToken)
-                        if (espData.second == idToken && listOf(espData.second, idToken).all { it != "" }) {
-                            corutineScope.launch {
-                                settingsViewModel.importCommentsFromFirestore()
-                            }
+                    Row(
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        Button(
+                            onClick = {
+                                corutineScope.launch {
+                                    settingsViewModel.exportCommentsToStorage()
+                                }
+                            },
+                            shape = RoundedCornerShape(50.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colorResource(R.color.light_blue)
+                            ),
+                            modifier = buttonWidth
+                                .weight(1f)
+                        ) {
+                            Text(
+                                context.getString(R.string.export_to_file),
+                                textAlign = TextAlign.Center
+                            )
                         }
-                        else {
-                            Toast.makeText(context, context.getString(R.string.no_login), Toast.LENGTH_SHORT).show()
+                        Spacer(modifier = Modifier.weight(0.25f))
+                        Button(
+                            onClick = {
+                                corutineScope.launch {
+                                    settingsViewModel.importCommentsFromStorage()
+                                }
+                            },
+                            shape = RoundedCornerShape(50.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colorResource(R.color.light_blue)
+                            ),
+                            modifier = buttonWidth
+                                .weight(1f)
+                        ) {
+                            Text(
+                                context.getString(R.string.import_from_file),
+                                textAlign = TextAlign.Center
+                            )
                         }
-                    },
-                    shape = RoundedCornerShape(50.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(R.color.light_blue)
-                    ),
-                    modifier = buttonWidth
-                        .padding(14.dp)
-                        .height(50.dp)
-                ) {
-                    Text(context.getString(R.string.import_from_firebase))
-                }
-
-                Button(
-                    onClick = {
-                        val idToken = settingsViewModel.getToken()
-                        val espData = espRead(context)
-//                Log.d(debugSpeedrun, espData.second)
-//                Log.d(debugSpeedrun, idToken)
-//                println(espData.second == idToken)
-                        if (espData.second == idToken && espData.second != "") {
-                            corutineScope.launch {
-                                settingsViewModel.exportCommentsToFirestore()
-                            }
-                        }
-                        else {
-                            Toast.makeText(context, context.getString(R.string.no_login), Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                    shape = RoundedCornerShape(50.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(R.color.light_blue)
-                    ),
-                    modifier = buttonWidth
-                        .padding(14.dp)
-                        .height(50.dp)
-                ) {
-                    Text(context.getString(R.string.export_to_firebase))
-                }
-
-                AnimatedVisibility(visible = completedOperation.value,
-                    enter = expandHorizontally(),
-                    exit = shrinkHorizontally()
-                ) {
-                    Text(stateInfo.value,
-                        fontSize = 18.sp,
-                        color = Color.Green
-                    )
-                    corutineScope.launch {
-                        delay(5000)
-                        settingsViewModel.changeOperationStatus(false)
                     }
 
+//                    Divider(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(0.dp, 16.dp)
+//                    )
+                Spacer(modifier = Modifier.padding(vertical = 16.dp))
+                    Button(
+                        onClick = {
+                            navController.navigate(
+                                Destination.Login().route
+                            )
+                        },
+                        shape = RoundedCornerShape(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = colorResource(R.color.light_blue)
+                        ),
+                        modifier = buttonWidth
+                            .fillMaxWidth()
+                    ) {
+                        Text(
+                            context.getString(R.string.enter_in_account),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.padding(vertical = 8.dp))
+
+                    Row(
+                        horizontalArrangement = Arrangement.Start
+                    ) {
+                        Button(
+                            onClick = {
+                                val idToken = settingsViewModel.getToken()
+                                val espData = espRead(context)
+                                //                Log.d(debugSpeedrun, espData.second)
+                                //                Log.d(debugSpeedrun, idToken)
+                                //                println(espData.second == idToken)
+                                if (espData.second == idToken && idToken != "") {
+                                    corutineScope.launch {
+                                        settingsViewModel.exportCommentsToFirestore()
+                                    }
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.no_login),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            },
+                            shape = RoundedCornerShape(50.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colorResource(R.color.light_blue)
+                            ),
+                            modifier = buttonWidth
+                                .weight(1f)
+                        ) {
+                            Text(
+                                context.getString(R.string.export_to_firebase),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        Spacer(modifier = Modifier.weight(0.25f))
+                        Button(
+                            onClick = {
+                                val idToken = settingsViewModel.getToken()
+                                val espData = espRead(context)
+                                //                Log.d(debugSpeedrun, espData.second)
+                                //                Log.d(debugSpeedrun, idToken)
+                                //                println(espData.second == idToken)
+                                if (espData.second == idToken && idToken != "") {
+                                    corutineScope.launch {
+                                        settingsViewModel.importCommentsFromFirestore()
+                                    }
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.no_login),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            },
+                            shape = RoundedCornerShape(50.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colorResource(R.color.light_blue)
+                            ),
+                            modifier = buttonWidth
+                                .weight(1f)
+                        ) {
+                            Text(
+                                context.getString(R.string.import_from_firebase),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+
+                    AnimatedVisibility(
+                        visible = completedOperation.value,
+                        enter = expandHorizontally(),
+                        exit = shrinkHorizontally()
+                    ) {
+                        Text(
+                            stateInfo.value,
+                            fontSize = 18.sp,
+                            color = Color.Green
+                        )
+                        corutineScope.launch {
+                            delay(5000)
+                            settingsViewModel.changeOperationStatus(false)
+                        }
+
+                    }
                 }
+                Spacer(modifier = Modifier.fillMaxHeight().weight(0.2f))
             }
         }
     )
