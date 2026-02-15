@@ -18,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import com.contextphoto.data.Album
 import com.contextphoto.data.PERMISSION_DELETE_REQUEST_CODE
 import com.contextphoto.data.Picture
+import com.contextphoto.data.baseCommentsPath
 import com.contextphoto.data.commentDatabase
 import com.contextphoto.ui.AlbumViewModel
 import com.contextphoto.utils.FunctionsApp.durationTranslate
@@ -328,7 +329,7 @@ object FunctionsMediaStore {
         return listMedia
     }
 
-    fun copyMediaToAlbum(
+    inline fun copyMediaToAlbum(
         context: Context,
         sourceUri: Uri,
         albumName: String,
@@ -399,7 +400,7 @@ object FunctionsMediaStore {
         }
     }
 
-    fun deleteMediaFile(
+    inline fun deleteMediaFile(
         context: Context,
         activity: Activity,
         sourceUri: Uri,
@@ -554,15 +555,16 @@ object FunctionsMediaStore {
     @Singleton
     fun deleteCommentsFile() {
         val folder: File =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+            baseCommentsPath
         val file = File(folder, "$commentDatabase.txt")
         file.delete()
     }
 
     @Singleton
+    @Provides
     fun importCommentsFromFile(): List<String> {
         val folder: File =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+            baseCommentsPath
         val file = File(folder, "$commentDatabase.txt")
         return if (file.exists()) {
             file.readLines()
@@ -574,7 +576,7 @@ object FunctionsMediaStore {
     @Singleton
     inline fun exportCommentsToFile(text: String) {
         val folder: File =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+            baseCommentsPath
         val file = File(folder, "$commentDatabase.txt")
         if (file.exists()) {
             file.appendText(text+"\n")
