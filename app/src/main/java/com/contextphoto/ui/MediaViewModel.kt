@@ -1,6 +1,7 @@
 package com.contextphoto.ui
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.contextphoto.data.repository.AlbumRepository
@@ -27,12 +28,15 @@ class MediaViewModel
         private val _mediaPosition = MutableStateFlow(0)
         private val _bottomMenuVisible = MutableStateFlow(false)
         private val _albumName = MutableStateFlow("")
+        private val _numberFind = MutableStateFlow(0)
         val db = repository.getDB()
         val listMedia = _listMedia.asStateFlow()
         val listSelectedMedia = _listSelectedMedia.asStateFlow()
         val mediaPosition = _mediaPosition.asStateFlow()
         val bottomMenuVisible = _bottomMenuVisible.asStateFlow()
         val albumName = _albumName.asStateFlow()
+        val numberFind = _numberFind.asStateFlow()
+
 
         fun loadPictureList(bID: String) {
             if (repository.getLoadPicturesState()) {
@@ -57,15 +61,24 @@ class MediaViewModel
             viewModelScope.launch {
                 repository.clearPictureList()
                 _listMedia.value = repository.getPictureList()
+                _numberFind.value = 0
             }
         }
 
-        fun addPicture(pic: Picture) {
+        fun addFoundedPicture(pic: Picture) {
             viewModelScope.launch {
-                repository.addPicture(pic)
-                _listMedia.value = repository.getPictureList()
+                if (pic.path !in _listMedia.value.map { it.path }) {
+                    repository.addPicture(pic)
+                    _listMedia.value = repository.getPictureList()
+                    _numberFind.value += 1
+                    Log.d("Lvalue", _listMedia.value.toString())
+                }
             }
         }
+
+    fun numberFindSetNul() {
+        _numberFind.value = 0
+    }
 
         fun deletePicture(pic: Picture) {
             viewModelScope.launch {
@@ -151,5 +164,11 @@ class MediaViewModel
         ) {
             albumRepository.copyMediaToAlbum(bID, count)
             albumRepository.loadAlbumsStateChange(true)
+        }
+
+        fun deleteAlbum() {
+            val albums = albumRepository.getAlbumList()
+            val index = albumRepository.getAlbumList().map { it.bID }.indexOf(albumRepository.getAlbumBid())
+            albumRepository.deleteAlbum(albums[index])
         }
     }

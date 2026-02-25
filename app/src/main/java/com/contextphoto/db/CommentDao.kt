@@ -21,6 +21,9 @@ interface CommentDao {
     @Query("SELECT * FROM comments WHERE image_hash LIKE :hash")
     suspend fun findImageByHash(hash: String): Comment?
 
+    @Query("SELECT * FROM comments WHERE image_hash LIKE :hash")
+    fun findImageByHashFlow(hash: String): Flow<Comment?>
+
     @Query("UPDATE comments SET image_comment = :comment WHERE image_hash = :imageHash")
     suspend fun replaceCommentByHash(
         imageHash: String,

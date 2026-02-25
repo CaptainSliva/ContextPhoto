@@ -32,9 +32,21 @@ class SettingsViewModel
         getCurrentUser()
     }
 
-    suspend fun exportCommentsToStorage() = viewModelScope.launch { repository.exportCommentsToStorage() }
+    suspend fun exportCommentsToStorage() {
+        viewModelScope.launch {
+            repository.exportCommentsToStorage()
+            changeOperationStatus(true)
+            _stateInfo.value = "Экспорт в файл завершен"
+        }
+    }
 
-    suspend fun importCommentsFromStorage() = viewModelScope.launch { repository.importCommentsFromStorage() }
+    suspend fun importCommentsFromStorage() {
+        viewModelScope.launch {
+            repository.importCommentsFromStorage()
+            changeOperationStatus(true)
+            _stateInfo.value = "Импорт из файла завершен"
+        }
+    }
 
     fun getCurrentUser() {
         _currentUser.value = loginRepository.getCurrentUser()
@@ -45,7 +57,7 @@ class SettingsViewModel
             repository.exportCommentsToFirestore()
             Log.d("TAGGG", "Corutina export stop")
             changeOperationStatus(true)
-            _stateInfo.value = "Экспорт завершен"
+            _stateInfo.value = "Экспорт в Firebase завершен"
         }
 
     }
@@ -54,7 +66,7 @@ class SettingsViewModel
         viewModelScope.launch {
             repository.importCommentsFromFirestore()
             changeOperationStatus(true)
-            _stateInfo.value = "Импорт завершен"
+            _stateInfo.value = "Импорт из Firebase завершен"
         }
     }
 

@@ -13,6 +13,8 @@ class AlbumRepository
 
         fun getAlbumList() = albumCache.listAlbums.value.sortedBy { it.name.lowercase() }
 
+        fun getAlbumBid() = albumCache.albumBid.value
+
         fun loadAlbumList() = albumCache.loadAlbumList()
 
         fun addAlbum(album: Album) {

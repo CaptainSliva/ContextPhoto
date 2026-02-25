@@ -144,7 +144,7 @@ fun PicturesScreenWithScaffold(
                     }
                 },
             )
-            MainDropdownMenu(navController)
+            MainDropdownMenu(navController, { mediaViewModel.changeStateBottomMenu(false); mediaViewModel.clearSelectedMedia() })
         },
         bottomBar = {
             val stateBottomMenu by mediaViewModel.bottomMenuVisible.collectAsStateWithLifecycle()
@@ -165,9 +165,9 @@ fun PicturesScreenWithScaffold(
                                             navController.navigate(route = destination.route)
                                         }
 
-                                        is Destination.Pictures -> {
-                                            navController.navigate(Destination.Pictures().route + "/")
-                                        }
+//                                        is Destination.Pictures -> {
+//                                            navController.navigate(Destination.Pictures().route + "/")
+//                                        }
 
                                         else -> {}
                                     }
@@ -229,13 +229,16 @@ fun PicturesScreenWithScaffold(
                                 exit = shrinkVertically(shrinkTowards = Alignment.Top),
                             ) {
                                 Column(
-                                    modifier = Modifier.fillMaxWidth().animateItem(),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .animateItem(),
                                 ) {
                                     Text(
                                         modifier =
                                             Modifier
                                                 .fillMaxWidth()
-                                                .padding(start = 4.dp, top = 4.dp).animateItem(),
+                                                .padding(start = 4.dp, top = 4.dp)
+                                                .animateItem(),
                                         text = date,
                                         fontSize = fontSize.value.sp,
                                     )
@@ -245,7 +248,7 @@ fun PicturesScreenWithScaffold(
                             }
                         }
 
-                        items(items = mediaList, key = { media -> media.path }) { media ->
+                        items(items = mediaList, key = { media -> media.hashCode() }) { media ->
                             val mediaIndex = listMedia.indexOf(media)
                             //val haveComment = remember { mutableStateOf(false) }
 
@@ -258,7 +261,9 @@ fun PicturesScreenWithScaffold(
                             PictureItem(
                                 mediaIndex,
                                 media,
-                                Modifier.padding(1.dp).animateItem(),
+                                Modifier
+                                    .padding(1.dp)
+                                    .animateItem(),
                                 onItemClick = {
                                     navController.navigate(Destination.FullScreenImg().route)
                                 },
@@ -267,9 +272,8 @@ fun PicturesScreenWithScaffold(
                         }
                     }
                 }
-
-                ShowBottomMenu(Destination.Pictures().route, mediaViewModel = mediaViewModel)
             }
+            ShowBottomMenu(Destination.Pictures().route, mediaViewModel = mediaViewModel)
 
             LaunchedEffect(mediaPosition.value) {
                 coroutineScope.launch {
@@ -280,6 +284,9 @@ fun PicturesScreenWithScaffold(
 //                        scrollOffset = 0
                     )
                 }
+            }
+            LaunchedEffect(listMedia.size) {
+                mediaViewModel.deleteAlbum()
             }
         },
     )

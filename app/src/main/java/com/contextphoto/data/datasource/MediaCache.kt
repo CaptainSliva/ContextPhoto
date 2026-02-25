@@ -18,43 +18,65 @@ class MediaCache
     constructor(
         @param:ApplicationContext private val context: Context,
     ) {
-        private val _listPicture = MutableStateFlow<List<Picture>>(emptyList())
-        private val _loadPictureState = MutableStateFlow(true)
-        private val _mediaPosition = MutableStateFlow(0)
-        val listPicture = _listPicture.asStateFlow()
-        val loadPictures = _loadPictureState.asStateFlow()
-        val mediaPosition = _mediaPosition.asStateFlow()
-        val db = CommentDatabase.Companion.getDatabse(context).commentDao()
+    private val _listPicture = MutableStateFlow<List<Picture>>(emptyList())
+    private val _loadPictureState = MutableStateFlow(true)
+    private val _mediaPosition = MutableStateFlow(0)
+    private val _imageComment = MutableStateFlow("")
+    val listPicture = _listPicture.asStateFlow()
+    val loadPictures = _loadPictureState.asStateFlow()
+    val mediaPosition = _mediaPosition.asStateFlow()
+    val imageComment = _imageComment.asStateFlow()
+    val db = CommentDatabase.Companion.getDatabse(context).commentDao()
 
-        fun loadPictureList(bID: String): List<Picture> {
-            _listPicture.value = FunctionsMediaStore.getAllMedia(context, bID)
-            return _listPicture.value
+    fun loadPictureList(bID: String): List<Picture> {
+        _listPicture.value = FunctionsMediaStore.getAllMedia(context, bID)
+        return _listPicture.value
+    }
+
+    fun updatePictureList(newList: List<Picture>) {
+        _listPicture.value = newList
+    }
+
+    fun clearPictureList() {
+        _listPicture.value = emptyList()
+    }
+
+    suspend fun changeStatePictureComment(mediaIndex: Int, mediaThumbnail: Bitmap) {
+        if (mediaIndex < _listPicture.value.size) {
+            _listPicture.value[mediaIndex].haveComment.value =
+                (db.findImageByHash(md5(mediaThumbnail))?.image_comment ?: "") != ""
         }
+    }
 
-        fun updatePictureList(newList: List<Picture>) {
-            _listPicture.value = newList
+    fun loadPicturesState(state: Boolean? = null) {
+        if (state != null) {
+            _loadPictureState.value = state
+        } else {
+            _loadPictureState.value = !_loadPictureState.value
         }
+    }
 
-        fun clearPictureList() {
-            _listPicture.value = emptyList()
+    fun updateMediaPosition(pos: Int? = null) {
+        if (pos != null) {
+            _mediaPosition.value = pos
         }
-
-        suspend fun changeStatePictureComment(mediaIndex: Int, mediaThumbnail: Bitmap) {
-            _listPicture.value[mediaIndex].haveComment.value = (db.findImageByHash(md5(mediaThumbnail))?.image_comment ?: "") != ""
-        }
-
-        fun loadPicturesState(state: Boolean? = null) {
-            if (state != null) {
-                _loadPictureState.value = state
-            } else {
-                _loadPictureState.value = !_loadPictureState.value
-            }
-        }
-
-        fun updateMediaPosition(pos: Int) {
+        else {
+            val currentSize = _listPicture.value.size-1
+            val currentPos = _mediaPosition.value
             when {
-                _listPicture.value.size == pos -> _mediaPosition.value = pos - 1
-                else -> _mediaPosition.value = pos
+                currentSize == currentPos -> _mediaPosition.value -= 1
+                currentSize == 1 -> _mediaPosition.value = 0
+                currentSize > currentPos -> _mediaPosition.value += 1
             }
         }
     }
+
+    suspend fun getImageComment(bitmap: Bitmap) {
+        _imageComment.value = db.findImageByHash(md5(bitmap))?.image_comment ?: ""
+    }
+
+//    suspend fun getImageComment(bitmap: Bitmap) {
+//        db.findImageByHashFlow(md5(bitmap))
+//            .collect { _imageComment.value = it?.image_comment ?: "" }
+//    }
+}

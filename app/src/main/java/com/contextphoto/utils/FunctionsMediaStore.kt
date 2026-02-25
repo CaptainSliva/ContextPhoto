@@ -8,6 +8,7 @@ import android.app.RecoverableSecurityException
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -15,6 +16,8 @@ import android.provider.MediaStore
 import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.graphics.createBitmap
+import androidx.core.net.toUri
 import com.contextphoto.data.Album
 import com.contextphoto.data.PERMISSION_DELETE_REQUEST_CODE
 import com.contextphoto.data.Picture
@@ -515,8 +518,10 @@ object FunctionsMediaStore {
                     }
                 }
             }
-
-        return mediaFiles[0]
+        if (mediaFiles.isNotEmpty()) return mediaFiles[0]
+        else {
+            return Picture("", "".toUri(), "", createBitmap(1,1), listOf(), "", mutableStateOf(true))
+        }
     }
 
     inline fun getImageDate(

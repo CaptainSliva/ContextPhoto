@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -81,9 +82,20 @@ fun SettingsScreenWithScaffold(modifier: Modifier = Modifier,
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        Destination.Settings().label,
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically)
+                    {
+                        Text(
+                            Destination.Settings().label,
+                        )
+                        if (settingsViewModel.currentUser.value?.email != null) {
+                            Text(
+                                modifier = Modifier.padding(horizontal = 16.dp).weight(1f),
+                                text = "${settingsViewModel.currentUser.value!!.email}",
+                                fontSize = 13.sp,
+                                textAlign = TextAlign.End
+                            )
+                        }
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = {
@@ -94,14 +106,15 @@ fun SettingsScreenWithScaffold(modifier: Modifier = Modifier,
                             contentDescription = null,
                         )
                     }
-                },
+                }
             )
         },
         content = { paddingValues ->
             Row(modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 8.dp)) {
+                .padding(horizontal = 8.dp)
+                .padding(top = 8.dp)) {
 
             Column(
                 modifier = Modifier
@@ -262,7 +275,9 @@ fun SettingsScreenWithScaffold(modifier: Modifier = Modifier,
 
                     }
                 }
-                Spacer(modifier = Modifier.fillMaxHeight().weight(0.2f))
+                Spacer(modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(0.2f))
             }
         }
     )
