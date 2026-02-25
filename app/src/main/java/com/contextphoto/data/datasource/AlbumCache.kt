@@ -21,6 +21,7 @@ class AlbumCache
         private val _albumBid = MutableStateFlow("")
         val listAlbums = _listAlbums.asStateFlow()
         val loadAlbums = _loadAlbumState.asStateFlow()
+        val albumBid = _albumBid.asStateFlow()
 
         fun loadAlbumList(): List<Album> {
             _listAlbums.value = FunctionsMediaStore.getListAlbums(context)

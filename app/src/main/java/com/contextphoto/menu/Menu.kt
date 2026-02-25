@@ -68,7 +68,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 @Composable
-fun MainDropdownMenu(navController: NavController) {
+fun MainDropdownMenu(navController: NavController, onClickEvent: () -> Unit = {}) {
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
     Row(
@@ -89,6 +89,7 @@ fun MainDropdownMenu(navController: NavController) {
                 DropdownMenuItem(
                     text = { Text(context.getString(R.string.menu_search_photo)) },
                     onClick = {
+                        onClickEvent()
                         navController.navigate(Destination.SearchPhoto().route)
                         expanded = false
                     },
@@ -96,6 +97,7 @@ fun MainDropdownMenu(navController: NavController) {
                 DropdownMenuItem(
                     text = { Text(context.getString(R.string.menu_settings)) },
                     onClick = {
+                        onClickEvent()
                         navController.navigate(Destination.Settings().route)
                         expanded = false
                     },
@@ -222,6 +224,65 @@ fun BottomMenuPictureScreen(mediaViewModel: MediaViewModel) {
         ) {
             ButtonShare(listSelectedMedia)
             ButtonToAlbum(toAlbumDialogVisible)
+            ButtonCommentate(commentateDialogVisible)
+            ButtonDelete(deleteDialogVisible)
+        }
+    }
+}
+
+@Composable // ListMedia поделиться, комментировать, удалить
+fun BottomMenuSearchPictureScreen(mediaViewModel: MediaViewModel) {
+    val commentateDialogVisible = rememberSaveable { mutableStateOf(false) }
+    val deleteDialogVisible = rememberSaveable { mutableStateOf(false) }
+    val commentsStateDialogVisible = rememberSaveable { mutableStateListOf<MutableState<Boolean>>() }
+    val listSelectedMedia by mediaViewModel.listSelectedMedia.collectAsStateWithLifecycle()
+
+
+    if (commentateDialogVisible.value) {
+        commentsStateDialogVisible.clear()
+        for (i in 0..<listSelectedMedia.size) {
+            commentsStateDialogVisible.add(remember { mutableStateOf(true) })
+        }
+        if (commentsStateDialogVisible.all { !it.value }) commentateDialogVisible.value = false
+    } else {
+        commentsStateDialogVisible.clear()
+    }
+    for (i in 0..<commentsStateDialogVisible.size) {
+        AnimatedVisibility(
+            visible = commentsStateDialogVisible[i].value,
+            enter = slideInVertically(),
+            exit = slideOutVertically(),
+        ) {
+            CommentateDialog({}, commentsStateDialogVisible[i], listSelectedMedia[i])
+        }
+    }
+
+    AnimatedVisibility(
+        visible = deleteDialogVisible.value,
+        enter = slideInVertically(),
+        exit = slideOutVertically(),
+    ) {
+        DeleteMediaDialog(
+            {},
+            deleteDialogVisible,
+            Destination.Pictures().route,
+            listSelectedMedia[0].bID,
+            mediaViewModel = mediaViewModel,
+        )
+    }
+
+    Column(
+        modifier = Modifier.fillMaxHeight(),
+        verticalArrangement = Arrangement.Bottom,
+    ) {
+        Row(
+            modifier =
+                Modifier
+                    .background(Color.Black)
+                    .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            ButtonShare(listSelectedMedia)
             ButtonCommentate(commentateDialogVisible)
             ButtonDelete(deleteDialogVisible)
         }

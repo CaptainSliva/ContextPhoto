@@ -50,7 +50,12 @@ class MediaRepository
             mediaCache.changeStatePictureComment(mediaIndex, mediaThumbnail)
         }
 
-        fun updateMediaPosition(pos: Int) {
+        fun updateMediaPosition(pos: Int? = null) {
             mediaCache.updateMediaPosition(pos)
+        }
+
+        suspend fun getImageComment(bitmap: Bitmap): String {
+            mediaCache.getImageComment(bitmap)
+            return mediaCache.imageComment.value
         }
     }

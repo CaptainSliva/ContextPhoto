@@ -515,25 +515,23 @@ fun DeleteMediaDialog(
 
                         Destination.FullScreenImg().route -> {
                             if (deleteMediaFile(context, activity, listMedia[pos].uri)) {
+
+//                                fullscreenViewModel.deleteActionChange(true)
+//                                fullscreenViewModel.updateMediaPosition()
                                 fullscreenViewModel.deletePicture(listMedia[pos])
-                                fullscreenViewModel.deleteActionChange()
-                                println("${listMedia.size}    $pos")
-                                when {
-                                    (listMedia.size - 1 == pos) -> {
-                                        fullscreenViewModel.updateMediaPosition(pos - 1)
-                                        println("ONEEEE")
-                                    }
-                                    (pos == 0) -> {
-                                        fullscreenViewModel.updateMediaPosition(pos+1)
-                                        println("TNEEEE")
-                                        println("${fullscreenViewModel.mediaPosition.value}")
-                                    }
-//                                    else -> {
-//                                        fullscreenViewModel.updateMediaPosition(pos)
-//                                        println("FNEEEE")
-//                                        println("${fullscreenViewModel.mediaPosition.value}")
+//                                when {
+//                                    (listMedia.size - 1 == pos) -> {
+//                                        fullscreenViewModel.updateMediaPosition(pos - 1)
 //                                    }
-                                }
+//                                    (pos == 0) -> {
+//                                        fullscreenViewModel.updateMediaPosition(pos+1)
+//                                    }
+////                                    else -> {
+////                                        fullscreenViewModel.updateMediaPosition(pos)
+////                                        println("FNEEEE")
+////                                        println("${fullscreenViewModel.mediaPosition.value}")
+////                                    }
+//                                }
                             }
                         }
                     }

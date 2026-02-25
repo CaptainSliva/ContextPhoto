@@ -1,5 +1,6 @@
 package com.contextphoto.ui
 
+import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.contextphoto.data.repository.AlbumRepository
@@ -22,11 +23,14 @@ class FullscreenViewModel
         private val _mediaPosition = MutableStateFlow(0)
         private val _bottomMenuFullScreenVisible = MutableStateFlow(false)
         private val _deleteAction = MutableStateFlow(false)
+        private val _imageComment = MutableStateFlow("")
         val db = repository.getDB()
         val listMedia = _listMedia.asStateFlow()
         val mediaPosition = _mediaPosition.asStateFlow()
         val bottomMenuFullScreenVisible = _bottomMenuFullScreenVisible.asStateFlow()
         val deleteAction = _deleteAction.asStateFlow()
+        val imageComment = _imageComment.asStateFlow()
+
 
         fun loadPictureList() {
             _listMedia.value = repository.getPictureList()
@@ -38,10 +42,15 @@ class FullscreenViewModel
                 repository.deletePicture(pic)
                 _listMedia.value = repository.getPictureList()
                 albumRepository.loadAlbumsStateChange(true)
+
+                if(_listMedia.value.size == _mediaPosition.value) {
+                    updateMediaPosition(_mediaPosition.value-1)
+                    _mediaPosition.value = repository.getMediaPosition()
+                }
             }
         }
 
-        fun updateMediaPosition(pos: Int) {
+        fun updateMediaPosition(pos: Int? = null) { // pos - Текущая позиция
             repository.updateMediaPosition(pos)
             _mediaPosition.value = repository.getMediaPosition()
         }
@@ -54,7 +63,18 @@ class FullscreenViewModel
             }
         }
 
-        fun deleteActionChange() {
-            _deleteAction.value = !_deleteAction.value
+        fun deleteActionChange(state: Boolean? = null) {
+            if (state != null) {
+                _deleteAction.value = state
+            } else {
+                _deleteAction.value = !_deleteAction.value
+            }
         }
+
+        fun getImageComment(bitmap: Bitmap) {
+            viewModelScope.launch {
+                _imageComment.value = repository.getImageComment(bitmap)
+            }
+        }
+    
     }

@@ -43,6 +43,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.contextphoto.R
+import com.contextphoto.ShowBottomMenu
 import com.contextphoto.data.Destination
 import com.contextphoto.db.CommentDao
 import com.contextphoto.db.CommentDatabase
@@ -71,19 +72,22 @@ fun SearchPhotoScreenWithScaffold(
     var commentText by rememberSaveable { mutableStateOf("") }
     val checkRegister = rememberSaveable { mutableStateOf(false) }
     val listMedia by mediaViewModel.listMedia.collectAsStateWithLifecycle()
-    val numberFind = rememberSaveable { mutableStateOf(0) }
+    val numberFind by mediaViewModel.numberFind.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
+    val clearFlag = rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(commentText, checkRegister.value) {
-        if (commentText.isNotBlank()) {
-            delay(300)
-            withContext(coroutineScope.coroutineContext) {
-                searchPhotoOnComment(mediaViewModel, numberFind, commentText, checkRegister.value, db, context)
-            }
+        clearFlag.value = true
+        delay(300)
+        withContext(coroutineScope.coroutineContext) {
+            searchPhotoOnComment(mediaViewModel, commentText, checkRegister.value, db, context)
         }
-        else {
+    }
+
+    LaunchedEffect(clearFlag.value) {
+        if (clearFlag.value) {
             mediaViewModel.clearPictureList()
-            numberFind.value = 0
+            clearFlag.value = false
         }
     }
 
@@ -98,6 +102,7 @@ fun SearchPhotoScreenWithScaffold(
                 navigationIcon = {
                     IconButton(onClick = {
                         navController.navigateUp()
+                        mediaViewModel.loadPicturesStateChange(true)
                     }) {
                         Icon(
                             Icons.Default.ArrowBack, // Кнопка назад
@@ -106,7 +111,6 @@ fun SearchPhotoScreenWithScaffold(
                     }
                 },
             )
-            //MainDropdownMenu(navController)
         },
         content = { paddingValues ->
             Column(
@@ -128,12 +132,11 @@ fun SearchPhotoScreenWithScaffold(
                         value = commentText,
                         onValueChange = {
                             commentText = it
-//                            searchPhotoOnComment(mediaViewModel, numberFind, it, checkRegister.value, db, context)
                         },
                         label = { "Enter text" },
                         placeholder = { "Найти" },
                         supportingText = {
-                            Text("Найдено: ${numberFind.value}")
+                            Text("Найдено: ${numberFind}")
                         },
                         modifier = Modifier.weight(8f),
                     )
@@ -146,8 +149,6 @@ fun SearchPhotoScreenWithScaffold(
                                 .clickable(
                                     onClick = {
                                         commentText = ""
-                                        numberFind.value = 0
-                                        mediaViewModel.clearPictureList()
                                     },
                                 ),
                         color = colorResource(R.color.light_blue)
@@ -161,7 +162,7 @@ fun SearchPhotoScreenWithScaffold(
                         checked = checkRegister.value,
                         onCheckedChange = {
                             checkRegister.value = !checkRegister.value
-//                            searchPhotoOnComment(mediaViewModel, numberFind, commentText, checkRegister.value, db, context)
+                            clearFlag.value = true
                         },
                         colors =
                             CheckboxDefaults.colors(
@@ -179,7 +180,7 @@ fun SearchPhotoScreenWithScaffold(
                     columns = GridCells.Fixed(3),
                     modifier = Modifier.padding(paddingValues),
                 ) {
-                    items(items = listMedia, key = { media -> media.path }) { media ->
+                    items(items = listMedia, key = { media -> media.hashCode() }) { media ->
                         val mediaIndex = listMedia.indexOf(media)
                         LaunchedEffect(Unit) {
                             mediaViewModel.changeStatePictureComment(mediaIndex, media.thumbnail)
@@ -198,49 +199,47 @@ fun SearchPhotoScreenWithScaffold(
                     }
                 }
             }
+            ShowBottomMenu(Destination.SearchPhoto().route, mediaViewModel = mediaViewModel)
         },
     )
 }
 
 private suspend fun searchPhotoOnComment(
     mediaViewModel: MediaViewModel,
-    numberFind: MutableState<Int>,
     comment: String,
     checkRegister: Boolean,
     db: CommentDao,
     context: Context,
 ) {
-    CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-        mediaViewModel.clearPictureList()
-        numberFind.value = 0
+//    CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
         if (comment.trim() != "") {
             db.findImageByComment(comment).collect {
-                it.forEach {
-                    when (checkRegister) {
-                        true -> {
-                            if (it.image_comment.contains(comment)) {
-                                numberFind.value += 1
-                                mediaViewModel.addPicture(
-                                    getPictureFromUri(
-                                        context,
-                                        it.image_uri.toUri(),
-                                    ),
+                it.forEach { commentCurrent ->
+                    println(commentCurrent.image_comment)
+                    val imageByUri = getPictureFromUri(context, commentCurrent.image_uri.toUri())
+                    if (imageByUri.path != "") {
+                        println(imageByUri.path)
+                        when (checkRegister) {
+                            true -> {
+                                if (commentCurrent.image_comment.contains(comment)) {
+                                    mediaViewModel.addFoundedPicture(
+                                        imageByUri,
+                                    )
+                                }
+                            }
+
+                            false -> {
+                                mediaViewModel.addFoundedPicture(
+                                    imageByUri,
                                 )
                             }
                         }
-
-                        false -> {
-                            numberFind.value += 1
-                            mediaViewModel.addPicture(
-                                getPictureFromUri(
-                                    context,
-                                    it.image_uri.toUri(),
-                                ),
-                            )
-                        }
+                    }
+                    else {
+                        db.delete(commentCurrent)
                     }
                 }
             }
         }
-    }
+//    }
 }

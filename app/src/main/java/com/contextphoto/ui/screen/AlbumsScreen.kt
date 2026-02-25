@@ -85,9 +85,9 @@ fun AlbumsScreenWithScaffold(
                         selected = destination is Destination.Albums,
                         onClick = {
                             when (destination) {
-                                is Destination.Albums -> {
-                                    navController.navigate(route = destination.route)
-                                }
+//                                is Destination.Albums -> {
+//                                    navController.navigate(route = destination.route)
+//                                }
 
                                 is Destination.Pictures -> {
                                     navController.navigate(Destination.Pictures().route + "/")
@@ -130,7 +130,7 @@ fun AlbumsScreenWithScaffold(
             ) {
                 items(
                     items = albumList,
-                    key = { album -> album.path },
+                    key = { album -> album.hashCode() },
                 ) { album ->
                     AlbumItem(
                         album,

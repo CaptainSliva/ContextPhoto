@@ -53,6 +53,7 @@ import com.contextphoto.data.Destination
 import com.contextphoto.menu.BottomMenuFullScreen
 import com.contextphoto.menu.BottomMenuFullScreenVideo
 import com.contextphoto.menu.BottomMenuPictureScreen
+import com.contextphoto.menu.BottomMenuSearchPictureScreen
 import com.contextphoto.ui.FullscreenViewModel
 import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.ui.screen.AlbumsScreenWithScaffold
@@ -124,6 +125,13 @@ fun ShowBottomMenu(
             )
         }
 
+        Destination.SearchPhoto().route -> {
+            FunBottomMenu(
+                mediaViewModel.bottomMenuVisible.collectAsStateWithLifecycle().value,
+                { BottomMenuSearchPictureScreen(mediaViewModel) },
+            )
+        }
+
         Destination.FullScreenImg().route -> {
             val visible = fullScreenViewModel.bottomMenuFullScreenVisible.collectAsStateWithLifecycle().value
 
@@ -136,9 +144,7 @@ fun ShowBottomMenu(
                 }
 
                 else -> {
-                    if (commentText !=
-                        null
-                    ) {
+                    if (commentText != null && commentText != "") {
                         InfinityScrollableText(visible, commentText, { fullScreenViewModel.changeStateBottomMenuFullScreen() })
                     }
                     FunBottomMenu(
