@@ -1,5 +1,6 @@
 package com.contextphoto.ui
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -8,6 +9,8 @@ import com.contextphoto.data.repository.AlbumRepository
 import com.contextphoto.data.Destination
 import com.contextphoto.data.repository.MediaRepository
 import com.contextphoto.data.Picture
+import com.contextphoto.utils.FunctionsDialogs.showDeleteAlbumMessage
+import dagger.hilt.android.internal.Contexts
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +32,7 @@ class MediaViewModel
         private val _bottomMenuVisible = MutableStateFlow(false)
         private val _albumName = MutableStateFlow("")
         private val _numberFind = MutableStateFlow(0)
+        private val _page = MutableStateFlow(0)
         val db = repository.getDB()
         val listMedia = _listMedia.asStateFlow()
         val listSelectedMedia = _listSelectedMedia.asStateFlow()
@@ -38,16 +42,16 @@ class MediaViewModel
         val numberFind = _numberFind.asStateFlow()
 
 
-        fun loadPictureList(bID: String) {
-            if (repository.getLoadPicturesState()) {
-                viewModelScope.launch {
-                    _listMedia.value = repository.loadPictureList(bID)
+        fun loadPictureList(bID: String, rowSize: Int=3) {
+            viewModelScope.launch {
+                if (repository.getLoadPicturesState()) {
+                    repository.loadPictureList(bID, _page.value, rowSize+rowSize*9)
+                    _listMedia.value = repository.getPictureList()
                     val splitPath = File(_listMedia.value[0].path).toString().split("/")
                     _albumName.value = if (bID != "") splitPath[splitPath.size - 2] else Destination.Pictures().label
-                }
-                loadPicturesStateChange(false)
-            } else {
-                viewModelScope.launch {
+                    loadPicturesStateChange(false)
+                    _page.value += 1
+                } else {
                     _listMedia.value = repository.getPictureList()
                 }
             }
@@ -60,8 +64,11 @@ class MediaViewModel
         fun clearPictureList() {
             viewModelScope.launch {
                 repository.clearPictureList()
+                repository.clearSelectedMedia()
                 _listMedia.value = repository.getPictureList()
+                _listSelectedMedia.value = repository.getSelectedMediaList()
                 _numberFind.value = 0
+                _page.value = 0
             }
         }
 
@@ -89,10 +96,12 @@ class MediaViewModel
 
         fun deletePictureByMove() {
             viewModelScope.launch {
-                _listSelectedMedia.value.forEach {
-                    repository.deletePicture(it)
-                    _listMedia.value = repository.getPictureList()
-                }
+                repository.deletePictureByMove()
+                _listSelectedMedia.value = repository.getSelectedMediaList()
+//                _listSelectedMedia.value.forEach {
+//                    repository.deletePicture(it)
+//                    _listMedia.value = repository.getPictureList()
+//                }
             }
         }
 
@@ -102,23 +111,35 @@ class MediaViewModel
         }
 
         fun selectMedia(pic: Picture) {
-            _listSelectedMedia.update { currentList ->
-                currentList.toMutableList().apply {
-                    add(pic)
-                }
+            viewModelScope.launch {
+                repository.selectMedia(pic)
+                _listSelectedMedia.value = repository.getSelectedMediaList()
             }
+//            _listSelectedMedia.update { currentList ->
+//                currentList.toMutableList().apply {
+//                    add(pic)
+//                }
+//            }
         }
 
         fun removeSelectMedia(pic: Picture) {
-            _listSelectedMedia.update { currentList ->
-                currentList.toMutableList().apply {
-                    remove(pic)
-                }
+            viewModelScope.launch {
+                repository.removeSelectMedia(pic)
+                _listSelectedMedia.value = repository.getSelectedMediaList()
             }
+//            _listSelectedMedia.update { currentList ->
+//                currentList.toMutableList().apply {
+//                    remove(pic)
+//                }
+//            }
         }
 
         fun clearSelectedMedia() {
-            _listSelectedMedia.value = emptyList()
+            viewModelScope.launch {
+                repository.clearSelectedMedia()
+                _listSelectedMedia.value = repository.getSelectedMediaList()
+            }
+//            _listSelectedMedia.value = emptyList()
         }
 
         fun changeStateBottomMenu(state: Boolean? = null) {
@@ -166,9 +187,12 @@ class MediaViewModel
             albumRepository.loadAlbumsStateChange(true)
         }
 
-        fun deleteAlbum() {
-            val albums = albumRepository.getAlbumList()
-            val index = albumRepository.getAlbumList().map { it.bID }.indexOf(albumRepository.getAlbumBid())
-            albumRepository.deleteAlbum(albums[index])
+        fun deleteAlbum(context: Context) {
+            viewModelScope.launch {
+                val albums = albumRepository.getAlbumList()
+                val index = albumRepository.getAlbumList().map { it.bID }.indexOf(albumRepository.getAlbumBid())
+                albumRepository.deleteAlbum(albums[index])
+                showDeleteAlbumMessage(context, albums[index].name, albums[index].path)
+            }
         }
     }

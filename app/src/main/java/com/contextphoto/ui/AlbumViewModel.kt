@@ -40,7 +40,7 @@ class AlbumViewModel
 
         fun loadAlbumsStateChange(state: Boolean) {
             repository.loadAlbumsStateChange(state)
-            _loadAlbums.value = state
+            _loadAlbums.value = repository.getLoadAlbumsState()
         }
 
         fun addAlbum(album: Album) {
@@ -78,6 +78,7 @@ class AlbumViewModel
 
         fun changeStateAlbum() {
             repository.loadAlbumsStateChange()
+            _loadAlbums.value = repository.getLoadAlbumsState()
         }
 //
 //    fun deleteMediaFromAlbum(bID: String, count: Int) {

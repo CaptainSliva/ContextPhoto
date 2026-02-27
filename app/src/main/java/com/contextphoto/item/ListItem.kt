@@ -60,7 +60,7 @@ fun AlbumItem(
                 onClick = {
                     albumViewModel.updateAlbumID(album.bID)
                     onItemClick()
-                    Log.d("click", "album bID - ${album.bID}")
+                    Log.d("click", "album bID - ${album.bID}, ${album.name}")
                 },
                 onLongClick = {
                     albumViewModel.selectAlbum(album)

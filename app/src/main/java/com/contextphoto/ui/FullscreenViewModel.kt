@@ -1,11 +1,13 @@
 package com.contextphoto.ui
 
+import android.content.Context
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.contextphoto.data.repository.AlbumRepository
 import com.contextphoto.data.repository.MediaRepository
 import com.contextphoto.data.Picture
+import com.contextphoto.utils.FunctionsDialogs.showDeleteAlbumMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -76,5 +78,5 @@ class FullscreenViewModel
                 _imageComment.value = repository.getImageComment(bitmap)
             }
         }
-    
+
     }

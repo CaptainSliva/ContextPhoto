@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
@@ -34,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,6 +61,7 @@ import com.contextphoto.utils.FunctionsBitmap.md5
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,7 +78,6 @@ fun PicturesScreenWithScaffold(
         }
     }
 
-    val context = LocalContext.current
     val listMedia by mediaViewModel.listMedia.collectAsStateWithLifecycle()
     val albumName by mediaViewModel.albumName.collectAsStateWithLifecycle()
     val groupedMedia =
@@ -94,6 +96,20 @@ fun PicturesScreenWithScaffold(
     val mediaPosition = mediaViewModel.mediaPosition.collectAsStateWithLifecycle()
     val newPosition = rememberLazyGridState(0)
     val coroutineScope = rememberCoroutineScope()
+    val listState = rememberLazyGridState()
+    val isAtTheEndOfList by remember(listState) {
+        derivedStateOf {
+            listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index == listState.layoutInfo.totalItemsCount - 1
+        }
+    }
+    LaunchedEffect(isAtTheEndOfList) {
+        println("end")
+        println(isAtTheEndOfList)
+        if (isAtTheEndOfList) {
+            mediaViewModel.loadPicturesStateChange(true)
+            mediaViewModel.loadPictureList(bID, countOfPhotoLine.value)
+        }
+    }
 
     Log.d("Pictures", listMedia.toString())
     when (countOfPhotoLine.value) {
@@ -134,6 +150,7 @@ fun PicturesScreenWithScaffold(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
+                        mediaViewModel.clearPictureList()
                         mediaViewModel.loadPicturesStateChange(true)
                         navController.navigateUp()
                     }) {
@@ -189,6 +206,7 @@ fun PicturesScreenWithScaffold(
 
             Log.d("fontSize", fontSize.value.toString())
             Log.d("countOfPhotoLine", countOfPhotoLine.value.toString())
+
             Box(
                 modifier
                     .fillMaxSize()
@@ -216,7 +234,7 @@ fun PicturesScreenWithScaffold(
                         modifier
                             .padding(paddingValues)
                             .fillMaxSize(),
-                    //state = newPosition,
+                    state = listState,
                     contentPadding = PaddingValues(bottom = 80.dp),
                 ) {
                     groupedMedia.forEach { (date, mediaList) ->
@@ -285,9 +303,7 @@ fun PicturesScreenWithScaffold(
                     )
                 }
             }
-            LaunchedEffect(listMedia.size) {
-                mediaViewModel.deleteAlbum()
-            }
+
         },
     )
 }

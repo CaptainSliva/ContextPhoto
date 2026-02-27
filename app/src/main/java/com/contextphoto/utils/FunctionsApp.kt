@@ -1,22 +1,72 @@
 package com.contextphoto.utils
 
+import android.content.ContentValues
 import android.content.Context
 import android.content.ContextWrapper
+import android.graphics.Bitmap
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import androidx.core.content.edit
+import com.contextphoto.data.Picture
+import com.contextphoto.data.baseFilePath
 import com.contextphoto.db.CommentDatabase
+import com.contextphoto.utils.FunctionsMediaStore.getAllMedia
+import com.davemorrissey.labs.subscaleview.ImageSource.bitmap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.forEach
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.OutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 object FunctionsApp {
+
+    fun generatePictures(width: Int, height: Int, count: Int, delete: Boolean, addName: String) {
+        val path = File(baseFilePath, "Nagruzka album_$addName")
+
+        if (delete) {
+            path.listFiles()?.forEach { file ->
+                Log.d("GeneratePictures", "Файл удалён: ${file.absolutePath}")
+                file.delete()
+            }
+            path.delete()
+        }
+
+        path.mkdirs()
+
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+
+        for (i in 0 until count) {
+            val filename = "${System.currentTimeMillis()}_$i.jpg"
+            val file = File(path, filename)
+            try {
+                FileOutputStream(file).use { fos ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+                }
+                Log.d("GeneratePictures", "Файл создан: ${file.absolutePath}")
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }
+        val filesCount = path.listFiles()?.size ?: 0
+        Log.d("GeneratePictures", "Всего файлов в папке: $filesCount")
+    }
+
     inline fun durationTranslate(milliseconds: Long): String {
         val seconds = milliseconds / 1000
         val hours = seconds / 3600
@@ -116,11 +166,3 @@ object FunctionsApp {
     }
 }
 
-data class City(
-    val name: String? = null,
-    val state: String? = null,
-    val country: String? = null,
-    val isCapital: Boolean? = null,
-    val population: Long? = null,
-    val regions: List<String>? = null,
-)

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -46,13 +47,16 @@ fun AlbumsScreenWithScaffold(
     navController: NavController,
     albumViewModel: AlbumViewModel = hiltViewModel(),
 ) {
-    LaunchedEffect(albumViewModel.loadAlbums.collectAsStateWithLifecycle()) {
+    val loadAlbums = albumViewModel.loadAlbums.collectAsStateWithLifecycle()
+    Log.d("LOAD", loadAlbums.value.toString())
+    LaunchedEffect(loadAlbums.value) {
         CoroutineScope(Dispatchers.IO).launch {
             albumViewModel.loadAlbumList()
         }
     }
 
     val albumList by albumViewModel.albumList.collectAsStateWithLifecycle()
+    val listState = rememberLazyGridState()
 
     val createAlbumDialogVisible = rememberSaveable { mutableStateOf(false) }
     Log.d("Albums", albumList.toString())
@@ -125,6 +129,7 @@ fun AlbumsScreenWithScaffold(
         },
         content = { paddingValues ->
             LazyVerticalGrid(
+                state = listState,
                 columns = GridCells.Fixed(1),
                 modifier = modifier.padding(paddingValues),
             ) {
