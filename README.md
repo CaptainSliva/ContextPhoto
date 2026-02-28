@@ -1,5 +1,5 @@
 # ContextPhoto
-<img width="512" height="512" alt="Icon" src="https://github.com/user-attachments/assets/48b6a73f-9ef5-4b70-b80f-846f7ec30abe" />
+<img width="100" height="100" alt="foreground" src="https://github.com/user-attachments/assets/51e01e41-fd27-41d1-b982-80d2702183b2" />
 
 
 Для работы приложения нужно добавить api ключ firebase в app/google-services.json
