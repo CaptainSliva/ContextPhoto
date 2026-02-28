@@ -47,6 +47,7 @@
     <string name="add_photo_dialog_title">Добавление фото</string>
     <string name="login_title">Вход</string>
     <string name="register_title">Регистрация</string>
+    <string name="privacy_policy_title">Политика конфиденциальности</string>
 
     <!-- Подписи -->
     <string name="rename_album_text">Переименование альбома</string>
@@ -54,6 +55,7 @@
     <string name="delete_album_text">Удалить альбом</string>
     <string name="email">Почта</string>
     <string name="password">Пароль</string>
+    <string name="privacy_policy_text">Политика конфиденциальности</string>
 
     <!-- Текста -->
     <string name="register_check">Поиск с учётом регистра</string>
@@ -61,11 +63,11 @@
     <string name="write_comment">Введите комментарий</string>
     <string name="check_register">Поиск с учётом регистра</string>
     <string name="max_name_album_chars">Максимум 72 символа</string>
-    <string name="privacy_policy">Политика конфиденциальности</string>
     <string name="login_bottom_text">Создать аккаунт</string>
     <string name="register_bottom_text">Уже есть аккаунт? Войдите</string>
     <string name="alternative_login">Or</string>
     <string name="no_login">Не совершен вход в профиль</string>
+    <string name="get_policy">Примите политику конфиденциальности</string>
 
 <!--    Остальное-->
 

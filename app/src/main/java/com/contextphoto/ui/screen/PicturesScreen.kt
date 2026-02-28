@@ -1,10 +1,12 @@
 package com.contextphoto.ui.screen
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +20,6 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
@@ -31,8 +32,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -44,35 +47,25 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.contextphoto.ShowBottomMenu
-import com.contextphoto.data.Destination
-import com.contextphoto.db.CommentDatabase
+import com.contextphoto.data.navigation.Destination
 import com.contextphoto.item.PictureItem
 import com.contextphoto.menu.MainDropdownMenu
 import com.contextphoto.ui.MediaViewModel
-import com.contextphoto.utils.FunctionsBitmap.md5
-import com.google.android.play.integrity.internal.f
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PicturesScreenWithScaffold(
-    modifier: Modifier = Modifier,
-    navController: NavController,
-    bID: String,
-    itemsCount: Int,
-    mediaViewModel: MediaViewModel = hiltViewModel(),
+fun PicturesScreenWithScaffold(navController: NavHostController,
+                               bID: String,
+                               itemsCount: Int,
+                               mediaViewModel: MediaViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(Unit) {
         mediaViewModel.loadPictureList(bID)
@@ -87,7 +80,7 @@ fun PicturesScreenWithScaffold(
             }
         }
 
-    val otboinik = 10
+    val otboinik = 27
     val defaultTextSize = 14f
     val dateVisible = rememberSaveable { mutableStateOf(true) }
     val counterFlag = rememberSaveable { mutableStateOf(0) }
@@ -152,9 +145,7 @@ fun PicturesScreenWithScaffold(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
-                        mediaViewModel.clearPictureList()
-                        mediaViewModel.loadPicturesStateChange(true)
-                        navController.navigateUp()
+                        backActions(mediaViewModel, navController)
                     }) {
                         Icon(
                             Icons.Default.ArrowBack, // Кнопка назад
@@ -205,12 +196,15 @@ fun PicturesScreenWithScaffold(
             }
         },
         content = { paddingValues ->
+            BackHandler {
+                backActions(mediaViewModel, navController)
+            }
 
             Log.d("fontSize", fontSize.value.toString())
             Log.d("countOfPhotoLine", countOfPhotoLine.value.toString())
 
             Box(
-                modifier
+                Modifier
                     .fillMaxSize()
 //                    .pointerInput(Unit) {
 //                        detectTransformGestures { p1, p2, f1, f2 ->
@@ -237,20 +231,20 @@ fun PicturesScreenWithScaffold(
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(countOfPhotoLine.value),
                     modifier =
-                        modifier
+                        Modifier
                             .padding(paddingValues)
                             .fillMaxSize().pointerInput(Unit) {
                                 detectTransformGestures { p1, p2, f1, f2 ->
                                     Log.d("pointerInput", "$p1, $p2, $f1, $f2")
                                     val f = p2.x
                                     if (f != 0F) {
-                                        if (f < 0) { // Увеличение масштаба
+                                        if (f > 0) { // Уменьшение масштаба
                                             counterFlag.value += 1
                                             if (counterFlag.value == otboinik) {
                                                 counterFlag.value = 0
                                                 countOfPhotoLine.value += if (countOfPhotoLine.value < 6) 1 else 0
                                             }
-                                        } else { // Уменьшение масштаба
+                                        } else { // Увеличение масштаба
                                             counterFlag.value += 1
                                             if (counterFlag.value == otboinik) {
                                                 counterFlag.value = 0
@@ -331,4 +325,14 @@ fun PicturesScreenWithScaffold(
 
         },
     )
+}
+
+
+private fun backActions(
+    mediaViewModel: MediaViewModel,
+    navController: NavHostController
+) {
+    mediaViewModel.clearPictureList()
+    mediaViewModel.loadPicturesStateChange(true)
+    navController.navigateUp()
 }

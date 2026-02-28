@@ -1,5 +1,6 @@
 package com.contextphoto.item
 
+import android.graphics.Bitmap
 import android.net.Uri
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Slider
@@ -40,10 +42,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
+import coil3.compose.SubcomposeAsyncImage
+import coil3.imageLoader
+import coil3.request.ImageRequest
+import coil3.request.allowRgb565
+import coil3.request.bitmapConfig
+import coil3.request.crossfade
+import com.contextphoto.GalleryApp
 import com.contextphoto.InfinityScrollableText
 import com.contextphoto.R
 import com.contextphoto.ui.FullscreenViewModel
 import com.contextphoto.utils.FunctionsApp.durationTranslate
+import com.contextphoto.utils.FunctionsUri.convertUri
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.google.android.exoplayer2.ExoPlayer
@@ -155,7 +166,7 @@ fun CustomVideoUI(
             slideOutVertically(targetOffsetY = { 600 }) +
                 fadeOut(),
     ) {
-        if (commentText != null) InfinityScrollableText(isVisible.value, commentText, { onClick() }, offset = 47)
+        InfinityScrollableText(isVisible.value, commentText, { onClick() }, offset = 47)
         Column(
             modifier =
                 Modifier
@@ -178,7 +189,7 @@ fun CustomVideoUI(
                     color = Color.White,
                 )
 
-                // Кнопка управления
+                // Кнопка СтартСтоп
                 IconButton(
                     onClick = {
                         if (isPlaying) {
@@ -247,30 +258,46 @@ fun ImageUI(
     path: String,
     onClick: () -> Unit = {},
 ) {
-    AndroidView(
-        factory = { ctx ->
-            SubsamplingScaleImageView(ctx).apply {
-                layoutParams =
-                    ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                    )
-                setImage(ImageSource.uri(Uri.fromFile(File(path))))
+    val context = LocalContext.current
+    val imageLoader = (context.applicationContext as GalleryApp).imageLoader
+    if (File(path).extension.lowercase().contains("gif")) {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(uri.toString())
+                .build(),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable { onClick() }
+        )
+    }
+    else {
+        AndroidView(
+            factory = { ctx ->
+                SubsamplingScaleImageView(ctx).apply {
+                    layoutParams =
+                        ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                        )
+                    setImage(ImageSource.uri(uri))
 
-                val gestureDetector =
-                    GestureDetector(
-                        object : SimpleOnGestureListener() {
-                            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                                onClick()
-                                return true
-                            }
-                        },
-                    )
+                    val gestureDetector =
+                        GestureDetector(
+                            object : SimpleOnGestureListener() {
+                                override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                                    onClick()
+                                    return true
+                                }
+                            },
+                        )
 
-                setOnTouchListener { v, event ->
-                    gestureDetector.onTouchEvent(event)
+                    setOnTouchListener { v, event ->
+                        gestureDetector.onTouchEvent(event)
+                    }
                 }
-            }
-        },
-    )
+            },
+        )
+    }
+
 }

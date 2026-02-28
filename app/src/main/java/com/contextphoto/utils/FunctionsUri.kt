@@ -1,12 +1,17 @@
 package com.contextphoto.utils
 
+import android.R
+import android.R.attr.path
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
+import com.davemorrissey.labs.subscaleview.ImageSource
+import com.davemorrissey.labs.subscaleview.ImageSource.uri
 import java.io.File
+import kotlin.ranges.contains
 
 object FunctionsUri {
     fun handleSelectedMedia(data: Intent?): List<Uri> {
@@ -81,20 +86,21 @@ object FunctionsUri {
     inline fun convertUri(
         path: String,
         uri: Uri,
-    ): Uri =
-        when {
-            listOf("mp4", "avi", "mkv", "webm", "mov", "wmv", "flv", "m4v", "3gp", "ts", "mpeg", "mpg", "ogv")
-                .any { path.contains(it, ignoreCase = true) } ->
+    ): Uri {
+        val extension = File(path).extension
+
+        return when {
+            extension.lowercase() in listOf("mp4", "avi", "mkv", "webm", "mov", "wmv", "flv", "m4v", "3gp", "ts", "mpeg", "mpg", "ogv") ->
                 ContentUris.withAppendedId(
                     MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
                     ContentUris.parseId(uri),
                 )
-            listOf("jpg", "jpeg", "png", "gif", "bmp", "webp", "heic", "heif")
-                .any { path.contains(it, ignoreCase = true) } ->
+            extension.lowercase() in listOf("jpg", "jpeg", "png", "bmp", "webp", "heic", "heif", "gif") ->
                 ContentUris.withAppendedId(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                     ContentUris.parseId(uri),
                 )
             else -> uri
         }
+    }
 }

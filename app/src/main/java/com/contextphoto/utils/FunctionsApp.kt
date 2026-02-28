@@ -1,38 +1,21 @@
 package com.contextphoto.utils
 
-import android.content.ContentValues
 import android.content.Context
-import android.content.ContextWrapper
 import android.graphics.Bitmap
-import android.net.Uri
-import android.os.Build
-import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
-import android.widget.Toast
-import androidx.activity.ComponentActivity
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import androidx.core.content.edit
-import com.contextphoto.data.Picture
 import com.contextphoto.data.baseFilePath
 import com.contextphoto.db.CommentDatabase
-import com.contextphoto.utils.FunctionsMediaStore.getAllMedia
-import com.davemorrissey.labs.subscaleview.ImageSource.bitmap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.forEach
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.io.OutputStream
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 object FunctionsApp {
 

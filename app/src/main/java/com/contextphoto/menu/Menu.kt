@@ -50,8 +50,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.contextphoto.R
-import com.contextphoto.data.Destination
-import com.contextphoto.data.Picture
+import com.contextphoto.data.navigation.Destination
+import com.contextphoto.data.mediaClasses.Picture
 import com.contextphoto.dialog.ChooseAlbumDialog
 import com.contextphoto.dialog.CommentateDialog
 import com.contextphoto.dialog.DeleteAlbumDialog

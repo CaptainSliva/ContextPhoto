@@ -1,9 +1,8 @@
 package com.contextphoto.data.repository
 
 import android.graphics.Bitmap
-import com.contextphoto.data.Picture
+import com.contextphoto.data.mediaClasses.Picture
 import com.contextphoto.data.datasource.MediaCache
-import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 class MediaRepository

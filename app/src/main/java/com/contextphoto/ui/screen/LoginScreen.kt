@@ -1,6 +1,9 @@
 package com.contextphoto.ui.screen
 
-import android.util.Log
+import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,19 +45,19 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.getString
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.contextphoto.R
-import com.contextphoto.data.Destination
+import com.contextphoto.data.navigation.Destination
 import com.contextphoto.ui.LoginViewModel
 import com.contextphoto.ui.theme.ContextPhotoTheme
-import com.contextphoto.utils.FunctionsApp.espRead
 import com.contextphoto.utils.FunctionsApp.espWrite
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun LoginScreen(navController: NavController,
+fun LoginScreen(navController: NavHostController,
                 loginViewModel: LoginViewModel = hiltViewModel()) {
     val context = LocalContext.current
     var isShowPassword by rememberSaveable {mutableStateOf(false)}
@@ -171,7 +174,7 @@ fun LoginScreen(navController: NavController,
 }
 
 @Composable
-fun RegisterScreen(navController: NavController,
+fun RegisterScreen(navController: NavHostController,
                    loginViewModel: LoginViewModel = hiltViewModel()) {
     val context = LocalContext.current
     val errorMessage = loginViewModel.errorMessage.collectAsStateWithLifecycle()
@@ -180,6 +183,7 @@ fun RegisterScreen(navController: NavController,
     val email = rememberSaveable { mutableStateOf("") }
     val password = rememberSaveable { mutableStateOf("") }
     val checkedPrivacy = rememberSaveable { mutableStateOf(false) }
+    val showConfidence = rememberSaveable { mutableStateOf(false) }
 
     Surface(
         color = Color.White,
@@ -238,7 +242,11 @@ fun RegisterScreen(navController: NavController,
                         onCheckedChange = {
                             checkedPrivacy.value = !checkedPrivacy.value
                         })
-                    Text(context.getString(R.string.privacy_policy))
+                    Text(context.getString(R.string.privacy_policy_text),
+                        textDecoration = TextDecoration.Underline,
+                        modifier = Modifier.clickable(onClick = {
+                            showConfidence.value = !showConfidence.value
+                        }))
                 }
 
             }
@@ -250,6 +258,12 @@ fun RegisterScreen(navController: NavController,
             ) {
                 Button(
                     onClick = {
+                        if (checkedPrivacy.value) {
+
+                        }
+                        else {
+                            Toast.makeText(context, getString(context, R.string.get_policy), Toast.LENGTH_LONG).show()
+                        }
                         loginViewModel.clearError()
                         loginViewModel.registration(email.value, password.value)
                         currentUser.value?.getIdToken(false)?.addOnCompleteListener { task ->
@@ -301,7 +315,16 @@ fun RegisterScreen(navController: NavController,
         }
 
     }
+    AnimatedVisibility(
+        visible = showConfidence.value,
+        enter = expandVertically(),
+        exit = shrinkVertically(
+        )
+    ) {
+        PrivacyPolicyScreenWithScaffold(showConfidence)
+    }
 }
+
 
 @Preview(showBackground = true)
 @Composable

@@ -1,8 +1,14 @@
 package com.contextphoto.item
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,8 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.contextphoto.FunBottomMenu
 import com.contextphoto.R
-import com.contextphoto.data.Album
-import com.contextphoto.data.Picture
+import com.contextphoto.data.mediaClasses.Album
+import com.contextphoto.data.mediaClasses.Picture
 import com.contextphoto.menu.PopupMenuAlbumScreen
 import com.contextphoto.ui.AlbumViewModel
 import com.contextphoto.ui.MediaViewModel
@@ -99,6 +105,7 @@ fun AlbumItem(
             }
         }
     }
+
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -155,27 +162,34 @@ fun PictureItem(
                 modifier = Modifier.padding(start = 8.dp),
                 color = colorResource(R.color.white),
             )
-            Checkbox(
-                checked = picture in listSelectedMedia,
-                onCheckedChange =
-                    {
-                        if (picture !in listSelectedMedia) {
-                            mediaViewModel.selectMedia(
-                                picture,
-                            )
-                        } else {
-                            mediaViewModel.removeSelectMedia(picture)
-                        }
-                    },
-                modifier = Modifier.alpha(if (checkboxVisible.value) 1f else 0f),
-                colors =
-                    CheckboxDefaults.colors(
-                        checkedColor = colorResource(R.color.light_blue),
-                        uncheckedColor = Color.White,
-                        disabledCheckedColor = Color.White,
-                    ),
-                // .border(1.dp, color = Color.White, shape = RoundedCornerShape(20)),
-            )
+            AnimatedVisibility(
+                visible = checkboxVisible.value,
+                enter = scaleIn()+fadeIn(),
+                exit = scaleOut()+fadeOut()
+            ) {
+                Checkbox(
+                    checked = picture in listSelectedMedia,
+                    onCheckedChange =
+                        {
+                            if (picture !in listSelectedMedia) {
+                                mediaViewModel.selectMedia(
+                                    picture,
+                                )
+                            } else {
+                                mediaViewModel.removeSelectMedia(picture)
+                            }
+                        },
+                    modifier = Modifier.alpha(if (checkboxVisible.value) 1f else 0f),
+                    colors =
+                        CheckboxDefaults.colors(
+                            checkedColor = colorResource(R.color.light_blue),
+                            checkmarkColor = Color.White,
+                            uncheckedColor = Color.White,
+                            disabledCheckedColor = Color.White,
+                        ),
+                    // .border(1.dp, color = Color.White, shape = RoundedCornerShape(20)),
+                )
+            }
         }
     }
 }

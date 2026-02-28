@@ -1,12 +1,10 @@
 package com.contextphoto.ui.screen
 
-import android.R.attr.visible
-import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,11 +12,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -30,38 +26,29 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.contextphoto.R
-import com.contextphoto.data.Destination
+import com.contextphoto.data.navigation.Destination
 import com.contextphoto.ui.SettingsViewModel
 import com.contextphoto.utils.FunctionsApp.espRead
 import com.contextphoto.utils.FunctionsApp.espWrite
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreenWithScaffold(modifier: Modifier = Modifier,
-                               navController: NavController,
-                               settingsViewModel: SettingsViewModel = hiltViewModel()
-) {
+fun SettingsScreenWithScaffold(navController: NavHostController,
+                               settingsViewModel: SettingsViewModel = hiltViewModel()) {
     val buttonWidth = Modifier.width(300.dp)
-    val corutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val completedOperation = settingsViewModel.operationCompleted.collectAsStateWithLifecycle()
     val stateInfo = settingsViewModel.stateInfo.collectAsStateWithLifecycle()
@@ -99,7 +86,7 @@ fun SettingsScreenWithScaffold(modifier: Modifier = Modifier,
                 },
                 navigationIcon = {
                     IconButton(onClick = {
-                        navController.navigateUp()
+                        backActions(navController)
                     }) {
                         Icon(
                             Icons.Default.ArrowBack, // Кнопка назад
@@ -110,6 +97,10 @@ fun SettingsScreenWithScaffold(modifier: Modifier = Modifier,
             )
         },
         content = { paddingValues ->
+            BackHandler {
+                backActions(navController)
+            }
+
             Row(modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
@@ -266,6 +257,10 @@ fun SettingsScreenWithScaffold(modifier: Modifier = Modifier,
 
 }
 
+
+private fun backActions(navController: NavHostController) {
+    navController.navigateUp()
+}
 
 
 //@Preview(showBackground = true)

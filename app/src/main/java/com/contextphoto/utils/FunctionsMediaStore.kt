@@ -6,27 +6,24 @@ import android.app.RecoverableSecurityException
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.graphics.createBitmap
 import androidx.core.net.toUri
 import com.contextphoto.R
-import com.contextphoto.data.Album
+import com.contextphoto.data.mediaClasses.Album
 import com.contextphoto.data.PERMISSION_DELETE_REQUEST_CODE
-import com.contextphoto.data.Picture
+import com.contextphoto.data.mediaClasses.Picture
 import com.contextphoto.data.baseCommentsPath
 import com.contextphoto.data.commentDatabase
 import com.contextphoto.ui.AlbumViewModel
 import com.contextphoto.utils.FunctionsApp.durationTranslate
 import com.contextphoto.utils.FunctionsBitmap.getThumbnail
-import com.contextphoto.utils.FunctionsMediaStore_GetAllMediaFactory.getAllMedia
 import com.contextphoto.utils.FunctionsUri.convertUri
 import com.contextphoto.utils.FunctionsUri.getRealPathFromUri
 import dagger.Module
@@ -35,13 +32,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import jakarta.inject.Singleton
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlin.math.max
 
 @Module
 @InstallIn(SingletonComponent::class)

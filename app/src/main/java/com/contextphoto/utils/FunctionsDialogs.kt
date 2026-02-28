@@ -9,7 +9,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import com.contextphoto.R
-import com.contextphoto.data.Album
+import com.contextphoto.data.mediaClasses.Album
 import com.contextphoto.data.baseFilePath
 import com.contextphoto.utils.FunctionsFiles.deleteAlbum
 import com.contextphoto.utils.FunctionsFiles.renameAlbum

@@ -1,8 +1,6 @@
 package com.contextphoto
 
-import android.Manifest
 import android.app.Activity
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -26,7 +24,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,7 +49,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.contextphoto.data.Destination
+import com.contextphoto.data.navigation.Destination
 import com.contextphoto.menu.BottomMenuFullScreen
 import com.contextphoto.menu.BottomMenuFullScreenVideo
 import com.contextphoto.menu.BottomMenuPictureScreen
@@ -67,15 +64,8 @@ import com.contextphoto.ui.screen.RegisterScreen
 import com.contextphoto.ui.screen.SearchPhotoScreenWithScaffold
 import com.contextphoto.ui.screen.SettingsScreenWithScaffold
 import com.contextphoto.ui.theme.ContextPhotoTheme
-import com.contextphoto.utils.FunctionsApp.generatePictures
 import com.contextphoto.utils.RequestPermissions.ComposePermissions
-import com.google.accompanist.permissions.PermissionStatus
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.google.accompanist.permissions.shouldShowRationale
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 
 @AndroidEntryPoint
@@ -113,7 +103,7 @@ class MainActivity : ComponentActivity() {
             //    }
             //    val db = Room.databaseBuilder(context, CommentDatabase::class.java, "comment_database").addMigrations(MIGRATION_1_2).build()
 
-            ContextPhotoTheme {
+            ContextPhotoTheme() {
                 Scaffold(
                     content = { paddingValues ->
                         AppNavHost(
@@ -163,9 +153,8 @@ fun ShowBottomMenu(
                 }
 
                 else -> {
-                    if (commentText != null && commentText != "") {
-                        InfinityScrollableText(visible, commentText, { fullScreenViewModel.changeStateBottomMenuFullScreen() })
-                    }
+                    InfinityScrollableText(visible, commentText, { fullScreenViewModel.changeStateBottomMenuFullScreen() })
+
                     FunBottomMenu(
                         visible,
                         { BottomMenuFullScreen(fullScreenViewModel) },
@@ -198,65 +187,71 @@ fun FunBottomMenu(
 @Composable
 fun InfinityScrollableText(
     visible: Boolean,
-    commentText: String,
+    commentText: String? = null,
     onClick: () -> Unit,
     offset: Int = 0,
 ) {
-    val freeSpace = 167 + offset
-    val brush =
-        Brush.verticalGradient(
-            listOf(colorResource(R.color.medium_transparant_black), colorResource(R.color.dark_black_overlay), Color.Black),
-        )
-    val offsetX = remember { mutableStateOf(0f) }
-    val offsetY = remember { mutableStateOf(0f) }
-    var size by remember { mutableStateOf(Size.Zero) }
-    Column(
-        modifier = Modifier
-            .fillMaxHeight()
-            .alpha(alpha = if (visible) 1f else 0f),
-        verticalArrangement = Arrangement.Bottom,
-    ) {
-        println(offsetY.value)
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(unbounded = true, align = Bottom)
-                    .onSizeChanged { size = it.toSize() }
-                    .background(brush)
-                    .pointerInput(Unit) {
-                        detectDragGestures { _, dragAmount ->
-                            val original = Offset(offsetX.value, offsetY.value)
-                            val summed = original + dragAmount
-                            val newValue =
-                                Offset(
-                                    x = summed.x.coerceIn(0f, size.width),
-                                    y = (original.y - dragAmount.y / 3.3f).coerceIn(
-                                        0f,
-                                        Constraints.Infinity.toFloat()
-                                    ),
-                                )
-                            offsetX.value = newValue.x
-                            offsetY.value = newValue.y
-                        }
-                    }
-                    .clickable(onClick = {
-                        onClick()
-                        offsetY.value = 0f
-                    })
-                    .height(freeSpace.dp + offsetY.value.dp),
-            contentAlignment = Alignment.BottomCenter,
+    if (commentText != null && commentText != "") {
+        val freeSpace = 167 + offset
+        val brush =
+            Brush.verticalGradient(
+                listOf(
+                    colorResource(R.color.medium_transparant_black),
+                    colorResource(R.color.dark_black_overlay),
+                    Color.Black
+                ),
+            )
+        val offsetX = remember { mutableStateOf(0f) }
+        val offsetY = remember { mutableStateOf(0f) }
+        var size by remember { mutableStateOf(Size.Zero) }
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .alpha(alpha = if (visible) 1f else 0f),
+            verticalArrangement = Arrangement.Bottom,
         ) {
-            Text(
-                text = commentText,
+            println(offsetY.value)
+            Box(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .padding(top = 12.dp)
-                        .padding(horizontal = 8.dp)
+                        .wrapContentHeight(unbounded = true, align = Bottom)
+                        .onSizeChanged { size = it.toSize() }
+                        .background(brush)
+                        .pointerInput(Unit) {
+                            detectDragGestures { _, dragAmount ->
+                                val original = Offset(offsetX.value, offsetY.value)
+                                val summed = original + dragAmount
+                                val newValue =
+                                    Offset(
+                                        x = summed.x.coerceIn(0f, size.width),
+                                        y = (original.y - dragAmount.y / 3.3f).coerceIn(
+                                            0f,
+                                            Constraints.Infinity.toFloat()
+                                        ),
+                                    )
+                                offsetX.value = newValue.x
+                                offsetY.value = newValue.y
+                            }
+                        }
+                        .clickable(onClick = {
+                            onClick()
+                            offsetY.value = 0f
+                        })
                         .height(freeSpace.dp + offsetY.value.dp),
-                color = Color.White,
-            )
+                contentAlignment = Alignment.BottomCenter,
+            ) {
+                Text(
+                    text = commentText,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp)
+                            .padding(horizontal = 8.dp)
+                            .height(freeSpace.dp + offsetY.value.dp),
+                    color = Color.White,
+                )
+            }
         }
     }
 }
@@ -272,26 +267,26 @@ fun AppNavHost(
         startDestination = startDestination.route,
     ) {
         composable(Destination.Albums().route) {
-            AlbumsScreenWithScaffold(modifier, navController)
+            AlbumsScreenWithScaffold( navController)
         }
 
         composable(Destination.Pictures().route + "/{bID}" + "/{itemsCount}") { stackEntry ->
             val bID = stackEntry.arguments?.getString("bID").toString()
             val itemsCount = stackEntry.arguments?.getString("itemsCount")?.toInt()?:1
-            PicturesScreenWithScaffold(modifier, navController, bID, itemsCount)
+            PicturesScreenWithScaffold(navController, bID, itemsCount)
         }
 
         composable(Destination.FullScreenImg().route) { stackEntry ->
             val mediaPosition = stackEntry.arguments?.getInt("mediaPosition")
-            FullScreenViewPagerWithScaffold(modifier, navController)
+            FullScreenViewPagerWithScaffold(navController)
         }
 
         composable(Destination.SearchPhoto().route) {
-            SearchPhotoScreenWithScaffold(modifier, navController)
+            SearchPhotoScreenWithScaffold(navController)
         }
 
         composable(Destination.Settings().route) {
-            SettingsScreenWithScaffold(modifier, navController)
+            SettingsScreenWithScaffold(navController)
         }
         composable(Destination.Login().route) {
             LoginScreen(navController)

@@ -1,4 +1,4 @@
-package com.contextphoto.data
+package com.contextphoto.data.navigation
 
 import android.support.annotation.DrawableRes
 import com.contextphoto.R
@@ -22,4 +22,5 @@ sealed class Destination(
     class Login : Destination("login", "Логин", R.drawable.ic_launcher_background, "Login")
 
     class Registration : Destination("registration", "Регистрация", R.drawable.ic_launcher_background, "Registration")
+
 }

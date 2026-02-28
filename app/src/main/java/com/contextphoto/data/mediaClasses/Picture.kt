@@ -1,4 +1,4 @@
-package com.contextphoto.data
+package com.contextphoto.data.mediaClasses
 
 import android.graphics.Bitmap
 import android.net.Uri

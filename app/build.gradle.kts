@@ -95,7 +95,8 @@ dependencies {
 
     implementation("androidx.security:security-crypto:1.1.0")
     implementation("com.google.code.gson:gson:2.13.2")
-
+    implementation("io.coil-kt.coil3:coil-compose:3.0.4")
+    implementation("io.coil-kt.coil3:coil-gif:3.0.4")
 
     // comment after set registration
 

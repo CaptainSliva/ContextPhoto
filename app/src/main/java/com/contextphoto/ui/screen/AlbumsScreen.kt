@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -31,23 +32,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
-import com.contextphoto.data.Destination
+import androidx.navigation.NavHostController
+import com.contextphoto.data.navigation.Destination
 import com.contextphoto.dialog.CreateAlbumDialog
 import com.contextphoto.item.AlbumItem
 import com.contextphoto.menu.MainDropdownMenu
 import com.contextphoto.ui.AlbumViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AlbumsScreenWithScaffold(
-    modifier: Modifier = Modifier,
-    navController: NavController,
-    albumViewModel: AlbumViewModel = hiltViewModel(),
-) {
+fun AlbumsScreenWithScaffold(navController: NavHostController,
+                             albumViewModel: AlbumViewModel = hiltViewModel()) {
     val loadAlbums = albumViewModel.loadAlbums.collectAsStateWithLifecycle()
     Log.d("LOAD", loadAlbums.value.toString())
     LaunchedEffect(loadAlbums.value) {
@@ -59,6 +54,10 @@ fun AlbumsScreenWithScaffold(
 
     val createAlbumDialogVisible = rememberSaveable { mutableStateOf(false) }
     Log.d("Albums", albumList.toString())
+
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+
+    // Используем цвета в зависимости от темы
 
     Scaffold(
         topBar = {
@@ -130,7 +129,7 @@ fun AlbumsScreenWithScaffold(
             LazyVerticalGrid(
                 state = listState,
                 columns = GridCells.Fixed(1),
-                modifier = modifier.padding(paddingValues),
+                modifier = Modifier.padding(paddingValues),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
                 items(
