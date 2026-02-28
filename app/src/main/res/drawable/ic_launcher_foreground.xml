@@ -1,15 +1,36 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24"
-    android:tint="#FFFFFF">
-  <group android:scaleX="0.6264"
-      android:scaleY="0.6264"
-      android:translateX="4.4832"
-      android:translateY="3.4392">
-      <path
-          android:pathData="M17.6,11.48 L19.44,8.3a0.63,0.63 0,0 0,-1.09 -0.63l-1.88,3.24a11.43,11.43 0,0 0,-8.94 0L5.65,7.67a0.63,0.63 0,0 0,-1.09 0.63L6.4,11.48A10.81,10.81 0,0 0,1 20L23,20A10.81,10.81 0,0 0,17.6 11.48ZM7,17.25A1.25,1.25 0,1 1,8.25 16,1.25 1.25,0 0,1 7,17.25ZM17,17.25A1.25,1.25 0,1 1,18.25 16,1.25 1.25,0 0,1 17,17.25Z"
-          android:fillColor="#FF000000"/>
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+  <group android:scaleX="0.7638889"
+      android:scaleY="0.7638889"
+      android:translateX="60.444443"
+      android:translateY="60.444443">
+    <path
+        android:pathData="M256,256m-256,0a256,256 0,1 1,512 0a256,256 0,1 1,-512 0">
+      <aapt:attr name="android:fillColor">
+        <gradient
+            android:startX="-0"
+            android:startY="200.7"
+            android:endX="512"
+            android:endY="353.28"
+            android:type="linear">
+          <item android:offset="0.25" android:color="#667B00FF"/>
+          <item android:offset="1" android:color="#B200D0FF"/>
+        </gradient>
+      </aapt:attr>
+    </path>
+    <path
+        android:pathData="M141.99,252.93L199.34,336.55L275.8,217.09L366.59,360.45H79.87L141.99,252.93Z"
+        android:fillColor="#ffffff"/>
+    <path
+        android:pathData="M209.31,280.58L268.29,342.7L346.93,253.95L440.32,360.45H145.41L209.31,280.58Z"
+        android:fillColor="#ffffff"
+        android:fillAlpha="0.55"/>
+    <path
+        android:pathData="M331.78,114.69m-28.67,0a28.67,28.67 0,1 1,57.34 0a28.67,28.67 0,1 1,-57.34 0"
+        android:fillColor="#ffffff"/>
   </group>
 </vector>
