@@ -4,12 +4,14 @@ import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.Scaffold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -24,6 +26,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -75,6 +78,7 @@ fun SearchPhotoScreenWithScaffold(
     val numberFind by mediaViewModel.numberFind.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
     val clearFlag = rememberSaveable { mutableStateOf(false) }
+    val listState = rememberLazyGridState()
 
     LaunchedEffect(commentText, checkRegister.value) {
         clearFlag.value = true
@@ -101,8 +105,9 @@ fun SearchPhotoScreenWithScaffold(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
-                        navController.navigateUp()
+                        mediaViewModel.clearPictureList()
                         mediaViewModel.loadPicturesStateChange(true)
+                        navController.navigateUp()
                     }) {
                         Icon(
                             Icons.Default.ArrowBack, // Кнопка назад
@@ -177,8 +182,10 @@ fun SearchPhotoScreenWithScaffold(
                 }
 
                 LazyVerticalGrid(
+                    state = listState,
                     columns = GridCells.Fixed(3),
                     modifier = Modifier.padding(paddingValues),
+                    contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
                     items(items = listMedia, key = { media -> media.hashCode() }) { media ->
                         val mediaIndex = listMedia.indexOf(media)

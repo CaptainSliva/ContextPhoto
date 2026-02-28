@@ -11,7 +11,7 @@ class AlbumRepository
     ) {
         fun getLoadAlbumsState() = albumCache.loadAlbums.value
 
-        fun getAlbumList() = albumCache.listAlbums.value.sortedBy { it.name.lowercase() }
+        fun getAlbumList() = albumCache.listAlbums.value
 
         fun getAlbumBid() = albumCache.albumBid.value
 

@@ -6,10 +6,12 @@ import com.contextphoto.data.repository.LoginRepository
 import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
@@ -34,19 +36,22 @@ class LoginViewModel @Inject constructor(
         _errorMessage.value = ""
 
         viewModelScope.launch {
-            try {
-                val result = repository.signUp(email, password)
-                if (result.isSuccess) {
-                    loginSuccess = true
-                    getCurrentUser()
-                    _errorMessage.value = "Совершен вход в аккаунт ${_currentUser.value?.email}"
-                } else {
-                    _errorMessage.value = "Ошибка регистрации: ${result.exceptionOrNull()?.message}"
+            withContext(Dispatchers.IO) {
+                try {
+                    val result = repository.signUp(email, password)
+                    if (result.isSuccess) {
+                        loginSuccess = true
+                        getCurrentUser()
+                        _errorMessage.value = "Совершен вход в аккаунт ${_currentUser.value?.email}"
+                    } else {
+                        _errorMessage.value =
+                            "Ошибка регистрации: ${result.exceptionOrNull()?.message}"
+                    }
+                } catch (e: Exception) {
+                    _errorMessage.value = "Ошибка: ${e.message}"
                 }
-            } catch (e: Exception) {
-                _errorMessage.value = "Ошибка: ${e.message}"
+                _isLoading.value = false
             }
-            _isLoading.value = false
         }
         return loginSuccess
     }
@@ -56,19 +61,21 @@ class LoginViewModel @Inject constructor(
         _isLoading.value = true
 
         viewModelScope.launch {
-            try {
-                val result = repository.signIn(email, password)
-                if (result.isSuccess) {
-                    loginSuccess = true
-                    getCurrentUser()
-                    _errorMessage.value = "Совершен вход в аккаунт ${_currentUser.value?.email}"
-                } else {
-                    _errorMessage.value = "Ошибка входа: ${result.exceptionOrNull()?.message}"
+            withContext(Dispatchers.IO) {
+                try {
+                    val result = repository.signIn(email, password)
+                    if (result.isSuccess) {
+                        loginSuccess = true
+                        getCurrentUser()
+                        _errorMessage.value = "Совершен вход в аккаунт ${_currentUser.value?.email}"
+                    } else {
+                        _errorMessage.value = "Ошибка входа: ${result.exceptionOrNull()?.message}"
+                    }
+                } catch (e: Exception) {
+                    _errorMessage.value = "Ошибка: ${e.message}"
                 }
-            } catch (e: Exception) {
-                _errorMessage.value = "Ошибка: ${e.message}"
+                _isLoading.value = false
             }
-            _isLoading.value = false
         }
         return loginSuccess
     }

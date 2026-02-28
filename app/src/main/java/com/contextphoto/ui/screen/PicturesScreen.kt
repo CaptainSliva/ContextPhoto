@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Scaffold
@@ -34,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,9 +58,11 @@ import com.contextphoto.item.PictureItem
 import com.contextphoto.menu.MainDropdownMenu
 import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.utils.FunctionsBitmap.md5
+import com.google.android.play.integrity.internal.f
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,15 +71,13 @@ fun PicturesScreenWithScaffold(
     modifier: Modifier = Modifier,
     navController: NavController,
     bID: String,
+    itemsCount: Int,
     mediaViewModel: MediaViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(Unit) {
-        CoroutineScope(Dispatchers.IO).launch {
-            mediaViewModel.loadPictureList(bID)
-        }
+        mediaViewModel.loadPictureList(bID)
     }
 
-    val context = LocalContext.current
     val listMedia by mediaViewModel.listMedia.collectAsStateWithLifecycle()
     val albumName by mediaViewModel.albumName.collectAsStateWithLifecycle()
     val groupedMedia =
@@ -94,6 +96,22 @@ fun PicturesScreenWithScaffold(
     val mediaPosition = mediaViewModel.mediaPosition.collectAsStateWithLifecycle()
     val newPosition = rememberLazyGridState(0)
     val coroutineScope = rememberCoroutineScope()
+    val listState = rememberLazyGridState()
+    val shouldLoadMore by remember(listState) {
+        derivedStateOf {
+            val lastVisibleItemIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val totalItemsCount = listState.layoutInfo.totalItemsCount
+            lastVisibleItemIndex >= totalItemsCount - countOfPhotoLine.value
+        }
+    }
+    LaunchedEffect(shouldLoadMore) {
+        println("end")
+        println(shouldLoadMore)
+        if (shouldLoadMore) {
+            mediaViewModel.loadPicturesStateChange(true)
+            mediaViewModel.loadPictureList(bID, countOfPhotoLine.value)
+        }
+    }
 
     Log.d("Pictures", listMedia.toString())
     when (countOfPhotoLine.value) {
@@ -134,6 +152,7 @@ fun PicturesScreenWithScaffold(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
+                        mediaViewModel.clearPictureList()
                         mediaViewModel.loadPicturesStateChange(true)
                         navController.navigateUp()
                     }) {
@@ -189,34 +208,60 @@ fun PicturesScreenWithScaffold(
 
             Log.d("fontSize", fontSize.value.toString())
             Log.d("countOfPhotoLine", countOfPhotoLine.value.toString())
+
             Box(
                 modifier
                     .fillMaxSize()
-                    .pointerInput(Unit) {
-                        detectTransformGestures { _, _, f1, _ ->
-                            if (f1 < 1) { // Увеличение масштаба
-                                counterFlag.value += 1
-                                if (counterFlag.value == otboinik) {
-                                    counterFlag.value = 0
-                                    countOfPhotoLine.value += if (countOfPhotoLine.value < 6) 1 else 0
-                                }
-                            } else { // Уменьшение масштаба
-                                counterFlag.value += 1
-                                if (counterFlag.value == otboinik) {
-                                    counterFlag.value = 0
-                                    countOfPhotoLine.value -= if (countOfPhotoLine.value > 1) 1 else 0
-                                }
-                            }
-                        }
-                    },
+//                    .pointerInput(Unit) {
+//                        detectTransformGestures { p1, p2, f1, f2 ->
+//                            Log.d("pointerInput", "$p1, $p2, $f1, $f2")
+//                            if (f1 != 1.0F) {
+//                                if (f1 < 1) { // Увеличение масштаба
+//                                    counterFlag.value += 1
+//                                    if (counterFlag.value == otboinik) {
+//                                        counterFlag.value = 0
+//                                        countOfPhotoLine.value += if (countOfPhotoLine.value < 6) 1 else 0
+//                                    }
+//                                } else { // Уменьшение масштаба
+//                                    counterFlag.value += 1
+//                                    if (counterFlag.value == otboinik) {
+//                                        counterFlag.value = 0
+//                                        countOfPhotoLine.value -= if (countOfPhotoLine.value > 1) 1 else 0
+//                                    }
+//                                }
+//                            }
+//
+//                        }
+//                    },
             ) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(countOfPhotoLine.value),
                     modifier =
                         modifier
                             .padding(paddingValues)
-                            .fillMaxSize(),
-                    //state = newPosition,
+                            .fillMaxSize().pointerInput(Unit) {
+                                detectTransformGestures { p1, p2, f1, f2 ->
+                                    Log.d("pointerInput", "$p1, $p2, $f1, $f2")
+                                    val f = p2.x
+                                    if (f != 0F) {
+                                        if (f < 0) { // Увеличение масштаба
+                                            counterFlag.value += 1
+                                            if (counterFlag.value == otboinik) {
+                                                counterFlag.value = 0
+                                                countOfPhotoLine.value += if (countOfPhotoLine.value < 6) 1 else 0
+                                            }
+                                        } else { // Уменьшение масштаба
+                                            counterFlag.value += 1
+                                            if (counterFlag.value == otboinik) {
+                                                counterFlag.value = 0
+                                                countOfPhotoLine.value -= if (countOfPhotoLine.value > 1) 1 else 0
+                                            }
+                                        }
+                                    }
+
+                                }
+                            },
+                    state = listState,
                     contentPadding = PaddingValues(bottom = 80.dp),
                 ) {
                     groupedMedia.forEach { (date, mediaList) ->
@@ -253,9 +298,7 @@ fun PicturesScreenWithScaffold(
                             //val haveComment = remember { mutableStateOf(false) }
 
                             LaunchedEffect(Unit) {
-                                CoroutineScope(Dispatchers.IO+SupervisorJob()).launch {
-                                    mediaViewModel.changeStatePictureComment(mediaIndex, media.thumbnail)
-                                }
+                                mediaViewModel.changeStatePictureComment(mediaIndex, media.thumbnail)
                             }
 
                             PictureItem(
@@ -285,9 +328,7 @@ fun PicturesScreenWithScaffold(
                     )
                 }
             }
-            LaunchedEffect(listMedia.size) {
-                mediaViewModel.deleteAlbum()
-            }
+
         },
     )
 }

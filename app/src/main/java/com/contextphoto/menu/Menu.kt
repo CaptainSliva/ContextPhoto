@@ -202,6 +202,7 @@ fun BottomMenuPictureScreen(mediaViewModel: MediaViewModel) {
         enter = slideInVertically(),
         exit = slideOutVertically(),
     ) {
+        if (listSelectedMedia.isNotEmpty())
         DeleteMediaDialog(
             {},
             deleteDialogVisible,

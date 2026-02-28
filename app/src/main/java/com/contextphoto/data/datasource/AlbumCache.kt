@@ -24,14 +24,14 @@ class AlbumCache
         val albumBid = _albumBid.asStateFlow()
 
         fun loadAlbumList(): List<Album> {
-            _listAlbums.value = FunctionsMediaStore.getListAlbums(context)
+            _listAlbums.value = FunctionsMediaStore.getListAlbums(context).sortedBy { it.name.lowercase() }
 
             Log.d("Album Cache", _listAlbums.value.toString())
             return _listAlbums.value
         }
 
         fun updateAlbumList(newList: List<Album>) {
-            _listAlbums.value = newList
+            _listAlbums.value = newList.sortedBy { it.name.lowercase() }
         }
 
         fun updateAlbumID(bID: String) {

@@ -20,72 +20,6 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.shouldShowRationale
 
 object RequestPermissions {
-    @Composable
-    fun requestPermissions() {
-        val context = LocalContext.current
-        val listPermissions = arrayOf(
-            Manifest.permission.READ_MEDIA_IMAGES,
-            Manifest.permission.READ_MEDIA_VIDEO,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.MANAGE_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
-        when {
-            ContextCompat.checkSelfPermission(
-                context,
-                listPermissions[0],
-            ) == PackageManager.PERMISSION_GRANTED -> {
-
-            }
-
-            ActivityCompat.shouldShowRequestPermissionRationale(
-                LocalActivity.current,
-                listPermissions[0]
-            ) -> {
-//                    val intent = Intent().apply {
-//                        action = Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS
-//                        putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-//                    }
-//                    context.startActivity(intent)
-            }
-
-            else -> {
-                ActivityCompat.requestPermissions(
-                    LocalActivity.current,
-                    listPermissions,
-                    100,
-                )
-            }
-        }
-
-//        listPermissions.forEach {
-//            when {
-//                checkSelfPermission(
-//                    context,
-//                    it,
-//                ) == PackageManager.PERMISSION_GRANTED -> {
-//
-//                }
-//
-////                ActivityCompat.shouldShowRequestPermissionRationale(LocalActivity.current, it) -> {
-////                    val intent = Intent().apply {
-////                        action = Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS
-////                        putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-////                    }
-////                    context.startActivity(intent)
-////                }
-//
-//                else -> {
-//                    requestPermissions(
-//                        LocalActivity.current,
-//                        listPermissions,
-//                        100,
-//                    )
-//                }
-//            }
-//        }
-
-    }
 
     @OptIn(ExperimentalPermissionsApi::class)
     @Composable
@@ -113,8 +47,15 @@ object RequestPermissions {
             it.status is PermissionStatus.Denied && !it.status.shouldShowRationale
         }
 
+        LaunchedEffect(allPermissionsGranted) {
+            if (allPermissionsGranted) {
+                albumViewModel.loadAlbumsStateChange(true)
+            }
+        }
+
         if (allPermissionsGranted) {
-            albumViewModel.loadAlbumsStateChange(true)
+            // Разрешения уже есть, ничего не делаем
+            // (loadAlbumsStateChange уже вызван в LaunchedEffect)
         }
         else if (anyPermanentlyDenied) {
             LaunchedEffect(Unit) {

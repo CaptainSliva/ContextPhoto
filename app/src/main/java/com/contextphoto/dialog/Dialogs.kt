@@ -89,7 +89,6 @@ import kotlinx.coroutines.launch
 fun CreateAlbumDialog(
     onDismissRequest: () -> Unit,
     mutableState: MutableState<Boolean>,
-    albumViewModel: AlbumViewModel,
 ) {
     val context = LocalContext.current
     val modifier = Modifier.fillMaxWidth()
@@ -222,28 +221,31 @@ fun CopyMoveDialog(
                 onClick = {
                     coroutineScope.launch {
                         if (createAlbum) {
+
+                            if (albumName in albumList.map { it.name } && createAlbum) {
+                                Toast
+                                    .makeText(
+                                        context,
+                                        "Альбом \"$albumName\" уже создан",
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                            }
+                            else {
+                                Log.i("NEWNAME", "$albumName")
+                                findNewAlbumFlag = true
+                            }
                             listUri.forEach {
                                 if (copyMediaToAlbum(context, it, albumName)) {
-                                    if (it == listUri[listUri.size - 1]) {
-                                        if (albumName in albumList.map { it.name } && createAlbum) {
-                                            Toast
-                                                .makeText(
-                                                    context,
-                                                    "Альбом \"$albumName\" уже создан",
-                                                    Toast.LENGTH_SHORT,
-                                                ).show()
-                                        }
-                                    } else {
-                                        Log.i("NEWNAME", "$albumName")
-                                        findNewAlbumFlag = true
-                                    }
+                                    Log.i("addPhoto", "$it")
                                 } else {
                                     Toast
                                         .makeText(context, "IO ex ${it.path}", Toast.LENGTH_SHORT)
                                         .show()
                                 }
                             }
-                            if (findNewAlbumFlag) getNewAlbum(context, albumName, albumViewModel)
+                            if (findNewAlbumFlag) {
+                                getNewAlbum(context, albumName, albumViewModel)
+                            }
                         } else {
                             listUri.forEach { copyMediaToAlbum(context, it, albumName) }
                             mediaViewModel.copyMediaToAlbum(toAlbumBId, listUri.size - 1)
@@ -481,10 +483,11 @@ fun DeleteMediaDialog(
     val activity = LocalActivity.current!!
     val modifier = Modifier.fillMaxWidth()
     val listSelectedMedia by mediaViewModel.listSelectedMedia.collectAsStateWithLifecycle()
-    val listMedia by fullscreenViewModel.listMedia.collectAsStateWithLifecycle()
+    val listMedia by mediaViewModel.listMedia.collectAsStateWithLifecycle()
+    val listMediaFullscreen by fullscreenViewModel.listMedia.collectAsStateWithLifecycle()
     val pos by fullscreenViewModel.mediaPosition.collectAsStateWithLifecycle()
 
-    if (listSelectedMedia.isEmpty() && listMedia.isEmpty()) {
+    if (listSelectedMedia.isEmpty() && listMedia.isEmpty() && currentDestination == Destination.Pictures().route) {
         mutableState.value = false
         onDismissRequest()
     }
@@ -503,38 +506,30 @@ fun DeleteMediaDialog(
             Text(text = context.getString(R.string.delete))
             Button(
                 onClick = {
-                    mediaViewModel.deleteMediaFromAlbum(bID, listSelectedMedia.size)
                     when (currentDestination) {
                         Destination.Pictures().route -> {
                             listSelectedMedia.forEach {
                                 if (deleteMediaFile(context, activity, it.uri)) {
                                     mediaViewModel.deletePicture(it)
+//                                    mediaViewModel.removeSelectMedia(it)
+                                    if (listMedia.size == 0) mediaViewModel.deleteAlbum(context)
                                 }
                             }
+                            mediaViewModel.clearSelectedMedia()
                         }
 
                         Destination.FullScreenImg().route -> {
-                            if (deleteMediaFile(context, activity, listMedia[pos].uri)) {
+                            if (deleteMediaFile(context, activity, listMediaFullscreen[pos].uri)) {
 
 //                                fullscreenViewModel.deleteActionChange(true)
 //                                fullscreenViewModel.updateMediaPosition()
-                                fullscreenViewModel.deletePicture(listMedia[pos])
-//                                when {
-//                                    (listMedia.size - 1 == pos) -> {
-//                                        fullscreenViewModel.updateMediaPosition(pos - 1)
-//                                    }
-//                                    (pos == 0) -> {
-//                                        fullscreenViewModel.updateMediaPosition(pos+1)
-//                                    }
-////                                    else -> {
-////                                        fullscreenViewModel.updateMediaPosition(pos)
-////                                        println("FNEEEE")
-////                                        println("${fullscreenViewModel.mediaPosition.value}")
-////                                    }
-//                                }
+                                fullscreenViewModel.deletePicture(listMediaFullscreen[pos])
+                                if (listMediaFullscreen.size == 1) mediaViewModel.deleteAlbum(context)
                             }
                         }
                     }
+                    mediaViewModel.deleteMediaFromAlbum(bID, listSelectedMedia.size)
+
 
                     mutableState.value = false
                     onDismissRequest()

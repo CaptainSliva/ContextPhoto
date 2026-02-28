@@ -1,5 +1,6 @@
 package com.contextphoto.ui
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -8,12 +9,16 @@ import com.contextphoto.data.repository.AlbumRepository
 import com.contextphoto.data.Destination
 import com.contextphoto.data.repository.MediaRepository
 import com.contextphoto.data.Picture
+import com.contextphoto.utils.FunctionsDialogs.showDeleteAlbumMessage
+import dagger.hilt.android.internal.Contexts
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 @HiltViewModel
@@ -29,6 +34,7 @@ class MediaViewModel
         private val _bottomMenuVisible = MutableStateFlow(false)
         private val _albumName = MutableStateFlow("")
         private val _numberFind = MutableStateFlow(0)
+        private val _page = MutableStateFlow(0)
         val db = repository.getDB()
         val listMedia = _listMedia.asStateFlow()
         val listSelectedMedia = _listSelectedMedia.asStateFlow()
@@ -38,17 +44,28 @@ class MediaViewModel
         val numberFind = _numberFind.asStateFlow()
 
 
-        fun loadPictureList(bID: String) {
-            if (repository.getLoadPicturesState()) {
-                viewModelScope.launch {
-                    _listMedia.value = repository.loadPictureList(bID)
-                    val splitPath = File(_listMedia.value[0].path).toString().split("/")
-                    _albumName.value = if (bID != "") splitPath[splitPath.size - 2] else Destination.Pictures().label
+        fun loadPictureList(bID: String, rowSize: Int=3) {
+            viewModelScope.launch {
+                withContext(Dispatchers.IO) {
+                    if (repository.getLoadPicturesState()) {
+                        repository.loadPictureList(bID, _page.value, rowSize + rowSize * 9)
+                        _listMedia.value = repository.getPictureList()
+                        val splitPath = File(_listMedia.value[0].path).toString().split("/")
+                        _albumName.value =
+                            if (bID != "") splitPath[splitPath.size - 2] else Destination.Pictures().label
+                        loadPicturesStateChange(false)
+                        _page.value += 1
+                    } else {
+                        _listMedia.value = repository.getPictureList()
+                    }
                 }
-                loadPicturesStateChange(false)
-            } else {
-                viewModelScope.launch {
-                    _listMedia.value = repository.getPictureList()
+            }
+        }
+
+        fun generatePicturesList(itemsCount: Int) {
+            viewModelScope.launch {
+                withContext(Dispatchers.IO) {
+                    _listMedia.value = repository.generatePicturesList(itemsCount)
                 }
             }
         }
@@ -59,39 +76,44 @@ class MediaViewModel
 
         fun clearPictureList() {
             viewModelScope.launch {
-                repository.clearPictureList()
-                _listMedia.value = repository.getPictureList()
-                _numberFind.value = 0
+                withContext(Dispatchers.IO) {
+                    repository.clearPictureList()
+                    repository.clearSelectedMedia()
+                    _listMedia.value = repository.getPictureList()
+                    _listSelectedMedia.value = repository.getSelectedMediaList()
+                    _numberFind.value = 0
+                    _page.value = 0
+                }
             }
         }
 
         fun addFoundedPicture(pic: Picture) {
             viewModelScope.launch {
-                if (pic.path !in _listMedia.value.map { it.path }) {
-                    repository.addPicture(pic)
-                    _listMedia.value = repository.getPictureList()
-                    _numberFind.value += 1
-                    Log.d("Lvalue", _listMedia.value.toString())
+                withContext(Dispatchers.IO) {
+                    if (pic.path !in _listMedia.value.map { it.path }) {
+                        repository.addPicture(pic)
+                        _listMedia.value = repository.getPictureList()
+                        _numberFind.value += 1
+                        Log.d("Lvalue", _listMedia.value.toString())
+                    }
                 }
             }
         }
 
-    fun numberFindSetNul() {
-        _numberFind.value = 0
-    }
-
         fun deletePicture(pic: Picture) {
             viewModelScope.launch {
-                repository.deletePicture(pic)
-                _listMedia.value = repository.getPictureList()
+                withContext(Dispatchers.IO) {
+                    repository.deletePicture(pic)
+                    _listMedia.value = repository.getPictureList()
+                }
             }
         }
 
         fun deletePictureByMove() {
             viewModelScope.launch {
-                _listSelectedMedia.value.forEach {
-                    repository.deletePicture(it)
-                    _listMedia.value = repository.getPictureList()
+                withContext(Dispatchers.IO) {
+                    repository.deletePictureByMove()
+                    _listSelectedMedia.value = repository.getSelectedMediaList()
                 }
             }
         }
@@ -102,23 +124,30 @@ class MediaViewModel
         }
 
         fun selectMedia(pic: Picture) {
-            _listSelectedMedia.update { currentList ->
-                currentList.toMutableList().apply {
-                    add(pic)
+            viewModelScope.launch {
+                withContext(Dispatchers.IO) {
+                    repository.selectMedia(pic)
+                    _listSelectedMedia.value = repository.getSelectedMediaList()
                 }
             }
         }
 
         fun removeSelectMedia(pic: Picture) {
-            _listSelectedMedia.update { currentList ->
-                currentList.toMutableList().apply {
-                    remove(pic)
+            viewModelScope.launch {
+                withContext(Dispatchers.IO) {
+                    repository.removeSelectMedia(pic)
+                    _listSelectedMedia.value = repository.getSelectedMediaList()
                 }
             }
         }
 
         fun clearSelectedMedia() {
-            _listSelectedMedia.value = emptyList()
+            viewModelScope.launch {
+                withContext(Dispatchers.IO) {
+                    repository.clearSelectedMedia()
+                    _listSelectedMedia.value = repository.getSelectedMediaList()
+                }
+            }
         }
 
         fun changeStateBottomMenu(state: Boolean? = null) {
@@ -135,9 +164,10 @@ class MediaViewModel
 
         fun changeStatePictureComment(mediaIndex: Int, mediaThumbnail: Bitmap) {
             viewModelScope.launch {
-                repository.changeStatePictureComment(mediaIndex, mediaThumbnail)
+                withContext(Dispatchers.IO) {
+                    repository.changeStatePictureComment(mediaIndex, mediaThumbnail)
+                }
             }
-//            _listMedia.value = repository.getPictureList()
         }
 
         fun deleteMediaFromAlbum(
@@ -166,9 +196,15 @@ class MediaViewModel
             albumRepository.loadAlbumsStateChange(true)
         }
 
-        fun deleteAlbum() {
-            val albums = albumRepository.getAlbumList()
-            val index = albumRepository.getAlbumList().map { it.bID }.indexOf(albumRepository.getAlbumBid())
-            albumRepository.deleteAlbum(albums[index])
+        fun deleteAlbum(context: Context) {
+            viewModelScope.launch {
+                withContext(Dispatchers.IO) {
+                    val albums = albumRepository.getAlbumList()
+                    val index = albumRepository.getAlbumList().map { it.bID }
+                        .indexOf(albumRepository.getAlbumBid())
+                    albumRepository.deleteAlbum(albums[index])
+                    showDeleteAlbumMessage(context, albums[index].name, albums[index].path)
+                }
+            }
         }
     }
