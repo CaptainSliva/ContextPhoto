@@ -2,7 +2,10 @@ package com.contextphoto.data.datasource
 
 import android.content.Context
 import android.graphics.Bitmap
-import androidx.lifecycle.viewModelScope
+import android.graphics.BitmapFactory
+import androidx.compose.runtime.mutableStateOf
+import androidx.core.net.toUri
+import com.contextphoto.R
 import com.contextphoto.data.Picture
 import com.contextphoto.db.CommentDatabase
 import com.contextphoto.utils.FunctionsBitmap.md5
@@ -13,7 +16,6 @@ import jakarta.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 
 @Singleton
 class MediaCache
@@ -36,6 +38,10 @@ class MediaCache
     fun loadPictureList(bID: String, page: Int, rowSize: Int) {
         _listPicture.value += FunctionsMediaStore.getPieceOfMediaStore(context, bID, page, rowSize, _listPicture.value.size)
     }
+
+    fun generatePicturesList(itemsCount: Int): List<Picture> = List(itemsCount) { Picture("", "".toUri(), "", BitmapFactory.decodeResource(context.resources, R.drawable.no_image_96), listOf(), "",
+        mutableStateOf(false)
+    ) }
 
     fun updatePictureList(newList: List<Picture>) {
         _listPicture.value = newList

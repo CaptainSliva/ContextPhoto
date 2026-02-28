@@ -25,6 +25,8 @@ class MediaRepository
 
         fun getMediaPosition() = mediaCache.mediaPosition.value
 
+        fun generatePicturesList(itemsCount: Int) = mediaCache.generatePicturesList(itemsCount)
+
         fun addPicture(picture: Picture) {
             mediaCache.updatePictureList(
                 mediaCache.listPicture.value

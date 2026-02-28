@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -184,6 +185,7 @@ fun SearchPhotoScreenWithScaffold(
                     state = listState,
                     columns = GridCells.Fixed(3),
                     modifier = Modifier.padding(paddingValues),
+                    contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
                     items(items = listMedia, key = { media -> media.hashCode() }) { media ->
                         val mediaIndex = listMedia.indexOf(media)

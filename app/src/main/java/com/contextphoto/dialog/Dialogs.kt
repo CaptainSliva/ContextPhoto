@@ -89,7 +89,6 @@ import kotlinx.coroutines.launch
 fun CreateAlbumDialog(
     onDismissRequest: () -> Unit,
     mutableState: MutableState<Boolean>,
-    albumViewModel: AlbumViewModel,
 ) {
     val context = LocalContext.current
     val modifier = Modifier.fillMaxWidth()
@@ -222,28 +221,31 @@ fun CopyMoveDialog(
                 onClick = {
                     coroutineScope.launch {
                         if (createAlbum) {
+
+                            if (albumName in albumList.map { it.name } && createAlbum) {
+                                Toast
+                                    .makeText(
+                                        context,
+                                        "Альбом \"$albumName\" уже создан",
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                            }
+                            else {
+                                Log.i("NEWNAME", "$albumName")
+                                findNewAlbumFlag = true
+                            }
                             listUri.forEach {
                                 if (copyMediaToAlbum(context, it, albumName)) {
-                                    if (it == listUri[listUri.size - 1]) {
-                                        if (albumName in albumList.map { it.name } && createAlbum) {
-                                            Toast
-                                                .makeText(
-                                                    context,
-                                                    "Альбом \"$albumName\" уже создан",
-                                                    Toast.LENGTH_SHORT,
-                                                ).show()
-                                        }
-                                    } else {
-                                        Log.i("NEWNAME", "$albumName")
-                                        findNewAlbumFlag = true
-                                    }
+                                    Log.i("addPhoto", "$it")
                                 } else {
                                     Toast
                                         .makeText(context, "IO ex ${it.path}", Toast.LENGTH_SHORT)
                                         .show()
                                 }
                             }
-                            if (findNewAlbumFlag) getNewAlbum(context, albumName, albumViewModel)
+                            if (findNewAlbumFlag) {
+                                getNewAlbum(context, albumName, albumViewModel)
+                            }
                         } else {
                             listUri.forEach { copyMediaToAlbum(context, it, albumName) }
                             mediaViewModel.copyMediaToAlbum(toAlbumBId, listUri.size - 1)

@@ -139,6 +139,7 @@ object FunctionsMediaStore {
         val sortOrder = "${MediaStore.MediaColumns.DATE_ADDED} DESC"
 
         viewModel.changeStateAlbum()
+        viewModel.changeStateAlbum()
 
         context.contentResolver.query(
             contentUri,
@@ -450,7 +451,6 @@ object FunctionsMediaStore {
             when {
                 mimeType.startsWith("image/") -> mimeType = "image/*"
                 mimeType.startsWith("video/") -> mimeType = "video/*"
-                else -> "file/*"
             }
 
             val contentValues =
@@ -467,9 +467,8 @@ object FunctionsMediaStore {
                         "${MediaStore.MediaColumns.RELATIVE_PATH}, ${Environment.DIRECTORY_PICTURES}/ContextPhoto/$albumName",
                     )
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        put(MediaStore.MediaColumns.IS_PENDING, 1)
-                    }
+                    put(MediaStore.MediaColumns.IS_PENDING, 1)
+
                 }
 
             val collection =
@@ -488,11 +487,9 @@ object FunctionsMediaStore {
                 }
             }
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                contentValues.clear()
-                contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
-                contentResolver.update(destinationUri, contentValues, null, null)
-            }
+            contentValues.clear()
+            contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
+            contentResolver.update(destinationUri, contentValues, null, null)
 
             return true
         } catch (e: Exception) {

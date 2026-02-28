@@ -9,9 +9,11 @@ import com.contextphoto.data.repository.MediaRepository
 import com.contextphoto.data.Picture
 import com.contextphoto.utils.FunctionsDialogs.showDeleteAlbumMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -41,13 +43,15 @@ class FullscreenViewModel
 
         fun deletePicture(pic: Picture) {
             viewModelScope.launch {
-                repository.deletePicture(pic)
-                _listMedia.value = repository.getPictureList()
-                albumRepository.loadAlbumsStateChange(true)
+                withContext(Dispatchers.IO) {
+                    repository.deletePicture(pic)
+                    _listMedia.value = repository.getPictureList()
+                    albumRepository.loadAlbumsStateChange(true)
 
-                if(_listMedia.value.size == _mediaPosition.value) {
-                    updateMediaPosition(_mediaPosition.value-1)
-                    _mediaPosition.value = repository.getMediaPosition()
+                    if (_listMedia.value.size == _mediaPosition.value) {
+                        updateMediaPosition(_mediaPosition.value - 1)
+                        _mediaPosition.value = repository.getMediaPosition()
+                    }
                 }
             }
         }
@@ -75,7 +79,9 @@ class FullscreenViewModel
 
         fun getImageComment(bitmap: Bitmap) {
             viewModelScope.launch {
-                _imageComment.value = repository.getImageComment(bitmap)
+                withContext(Dispatchers.IO) {
+                    _imageComment.value = repository.getImageComment(bitmap)
+                }
             }
         }
 

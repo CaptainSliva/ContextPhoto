@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -50,9 +51,7 @@ fun AlbumsScreenWithScaffold(
     val loadAlbums = albumViewModel.loadAlbums.collectAsStateWithLifecycle()
     Log.d("LOAD", loadAlbums.value.toString())
     LaunchedEffect(loadAlbums.value) {
-        CoroutineScope(Dispatchers.IO).launch {
-            albumViewModel.loadAlbumList()
-        }
+        albumViewModel.loadAlbumList()
     }
 
     val albumList by albumViewModel.albumList.collectAsStateWithLifecycle()
@@ -94,7 +93,7 @@ fun AlbumsScreenWithScaffold(
 //                                }
 
                                 is Destination.Pictures -> {
-                                    navController.navigate(Destination.Pictures().route + "/")
+                                    navController.navigate(Destination.Pictures().route + "/" + "/1")
                                 }
 
                                 else -> {}
@@ -132,6 +131,7 @@ fun AlbumsScreenWithScaffold(
                 state = listState,
                 columns = GridCells.Fixed(1),
                 modifier = modifier.padding(paddingValues),
+                contentPadding = PaddingValues(bottom = 80.dp)
             ) {
                 items(
                     items = albumList,
@@ -140,14 +140,14 @@ fun AlbumsScreenWithScaffold(
                     AlbumItem(
                         album,
                         Modifier.padding(0.dp, 2.dp).animateItem(),
-                        onItemClick = { navController.navigate(Destination.Pictures().route + "/${album.bID}") },
+                        onItemClick = { navController.navigate(Destination.Pictures().route + "/${album.bID}" + "/${album.itemsCount?:1}") },
                         albumViewModel,
                     )
                 }
             }
 
             if (createAlbumDialogVisible.value) {
-                CreateAlbumDialog({}, createAlbumDialogVisible, albumViewModel)
+                CreateAlbumDialog({}, createAlbumDialogVisible)
             }
         },
     )

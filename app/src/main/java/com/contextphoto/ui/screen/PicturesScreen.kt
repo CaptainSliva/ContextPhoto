@@ -58,6 +58,7 @@ import com.contextphoto.item.PictureItem
 import com.contextphoto.menu.MainDropdownMenu
 import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.utils.FunctionsBitmap.md5
+import com.google.android.play.integrity.internal.f
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -70,12 +71,11 @@ fun PicturesScreenWithScaffold(
     modifier: Modifier = Modifier,
     navController: NavController,
     bID: String,
+    itemsCount: Int,
     mediaViewModel: MediaViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(Unit) {
-        CoroutineScope(Dispatchers.IO).launch {
-            mediaViewModel.loadPictureList(bID)
-        }
+        mediaViewModel.loadPictureList(bID)
     }
 
     val listMedia by mediaViewModel.listMedia.collectAsStateWithLifecycle()
@@ -97,15 +97,17 @@ fun PicturesScreenWithScaffold(
     val newPosition = rememberLazyGridState(0)
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyGridState()
-    val isAtTheEndOfList by remember(listState) {
+    val shouldLoadMore by remember(listState) {
         derivedStateOf {
-            listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index == listState.layoutInfo.totalItemsCount - 1
+            val lastVisibleItemIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val totalItemsCount = listState.layoutInfo.totalItemsCount
+            lastVisibleItemIndex >= totalItemsCount - countOfPhotoLine.value
         }
     }
-    LaunchedEffect(isAtTheEndOfList) {
+    LaunchedEffect(shouldLoadMore) {
         println("end")
-        println(isAtTheEndOfList)
-        if (isAtTheEndOfList) {
+        println(shouldLoadMore)
+        if (shouldLoadMore) {
             mediaViewModel.loadPicturesStateChange(true)
             mediaViewModel.loadPictureList(bID, countOfPhotoLine.value)
         }
@@ -210,30 +212,55 @@ fun PicturesScreenWithScaffold(
             Box(
                 modifier
                     .fillMaxSize()
-                    .pointerInput(Unit) {
-                        detectTransformGestures { _, _, f1, _ ->
-                            if (f1 < 1) { // Увеличение масштаба
-                                counterFlag.value += 1
-                                if (counterFlag.value == otboinik) {
-                                    counterFlag.value = 0
-                                    countOfPhotoLine.value += if (countOfPhotoLine.value < 6) 1 else 0
-                                }
-                            } else { // Уменьшение масштаба
-                                counterFlag.value += 1
-                                if (counterFlag.value == otboinik) {
-                                    counterFlag.value = 0
-                                    countOfPhotoLine.value -= if (countOfPhotoLine.value > 1) 1 else 0
-                                }
-                            }
-                        }
-                    },
+//                    .pointerInput(Unit) {
+//                        detectTransformGestures { p1, p2, f1, f2 ->
+//                            Log.d("pointerInput", "$p1, $p2, $f1, $f2")
+//                            if (f1 != 1.0F) {
+//                                if (f1 < 1) { // Увеличение масштаба
+//                                    counterFlag.value += 1
+//                                    if (counterFlag.value == otboinik) {
+//                                        counterFlag.value = 0
+//                                        countOfPhotoLine.value += if (countOfPhotoLine.value < 6) 1 else 0
+//                                    }
+//                                } else { // Уменьшение масштаба
+//                                    counterFlag.value += 1
+//                                    if (counterFlag.value == otboinik) {
+//                                        counterFlag.value = 0
+//                                        countOfPhotoLine.value -= if (countOfPhotoLine.value > 1) 1 else 0
+//                                    }
+//                                }
+//                            }
+//
+//                        }
+//                    },
             ) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(countOfPhotoLine.value),
                     modifier =
                         modifier
                             .padding(paddingValues)
-                            .fillMaxSize(),
+                            .fillMaxSize().pointerInput(Unit) {
+                                detectTransformGestures { p1, p2, f1, f2 ->
+                                    Log.d("pointerInput", "$p1, $p2, $f1, $f2")
+                                    val f = p2.x
+                                    if (f != 0F) {
+                                        if (f < 0) { // Увеличение масштаба
+                                            counterFlag.value += 1
+                                            if (counterFlag.value == otboinik) {
+                                                counterFlag.value = 0
+                                                countOfPhotoLine.value += if (countOfPhotoLine.value < 6) 1 else 0
+                                            }
+                                        } else { // Уменьшение масштаба
+                                            counterFlag.value += 1
+                                            if (counterFlag.value == otboinik) {
+                                                counterFlag.value = 0
+                                                countOfPhotoLine.value -= if (countOfPhotoLine.value > 1) 1 else 0
+                                            }
+                                        }
+                                    }
+
+                                }
+                            },
                     state = listState,
                     contentPadding = PaddingValues(bottom = 80.dp),
                 ) {
@@ -271,9 +298,7 @@ fun PicturesScreenWithScaffold(
                             //val haveComment = remember { mutableStateOf(false) }
 
                             LaunchedEffect(Unit) {
-                                CoroutineScope(Dispatchers.IO+SupervisorJob()).launch {
-                                    mediaViewModel.changeStatePictureComment(mediaIndex, media.thumbnail)
-                                }
+                                mediaViewModel.changeStatePictureComment(mediaIndex, media.thumbnail)
                             }
 
                             PictureItem(

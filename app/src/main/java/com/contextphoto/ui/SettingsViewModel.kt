@@ -7,9 +7,11 @@ import com.contextphoto.data.repository.LoginRepository
 import com.contextphoto.data.repository.SettingsRepository
 import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -32,19 +34,23 @@ class SettingsViewModel
         getCurrentUser()
     }
 
-    suspend fun exportCommentsToStorage() {
+    fun exportCommentsToStorage() {
         viewModelScope.launch {
-            repository.exportCommentsToStorage()
-            changeOperationStatus(true)
-            _stateInfo.value = "Экспорт в файл завершен"
+            withContext(Dispatchers.IO) {
+                repository.exportCommentsToStorage()
+                changeOperationStatus(true)
+                _stateInfo.value = "Экспорт в файл завершен"
+            }
         }
     }
 
-    suspend fun importCommentsFromStorage() {
+    fun importCommentsFromStorage() {
         viewModelScope.launch {
-            repository.importCommentsFromStorage()
-            changeOperationStatus(true)
-            _stateInfo.value = "Импорт из файла завершен"
+            withContext(Dispatchers.IO) {
+                repository.importCommentsFromStorage()
+                changeOperationStatus(true)
+                _stateInfo.value = "Импорт из файла завершен"
+            }
         }
     }
 
@@ -52,21 +58,25 @@ class SettingsViewModel
         _currentUser.value = loginRepository.getCurrentUser()
     }
 
-    suspend fun exportCommentsToFirestore() {
+    fun exportCommentsToFirestore() {
         viewModelScope.launch {
-            repository.exportCommentsToFirestore()
-            Log.d("TAGGG", "Corutina export stop")
-            changeOperationStatus(true)
-            _stateInfo.value = "Экспорт в Firebase завершен"
+            withContext(Dispatchers.IO) {
+                repository.exportCommentsToFirestore()
+                Log.d("TAGGG", "Corutina export stop")
+                changeOperationStatus(true)
+                _stateInfo.value = "Экспорт в Firebase завершен"
+            }
         }
 
     }
 
-    suspend fun importCommentsFromFirestore() {
+    fun importCommentsFromFirestore() {
         viewModelScope.launch {
-            repository.importCommentsFromFirestore()
-            changeOperationStatus(true)
-            _stateInfo.value = "Импорт из Firebase завершен"
+            withContext(Dispatchers.IO) {
+                repository.importCommentsFromFirestore()
+                changeOperationStatus(true)
+                _stateInfo.value = "Импорт из Firebase завершен"
+            }
         }
     }
 

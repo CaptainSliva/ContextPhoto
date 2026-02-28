@@ -87,10 +87,10 @@ fun SettingsScreenWithScaffold(modifier: Modifier = Modifier,
                         Text(
                             Destination.Settings().label,
                         )
-                        if (settingsViewModel.currentUser.value?.email != null) {
+                        if (currentUser.value?.email != null) {
                             Text(
                                 modifier = Modifier.padding(horizontal = 16.dp).weight(1f),
-                                text = "${settingsViewModel.currentUser.value!!.email}",
+                                text = "${currentUser.value!!.email}",
                                 fontSize = 13.sp,
                                 textAlign = TextAlign.End
                             )
@@ -126,9 +126,8 @@ fun SettingsScreenWithScaffold(modifier: Modifier = Modifier,
                     ) {
                         Button(
                             onClick = {
-                                corutineScope.launch {
-                                    settingsViewModel.exportCommentsToStorage()
-                                }
+                                settingsViewModel.changeOperationStatus(false)
+                                settingsViewModel.exportCommentsToStorage()
                             },
                             shape = RoundedCornerShape(50.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -145,9 +144,8 @@ fun SettingsScreenWithScaffold(modifier: Modifier = Modifier,
                         Spacer(modifier = Modifier.weight(0.25f))
                         Button(
                             onClick = {
-                                corutineScope.launch {
-                                    settingsViewModel.importCommentsFromStorage()
-                                }
+                                settingsViewModel.changeOperationStatus(false)
+                                settingsViewModel.importCommentsFromStorage()
                             },
                             shape = RoundedCornerShape(50.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -163,30 +161,25 @@ fun SettingsScreenWithScaffold(modifier: Modifier = Modifier,
                         }
                     }
 
-//                    Divider(
-//                        modifier = Modifier
-//                            .fillMaxWidth()
-//                            .padding(0.dp, 16.dp)
-//                    )
-                Spacer(modifier = Modifier.padding(vertical = 16.dp))
-                    Button(
-                        onClick = {
-                            navController.navigate(
-                                Destination.Login().route
+                    Spacer(modifier = Modifier.padding(vertical = 16.dp))
+                        Button(
+                            onClick = {
+                                navController.navigate(
+                                    Destination.Login().route
+                                )
+                            },
+                            shape = RoundedCornerShape(50.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colorResource(R.color.light_blue)
+                            ),
+                            modifier = buttonWidth
+                                .fillMaxWidth()
+                        ) {
+                            Text(
+                                context.getString(R.string.enter_in_account),
+                                textAlign = TextAlign.Center
                             )
-                        },
-                        shape = RoundedCornerShape(50.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = colorResource(R.color.light_blue)
-                        ),
-                        modifier = buttonWidth
-                            .fillMaxWidth()
-                    ) {
-                        Text(
-                            context.getString(R.string.enter_in_account),
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                        }
 
                     Spacer(modifier = Modifier.padding(vertical = 8.dp))
 
@@ -195,15 +188,11 @@ fun SettingsScreenWithScaffold(modifier: Modifier = Modifier,
                     ) {
                         Button(
                             onClick = {
+                                settingsViewModel.changeOperationStatus(false)
                                 val idToken = settingsViewModel.getToken()
                                 val espData = espRead(context)
-                                //                Log.d(debugSpeedrun, espData.second)
-                                //                Log.d(debugSpeedrun, idToken)
-                                //                println(espData.second == idToken)
                                 if (espData.second == idToken && idToken != "") {
-                                    corutineScope.launch {
-                                        settingsViewModel.exportCommentsToFirestore()
-                                    }
+                                    settingsViewModel.exportCommentsToFirestore()
                                 } else {
                                     Toast.makeText(
                                         context,
@@ -227,15 +216,11 @@ fun SettingsScreenWithScaffold(modifier: Modifier = Modifier,
                         Spacer(modifier = Modifier.weight(0.25f))
                         Button(
                             onClick = {
+                                settingsViewModel.changeOperationStatus(false)
                                 val idToken = settingsViewModel.getToken()
                                 val espData = espRead(context)
-                                //                Log.d(debugSpeedrun, espData.second)
-                                //                Log.d(debugSpeedrun, idToken)
-                                //                println(espData.second == idToken)
                                 if (espData.second == idToken && idToken != "") {
-                                    corutineScope.launch {
-                                        settingsViewModel.importCommentsFromFirestore()
-                                    }
+                                    settingsViewModel.importCommentsFromFirestore()
                                 } else {
                                     Toast.makeText(
                                         context,
@@ -268,10 +253,7 @@ fun SettingsScreenWithScaffold(modifier: Modifier = Modifier,
                             fontSize = 18.sp,
                             color = Color.Green
                         )
-                        corutineScope.launch {
-                            delay(5000)
-                            settingsViewModel.changeOperationStatus(false)
-                        }
+//                        settingsViewModel.changeOperationStatus(false)
 
                     }
                 }

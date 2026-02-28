@@ -275,10 +275,11 @@ fun AppNavHost(
             AlbumsScreenWithScaffold(modifier, navController)
         }
 
-        composable(Destination.Pictures().route + "/{bID}") { stackEntry ->
+        composable(Destination.Pictures().route + "/{bID}" + "/{itemsCount}") { stackEntry ->
             val bID = stackEntry.arguments?.getString("bID").toString()
-            PicturesScreenWithScaffold(modifier, navController, bID)
-        } // TODO fixme нижнее меню перекрывает часть картинок, как-то надо на его высоту картинки приподнять
+            val itemsCount = stackEntry.arguments?.getString("itemsCount")?.toInt()?:1
+            PicturesScreenWithScaffold(modifier, navController, bID, itemsCount)
+        }
 
         composable(Destination.FullScreenImg().route) { stackEntry ->
             val mediaPosition = stackEntry.arguments?.getInt("mediaPosition")
