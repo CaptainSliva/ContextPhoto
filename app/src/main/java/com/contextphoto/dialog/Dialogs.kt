@@ -4,6 +4,7 @@ import android.app.Activity
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -358,6 +359,9 @@ fun ChooseAlbumDialog(
                 onClick = {dialogVisibility.value = false}
             ),
         ) {
+            BackHandler {
+                dialogVisibility.value = false
+            }
             LazyColumn(modifier = Modifier.padding(8.dp),
                 contentPadding = PaddingValues(bottom = 80.dp)) {
                 items(items = albumList) { album ->
