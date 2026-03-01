@@ -109,7 +109,6 @@ class MainActivity : ComponentActivity() {
                         AppNavHost(
                             navController,
                             startDestination,
-                            modifier = Modifier.padding(paddingValues),
                         )
                     },
                 )
@@ -260,7 +259,6 @@ fun InfinityScrollableText(
 fun AppNavHost(
     navController: NavHostController,
     startDestination: Destination,
-    modifier: Modifier = Modifier,
 ) {
     NavHost(
         navController,

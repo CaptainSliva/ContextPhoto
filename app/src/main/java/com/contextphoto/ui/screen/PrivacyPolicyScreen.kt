@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -75,13 +76,14 @@ fun PrivacyPolicyScreenWithScaffold(showConfidence: MutableState<Boolean>) {
                     .fillMaxSize()
                     .verticalScroll(scrollState)
                     .padding(paddingValues)
+                    .padding(horizontal = 8.dp)
+                    .background(MaterialTheme.colorScheme.background)
             ) {
-                // Разбиваем текст на строки и обрабатываем форматирование
                 val lines = PrivacyPolicyText.FULL_TEXT.split("\n")
 
                 lines.forEach { line ->
                     when {
-                        // Заголовки (жирный текст)
+                        // Жирный текст
                         line.startsWith("**") && line.endsWith("**") -> {
                             Text(
                                 text = line.replace("**", ""),
@@ -91,25 +93,23 @@ fun PrivacyPolicyScreenWithScaffold(showConfidence: MutableState<Boolean>) {
                             )
                         }
 
-                        // обработка ссылок
-                        line.contains("[") && line.contains("](http") -> {
+                        // Обработка ссылок
+                        line.contains("[") && line.contains("](https") -> {
                             val annotatedString = buildAnnotatedString {
                                 var currentIndex = 0
                                 val pattern = "\\[(.*?)\\]\\((.*?)\\)".toRegex()
                                 val matches = pattern.findAll(line)
 
-                                matches.forEach { match ->
-                                    // Добавляем текст до совпадения
-                                    val beforeText = line.substring(currentIndex, match.range.first)
+                                matches.forEach {
+                                    val beforeText = line.substring(currentIndex, it.range.first)
                                     append(beforeText)
 
-                                    // Добавляем кликабельную ссылку
-                                    val linkText = match.groupValues[1]
-                                    val linkUrl = match.groupValues[2]
+                                    val linkText = it.groupValues[1]
+                                    val linkUrl = it.groupValues[2]
 
                                     pushStringAnnotation(tag = "URL", annotation = linkUrl)
                                     withStyle(style = SpanStyle(
-                                        color = Color.Blue,
+                                        color = MaterialTheme.colorScheme.onTertiaryContainer,
                                         textDecoration = TextDecoration.Underline
                                     )
                                     ) {
@@ -117,10 +117,10 @@ fun PrivacyPolicyScreenWithScaffold(showConfidence: MutableState<Boolean>) {
                                     }
                                     pop()
 
-                                    currentIndex = match.range.last + 1
+                                    currentIndex = it.range.last + 1
                                 }
 
-                                // Добавляем оставшийся текст
+                                // Оставшийся текст
                                 if (currentIndex < line.length) {
                                     append(line.substring(currentIndex))
                                 }
@@ -130,9 +130,9 @@ fun PrivacyPolicyScreenWithScaffold(showConfidence: MutableState<Boolean>) {
                                 text = annotatedString,
                                 onClick = { offset ->
                                     annotatedString.getStringAnnotations("URL", offset, offset)
-                                        .firstOrNull()?.let { annotation ->
+                                        .firstOrNull()?.let {
                                             try {
-                                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item))
+                                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it.item))
                                                 context.startActivity(intent)
                                             } catch (e: Exception) {
                                                 Toast.makeText(context, "Не удалось открыть ссылку", Toast.LENGTH_SHORT).show()
@@ -142,7 +142,8 @@ fun PrivacyPolicyScreenWithScaffold(showConfidence: MutableState<Boolean>) {
                                 style = TextStyle(
                                     fontSize = 16.sp,
                                     color = MaterialTheme.colorScheme.onSurface
-                                )
+                                ),
+                                modifier = Modifier.padding(top = 2.dp, bottom = 2.dp)
                             )
                         }
 

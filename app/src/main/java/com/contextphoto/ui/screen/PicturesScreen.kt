@@ -29,6 +29,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
@@ -197,119 +198,96 @@ fun PicturesScreenWithScaffold(navController: NavHostController,
         },
         content = { paddingValues ->
             BackHandler {
-                backActions(mediaViewModel, navController)
+//                backActions(mediaViewModel, navController)
             }
 
             Log.d("fontSize", fontSize.value.toString())
             Log.d("countOfPhotoLine", countOfPhotoLine.value.toString())
 
-            Box(
-                Modifier
-                    .fillMaxSize()
-//                    .pointerInput(Unit) {
-//                        detectTransformGestures { p1, p2, f1, f2 ->
-//                            Log.d("pointerInput", "$p1, $p2, $f1, $f2")
-//                            if (f1 != 1.0F) {
-//                                if (f1 < 1) { // Увеличение масштаба
-//                                    counterFlag.value += 1
-//                                    if (counterFlag.value == otboinik) {
-//                                        counterFlag.value = 0
-//                                        countOfPhotoLine.value += if (countOfPhotoLine.value < 6) 1 else 0
-//                                    }
-//                                } else { // Уменьшение масштаба
-//                                    counterFlag.value += 1
-//                                    if (counterFlag.value == otboinik) {
-//                                        counterFlag.value = 0
-//                                        countOfPhotoLine.value -= if (countOfPhotoLine.value > 1) 1 else 0
-//                                    }
-//                                }
-//                            }
-//
-//                        }
-//                    },
-            ) {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(countOfPhotoLine.value),
-                    modifier =
-                        Modifier
-                            .padding(paddingValues)
-                            .fillMaxSize().pointerInput(Unit) {
-                                detectTransformGestures { p1, p2, f1, f2 ->
-                                    Log.d("pointerInput", "$p1, $p2, $f1, $f2")
-                                    val f = p2.x
-                                    if (f != 0F) {
-                                        if (f > 0) { // Уменьшение масштаба
-                                            counterFlag.value += 1
-                                            if (counterFlag.value == otboinik) {
-                                                counterFlag.value = 0
-                                                countOfPhotoLine.value += if (countOfPhotoLine.value < 6) 1 else 0
-                                            }
-                                        } else { // Увеличение масштаба
-                                            counterFlag.value += 1
-                                            if (counterFlag.value == otboinik) {
-                                                counterFlag.value = 0
-                                                countOfPhotoLine.value -= if (countOfPhotoLine.value > 1) 1 else 0
-                                            }
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(countOfPhotoLine.value),
+                modifier =
+                    Modifier
+                        .padding(paddingValues)
+                        .background(MaterialTheme.colorScheme.background)
+                        .fillMaxSize().pointerInput(Unit) {
+                            detectTransformGestures { p1, p2, f1, f2 ->
+                                Log.d("pointerInput", "$p1, $p2, $f1, $f2")
+                                val f = p2.x
+                                if (f != 0F) {
+                                    if (f > 0) { // Уменьшение масштаба
+                                        counterFlag.value += 1
+                                        if (counterFlag.value == otboinik) {
+                                            counterFlag.value = 0
+                                            countOfPhotoLine.value += if (countOfPhotoLine.value < 6) 1 else 0
+                                        }
+                                    } else { // Увеличение масштаба
+                                        counterFlag.value += 1
+                                        if (counterFlag.value == otboinik) {
+                                            counterFlag.value = 0
+                                            countOfPhotoLine.value -= if (countOfPhotoLine.value > 1) 1 else 0
                                         }
                                     }
-
                                 }
-                            },
-                    state = listState,
-                    contentPadding = PaddingValues(bottom = 80.dp),
-                ) {
-                    groupedMedia.forEach { (date, mediaList) ->
-                        item(
-                            span = { GridItemSpan(maxLineSpan) },
+
+                            }
+                        },
+                state = listState,
+                contentPadding = PaddingValues(bottom = 80.dp),
+            ) {
+                groupedMedia.forEach { (date, mediaList) ->
+                    item(
+                        span = { GridItemSpan(maxLineSpan) },
+                    ) {
+                        AnimatedVisibility(
+                            visible = dateVisible.value,
+                            enter = expandVertically(expandFrom = Alignment.Top),
+                            exit = shrinkVertically(shrinkTowards = Alignment.Top),
                         ) {
-                            AnimatedVisibility(
-                                visible = dateVisible.value,
-                                enter = expandVertically(expandFrom = Alignment.Top),
-                                exit = shrinkVertically(shrinkTowards = Alignment.Top),
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .animateItem(),
-                                ) {
-                                    Text(
-                                        modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .padding(start = 4.dp, top = 4.dp)
-                                                .animateItem(),
-                                        text = date,
-                                        fontSize = fontSize.value.sp,
-                                    )
-                                    HorizontalDivider()
-                                    Spacer(Modifier.padding(2.dp))
-                                }
-                            }
-                        }
-
-                        items(items = mediaList, key = { media -> media.hashCode() }) { media ->
-                            val mediaIndex = listMedia.indexOf(media)
-                            //val haveComment = remember { mutableStateOf(false) }
-
-                            LaunchedEffect(Unit) {
-                                mediaViewModel.changeStatePictureComment(mediaIndex, media.thumbnail)
-                            }
-
-                            PictureItem(
-                                mediaIndex,
-                                media,
-                                Modifier
-                                    .padding(1.dp)
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
                                     .animateItem(),
-                                onItemClick = {
-                                    navController.navigate(Destination.FullScreenImg().route)
-                                },
-                                mediaViewModel,
-                            )
+                            ) {
+                                Text(
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(start = 4.dp, top = 4.dp)
+                                            .animateItem(),
+                                    text = date,
+                                    fontSize = fontSize.value.sp,
+                                )
+                                HorizontalDivider()
+                                Spacer(Modifier.padding(2.dp))
+                            }
                         }
+                    }
+
+                    items(items = mediaList, key = { media -> media.hashCode() }) { media ->
+                        val mediaIndex = listMedia.indexOf(media)
+                        //val haveComment = remember { mutableStateOf(false) }
+
+                        LaunchedEffect(Unit) {
+                            mediaViewModel.changeStatePictureComment(mediaIndex, media.thumbnail)
+                        }
+
+                        PictureItem(
+                            mediaIndex,
+                            media,
+                            Modifier
+                                .padding(1.dp)
+                                .animateItem(),
+                            onItemClick = {
+                                navController.navigate(Destination.FullScreenImg().route)
+                            },
+                            mediaViewModel,
+                        )
                     }
                 }
             }
+
             ShowBottomMenu(Destination.Pictures().route, mediaViewModel = mediaViewModel)
 
             LaunchedEffect(mediaPosition.value) {
@@ -332,7 +310,7 @@ private fun backActions(
     mediaViewModel: MediaViewModel,
     navController: NavHostController
 ) {
-    mediaViewModel.clearPictureList()
+    mediaViewModel.clearMediaViewModelData()
     mediaViewModel.loadPicturesStateChange(true)
     navController.navigateUp()
 }

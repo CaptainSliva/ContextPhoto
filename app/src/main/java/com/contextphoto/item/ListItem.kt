@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -157,39 +158,47 @@ fun PictureItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = picture.duration,
-                modifier = Modifier.padding(start = 8.dp),
-                color = colorResource(R.color.white),
-            )
-            AnimatedVisibility(
-                visible = checkboxVisible.value,
-                enter = scaleIn()+fadeIn(),
-                exit = scaleOut()+fadeOut()
-            ) {
-                Checkbox(
-                    checked = picture in listSelectedMedia,
-                    onCheckedChange =
-                        {
-                            if (picture !in listSelectedMedia) {
-                                mediaViewModel.selectMedia(
-                                    picture,
-                                )
-                            } else {
-                                mediaViewModel.removeSelectMedia(picture)
-                            }
-                        },
-                    modifier = Modifier.alpha(if (checkboxVisible.value) 1f else 0f),
-                    colors =
-                        CheckboxDefaults.colors(
-                            checkedColor = colorResource(R.color.light_blue),
-                            checkmarkColor = Color.White,
-                            uncheckedColor = Color.White,
-                            disabledCheckedColor = Color.White,
-                        ),
-                    // .border(1.dp, color = Color.White, shape = RoundedCornerShape(20)),
+            Box(modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.CenterStart) {
+                Text(
+                    text = picture.duration,
+                    modifier = Modifier.padding(start = 8.dp, bottom = 8.dp),
+                    color = colorResource(R.color.white),
                 )
             }
+            Box(modifier = Modifier.size(32.dp)
+                .padding(end = 8.dp, bottom = 8.dp),
+                contentAlignment = Alignment.BottomCenter) {
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = checkboxVisible.value,
+                    enter = scaleIn()+fadeIn(),
+                    exit = scaleOut()+fadeOut()
+                ) {
+                    Checkbox(
+                        checked = picture in listSelectedMedia,
+                        onCheckedChange =
+                            {
+                                if (picture !in listSelectedMedia) {
+                                    mediaViewModel.selectMedia(
+                                        picture,
+                                    )
+                                } else {
+                                    mediaViewModel.removeSelectMedia(picture)
+                                }
+                            },
+                        colors =
+                            CheckboxDefaults.colors(
+                                checkedColor = colorResource(R.color.light_blue),
+                                checkmarkColor = Color.White,
+                                uncheckedColor = Color.White,
+                                disabledCheckedColor = Color.White,
+                            ),
+                        // .border(1.dp, color = Color.White, shape = RoundedCornerShape(20)),
+                    )
+                }
+            }
+
+
         }
     }
 }

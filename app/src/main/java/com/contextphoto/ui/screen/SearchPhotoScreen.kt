@@ -2,11 +2,13 @@ package com.contextphoto.ui.screen
 
 import android.content.Context
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -21,6 +23,7 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
@@ -77,7 +80,7 @@ fun SearchPhotoScreenWithScaffold(navController: NavHostController,
 
     LaunchedEffect(clearFlag.value) {
         if (clearFlag.value) {
-            mediaViewModel.clearPictureList()
+            mediaViewModel.clearMediaViewModelData()
             clearFlag.value = false
         }
     }
@@ -109,7 +112,8 @@ fun SearchPhotoScreenWithScaffold(navController: NavHostController,
             Column(
                 modifier =
                     Modifier
-                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.background)
+                        .fillMaxSize()
                         .padding(paddingValues),
             ) {
                 Row(
@@ -160,6 +164,7 @@ fun SearchPhotoScreenWithScaffold(navController: NavHostController,
                         colors =
                             CheckboxDefaults.colors(
                                 checkedColor = colorResource(R.color.light_blue),
+                                checkmarkColor = Color.White,
                                 disabledCheckedColor = Color.White,
                             ),
                     )
@@ -242,7 +247,7 @@ private fun backActions(
     mediaViewModel: MediaViewModel,
     navController: NavHostController
 ) {
-    mediaViewModel.clearPictureList()
+    mediaViewModel.clearMediaViewModelData()
     mediaViewModel.loadPicturesStateChange(true)
     navController.navigateUp()
 }

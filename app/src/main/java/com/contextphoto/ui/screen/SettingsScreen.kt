@@ -5,6 +5,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -103,15 +105,17 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
 
             Row(modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(paddingValues)
                 .padding(horizontal = 8.dp)
                 .padding(top = 8.dp)) {
 
-            Column(
-                modifier = Modifier
-                    .weight(0.7f),
-                horizontalAlignment = Alignment.Start
-                ) {
+                Column(
+                    modifier = Modifier
+                        .weight(0.7f),
+                    horizontalAlignment = Alignment.Start
+                    )
+                {
                     Row(
                         horizontalArrangement = Arrangement.Start
                     ) {
@@ -122,7 +126,8 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
                             },
                             shape = RoundedCornerShape(50.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = colorResource(R.color.light_blue)
+                                containerColor = colorResource(R.color.light_blue),
+                                contentColor = Color.White,
                             ),
                             modifier = buttonWidth
                                 .weight(1f)
@@ -140,7 +145,8 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
                             },
                             shape = RoundedCornerShape(50.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = colorResource(R.color.light_blue)
+                                containerColor = colorResource(R.color.light_blue),
+                                contentColor = Color.White,
                             ),
                             modifier = buttonWidth
                                 .weight(1f)
@@ -161,7 +167,8 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
                             },
                             shape = RoundedCornerShape(50.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = colorResource(R.color.light_blue)
+                                containerColor = colorResource(R.color.light_blue),
+                                contentColor = Color.White,
                             ),
                             modifier = buttonWidth
                                 .fillMaxWidth()
@@ -194,7 +201,8 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
                             },
                             shape = RoundedCornerShape(50.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = colorResource(R.color.light_blue)
+                                containerColor = colorResource(R.color.light_blue),
+                                contentColor = Color.White,
                             ),
                             modifier = buttonWidth
                                 .weight(1f)
@@ -222,7 +230,8 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
                             },
                             shape = RoundedCornerShape(50.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = colorResource(R.color.light_blue)
+                                containerColor = colorResource(R.color.light_blue),
+                                contentColor = Color.White,
                             ),
                             modifier = buttonWidth
                                 .weight(1f)

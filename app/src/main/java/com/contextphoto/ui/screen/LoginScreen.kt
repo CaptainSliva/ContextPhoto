@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,8 +22,10 @@ import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -67,9 +70,9 @@ fun LoginScreen(navController: NavHostController,
     val password = rememberSaveable { mutableStateOf("") }
 
     Surface(
-        color = Color.White,
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Box( modifier = Modifier
             .fillMaxSize()
@@ -186,9 +189,9 @@ fun RegisterScreen(navController: NavHostController,
     val showConfidence = rememberSaveable { mutableStateOf(false) }
 
     Surface(
-        color = Color.White,
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Box(modifier = Modifier
             .fillMaxSize()
@@ -241,7 +244,14 @@ fun RegisterScreen(navController: NavHostController,
                         checked = checkedPrivacy.value,
                         onCheckedChange = {
                             checkedPrivacy.value = !checkedPrivacy.value
-                        })
+                        },
+                        colors =
+                            CheckboxDefaults.colors(
+                                checkedColor = colorResource(R.color.light_blue),
+                                checkmarkColor = Color.White,
+                                disabledCheckedColor = Color.White,
+                            )
+                    )
                     Text(context.getString(R.string.privacy_policy_text),
                         textDecoration = TextDecoration.Underline,
                         modifier = Modifier.clickable(onClick = {

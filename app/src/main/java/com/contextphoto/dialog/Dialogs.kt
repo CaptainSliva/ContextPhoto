@@ -11,6 +11,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,9 +20,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -49,6 +52,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
@@ -350,7 +354,9 @@ fun ChooseAlbumDialog(
 //    ) {
         Surface(
             shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxSize().clickable(
+                onClick = {dialogVisibility.value = false}
+            ),
         ) {
             LazyColumn(modifier = Modifier.padding(8.dp),
                 contentPadding = PaddingValues(bottom = 80.dp)) {
@@ -609,10 +615,7 @@ fun RenameAlbumDialog( // TODO fixme (не работает с альбомам�
                     }
                     Log.i("NEWNAME", "$albumName")
                 }) {
-                    Text(
-                        text = LocalContext.current.getString(R.string.ok),
-                        color = Color.Blue,
-                    )
+                    Text(text = LocalContext.current.getString(R.string.ok))
                 }
             }
         }
@@ -664,7 +667,8 @@ fun CommentateDialog(
                     Image(
                         contentDescription = null,
                         bitmap = media.thumbnail.asImageBitmap(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.height(170.dp).width(170.dp)
                     )
                     OutlinedTextField(
                         value = commentText,
@@ -720,10 +724,7 @@ fun CommentateDialog(
                             mutableState.value = false
                             onDismissRequest()
                         }) {
-                            Text(
-                                text = LocalContext.current.getString(R.string.ok),
-                                color = Color.White,
-                            )
+                            Text(text = LocalContext.current.getString(R.string.ok))
                         }
                     }
                 }
