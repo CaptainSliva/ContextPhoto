@@ -10,6 +10,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Add
@@ -220,7 +222,8 @@ fun BottomMenuPictureScreen(mediaViewModel: MediaViewModel) {
             modifier =
                 Modifier
                     .background(Color.Black)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.Center,
         ) {
             ButtonShare(listSelectedMedia)
@@ -280,7 +283,8 @@ fun BottomMenuSearchPictureScreen(mediaViewModel: MediaViewModel) {
             modifier =
                 Modifier
                     .background(Color.Black)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.Center,
         ) {
             ButtonShare(listSelectedMedia)
@@ -305,7 +309,7 @@ fun BottomMenuFullScreen(fullscreenViewModel: FullscreenViewModel) {
             CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
                 commentText.value =
                     fullscreenViewModel.db
-                        .findImageByHash(md5(getThumbnail(context, listMedia[pos.value].uri)))
+                        .findImageByHash(md5(listMedia[pos.value].thumbnail))
                         ?.image_comment
                         ?.trim()
                         ?: commentText.value.trim()
@@ -343,7 +347,8 @@ fun BottomMenuFullScreen(fullscreenViewModel: FullscreenViewModel) {
             modifier =
                 Modifier
                     .background(Color.Black)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.Center,
         ) {
             ButtonShare(listOf(listMedia[pos.value]), commentText.value)
@@ -369,7 +374,7 @@ fun BottomMenuFullScreenVideo(fullscreenViewModel: FullscreenViewModel) {
             CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
                 commentText.value =
                     fullscreenViewModel.db
-                        .findImageByHash(md5(getThumbnail(context, listMedia[pos.value].uri)))
+                        .findImageByHash(md5(listMedia[pos.value].thumbnail))
                         ?.image_comment
                         ?.trim()
                         ?: commentText.value.trim()
@@ -406,7 +411,8 @@ fun BottomMenuFullScreenVideo(fullscreenViewModel: FullscreenViewModel) {
             modifier =
                 Modifier
                     .background(Color.Black)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.Center,
         ) {
             ButtonShare(listOf(listMedia[pos.value]), commentText.value)

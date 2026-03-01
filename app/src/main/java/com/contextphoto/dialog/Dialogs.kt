@@ -643,7 +643,7 @@ fun CommentateDialog(
 
     LaunchedEffect(Unit) {
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-            commentText = db.findImageByHash(md5(getThumbnail(context, media.uri)))?.image_comment?.trim() ?: commentText.trim()
+            commentText = db.findImageByHash(md5(media.thumbnail))?.image_comment?.trim() ?: commentText.trim()
             oldComment.value = commentText
         }
     }
@@ -699,7 +699,7 @@ fun CommentateDialog(
                         Button(onClick = {
                             CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
                                 val commentText = commentText.trim()
-                                val imagHash = md5(getThumbnail(context, media.uri))
+                                val imagHash = md5(media.thumbnail)
                                 when {
                                     commentText.length == 0 && oldComment.value.length != 0 -> {
                                         db.deleteCommentByHash(imagHash)
@@ -710,7 +710,7 @@ fun CommentateDialog(
                                             Comment(
                                                 0,
                                                 media.uri.toString(),
-                                                md5(getThumbnail(context, media.uri)),
+                                                md5(media.thumbnail),
                                                 commentText,
                                             ),
                                         )
@@ -718,7 +718,7 @@ fun CommentateDialog(
 
                                     commentText.length != 0 && oldComment.value.length != 0 -> {
                                         db.replaceCommentByHash(
-                                            md5(getThumbnail(context, media.uri)),
+                                            md5(media.thumbnail),
                                             commentText,
                                         )
                                     }

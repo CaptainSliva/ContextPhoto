@@ -43,7 +43,7 @@ class SettingsSource
         val allHashes = listComments.map { it.image_hash }
         val listPatsh = mutableSetOf<String>()
         allMedia.forEach { media ->
-            val hash = md5(getThumbnail(context, media.uri))
+            val hash = md5(media.thumbnail)
             if (hash in allHashes && media.path !in listPatsh) {
                 db.addComment(listComments[allHashes.indexOf(hash)].copy(image_uri = media.uri.toString()))
 //                listComments.forEach { comment ->

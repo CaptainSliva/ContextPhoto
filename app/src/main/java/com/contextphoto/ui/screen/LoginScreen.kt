@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -144,12 +145,13 @@ fun LoginScreen(navController: NavHostController,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 14.dp)
-                        .height(50.dp),
+                        .wrapContentHeight(),
                 ) {
                     Text(
                         text = context.getString(R.string.login),
                         color = Color.White,
-                        fontSize = 20.sp
+                        fontSize = 20.sp,
+                        modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }
                 Text(text = errorMessage.value,
@@ -294,12 +296,13 @@ fun RegisterScreen(navController: NavHostController,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 14.dp)
-                        .height(50.dp),
+                        .wrapContentHeight(),
                 ) {
                     Text(
                         text = context.getString(R.string.register),
                         color = Color.White,
-                        fontSize = 20.sp
+                        fontSize = 20.sp,
+                        modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }
                 Text(text = errorMessage.value,

@@ -58,7 +58,7 @@ class MediaViewModel
                             Log.d("VM", _listMedia.value.toString())
                             Log.d("VM", "$bID, ${_page.value}, ${rowSize + rowSize * 9}")
 
-                            val splitPath = File(_listMedia.value[0].path).toString().split("/")
+                            val splitPath = if (bID.isNotEmpty()) File(_listMedia.value[0].path).toString().split("/") else List(3) { "" }
                             _albumName.value = if (bID != "") splitPath[splitPath.size - 2] else Destination.Pictures().label
                             loadPicturesStateChange(false)
                             _page.value += 1

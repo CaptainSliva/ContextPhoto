@@ -35,11 +35,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.contextphoto.FunBottomMenu
 import com.contextphoto.R
@@ -164,6 +167,9 @@ fun PictureItem(
                     text = picture.duration,
                     modifier = Modifier.padding(start = 8.dp, bottom = 8.dp),
                     color = colorResource(R.color.white),
+                    fontSize = 12.5.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
             Box(modifier = Modifier.size(32.dp)
@@ -197,8 +203,6 @@ fun PictureItem(
                     )
                 }
             }
-
-
         }
     }
 }

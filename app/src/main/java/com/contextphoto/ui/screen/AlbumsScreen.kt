@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -132,7 +133,10 @@ fun AlbumsScreenWithScaffold(navController: NavHostController,
             LazyVerticalGrid(
                 state = listState,
                 columns = GridCells.Fixed(1),
-                modifier = Modifier.padding(paddingValues).background(MaterialTheme.colorScheme.background),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .background(MaterialTheme.colorScheme.background),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
                 items(
