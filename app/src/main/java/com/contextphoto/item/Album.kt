@@ -1,4 +1,4 @@
-package com.contextphoto.data.mediaClasses
+package com.contextphoto.item
 
 import android.graphics.Bitmap
 import java.io.File

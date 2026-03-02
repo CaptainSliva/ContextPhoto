@@ -3,8 +3,13 @@ package com.contextphoto.utils
 import android.app.Activity
 import android.content.Context
 import android.net.Uri
+import android.util.Log
+import com.contextphoto.data.baseCommentsPath
+import com.contextphoto.data.commentDatabase
 import com.contextphoto.utils.FunctionsMediaStore.copyMediaToAlbum
 import com.contextphoto.utils.FunctionsMediaStore.deleteMediaFile
+import dagger.Provides
+import jakarta.inject.Singleton
 import java.io.File
 
 object FunctionsFiles {
@@ -48,5 +53,41 @@ object FunctionsFiles {
         } else {
             return "CopyError"
         }
+    }
+
+    fun deleteCommentsFile() {
+        val file = File(baseCommentsPath, "/$commentDatabase.txt")
+        file.delete()
+    }
+
+    @Singleton
+    fun importCommentsFromFile(): List<String> {
+        val file = File(baseCommentsPath, "/$commentDatabase.txt")
+        Log.d("file", baseCommentsPath)
+        return if (file.exists()) {
+            file.readLines()
+        } else {
+            emptyList()
+        }
+    }
+
+    inline fun exportCommentsToFile(text: String) {
+        val file = File(baseCommentsPath, "/$commentDatabase.txt")
+        if (file.exists()) {
+            file.appendText(text+"\n")
+        } else {
+            file.writeText(text+"\n")
+        }
+    }
+
+    fun createExportFile() {
+        try {
+            val file = File(baseCommentsPath, "$commentDatabase.txt")
+            if (!file.exists()) {
+                file.createNewFile()
+            }
+        }
+        catch (e: Exception){}
+
     }
 }

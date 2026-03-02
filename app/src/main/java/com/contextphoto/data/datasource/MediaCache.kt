@@ -6,7 +6,7 @@ import android.graphics.BitmapFactory
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.net.toUri
 import com.contextphoto.R
-import com.contextphoto.data.mediaClasses.Picture
+import com.contextphoto.item.Picture
 import com.contextphoto.db.CommentDatabase
 import com.contextphoto.utils.FunctionsBitmap.md5
 import com.contextphoto.utils.FunctionsMediaStore

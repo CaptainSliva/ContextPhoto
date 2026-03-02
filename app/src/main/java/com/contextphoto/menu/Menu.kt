@@ -53,7 +53,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.contextphoto.R
 import com.contextphoto.data.navigation.Destination
-import com.contextphoto.data.mediaClasses.Picture
+import com.contextphoto.item.Picture
 import com.contextphoto.dialog.ChooseAlbumDialog
 import com.contextphoto.dialog.CommentateDialog
 import com.contextphoto.dialog.DeleteAlbumDialog
@@ -62,7 +62,6 @@ import com.contextphoto.dialog.RenameAlbumDialog
 import com.contextphoto.ui.AlbumViewModel
 import com.contextphoto.ui.FullscreenViewModel
 import com.contextphoto.ui.MediaViewModel
-import com.contextphoto.utils.FunctionsBitmap.getThumbnail
 import com.contextphoto.utils.FunctionsBitmap.md5
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

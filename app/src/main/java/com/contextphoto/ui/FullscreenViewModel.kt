@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.contextphoto.data.repository.AlbumRepository
 import com.contextphoto.data.repository.MediaRepository
-import com.contextphoto.data.mediaClasses.Picture
+import com.contextphoto.item.Picture
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.contextphoto.data.repository.AlbumRepository
 import com.contextphoto.data.navigation.Destination
 import com.contextphoto.data.repository.MediaRepository
-import com.contextphoto.data.mediaClasses.Picture
+import com.contextphoto.item.Picture
 import com.contextphoto.utils.FunctionsDialogs.showDeleteAlbumMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
@@ -16,7 +16,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.newSingleThreadContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext

@@ -7,6 +7,7 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +29,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,6 +47,8 @@ import com.contextphoto.data.navigation.Destination
 import com.contextphoto.ui.SettingsViewModel
 import com.contextphoto.utils.FunctionsApp.espRead
 import com.contextphoto.utils.FunctionsApp.espWrite
+import com.contextphoto.dialog.ExportCommentsDialog
+import com.contextphoto.dialog.ImportCommentsDialog
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,6 +71,8 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
             }
         }
     }
+    val dialogVisibility = remember { mutableStateOf(false) }
+    val fileOperationType = remember { mutableStateOf(String()) }
 
     Scaffold(
         topBar = {
@@ -78,7 +85,9 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
                         )
                         if (currentUser.value?.email != null) {
                             Text(
-                                modifier = Modifier.padding(horizontal = 16.dp).weight(1f),
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp)
+                                    .weight(1f),
                                 text = "${currentUser.value!!.email}",
                                 fontSize = 13.sp,
                                 textAlign = TextAlign.End
@@ -103,6 +112,7 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
                 backActions(navController)
             }
 
+
             Row(modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
@@ -121,8 +131,8 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
                     ) {
                         Button(
                             onClick = {
-                                settingsViewModel.changeOperationStatus(false)
-                                settingsViewModel.exportCommentsToStorage()
+                                dialogVisibility.value = true
+                                fileOperationType.value = "export"
                             },
                             shape = RoundedCornerShape(50.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -140,8 +150,8 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
                         Spacer(modifier = Modifier.weight(0.25f))
                         Button(
                             onClick = {
-                                settingsViewModel.changeOperationStatus(false)
-                                settingsViewModel.importCommentsFromStorage()
+                                dialogVisibility.value = true
+                                fileOperationType.value = "import"
                             },
                             shape = RoundedCornerShape(50.dp),
                             colors = ButtonDefaults.buttonColors(
@@ -263,6 +273,23 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
             }
         }
     )
+    AnimatedVisibility(visible = dialogVisibility.value) {
+        Box(modifier = Modifier.fillMaxSize().background(Color.Red))
+        when (fileOperationType.value) {
+            "export" -> {
+                ExportCommentsDialog({ fileOperationType.value = "" }, settingsViewModel)
+            }
+            "import" -> {
+                ImportCommentsDialog({ fileOperationType.value = "" }, settingsViewModel)
+            }
+        }
+
+//        AutoFilePicker(
+//            onFileContent = { content -> fileContent = content
+//                println(fileContent)},
+//            false
+//        )
+    }
 
 }
 

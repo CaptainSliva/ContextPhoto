@@ -26,9 +26,11 @@ class SettingsViewModel
     private val _operationCompleted = MutableStateFlow(false)
     private val _token = MutableStateFlow("")
     private val _stateInfo = MutableStateFlow("")
+    private val _fileText = MutableStateFlow<List<String>>(emptyList())
     val currentUser = _currentUser.asStateFlow()
     val operationCompleted = _operationCompleted.asStateFlow()
     val stateInfo = _stateInfo.asStateFlow()
+    val fileText = _fileText.asStateFlow()
 
     init {
         getCurrentUser()
@@ -37,9 +39,8 @@ class SettingsViewModel
     fun exportCommentsToStorage() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                repository.exportCommentsToStorage()
+                _fileText.value = repository.exportCommentsToStorage()
                 changeOperationStatus(true)
-                _stateInfo.value = "Экспорт в файл завершен"
             }
         }
     }
@@ -47,9 +48,8 @@ class SettingsViewModel
     fun importCommentsFromStorage() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                repository.importCommentsFromStorage()
+                repository.importCommentsFromStorage(_fileText.value)
                 changeOperationStatus(true)
-                _stateInfo.value = "Импорт из файла завершен"
             }
         }
     }
@@ -83,6 +83,15 @@ class SettingsViewModel
     fun changeOperationStatus(status: Boolean) {
         _operationCompleted.value = status
     }
+
+    fun changeStateInfo(info: String) {
+        _stateInfo.value = info
+    }
+
+    fun setFileText(fileText: List<String>) {
+        _fileText.value = fileText
+    }
+
 
     fun setToken(token: String) {_token.value = token}
     fun getToken() = _token.value

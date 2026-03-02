@@ -39,6 +39,7 @@
     <string name="enter_in_account">Войти в аккаунт</string>
     <string name="import_from_firebase">Импорт из Firebase</string>
     <string name="export_to_firebase">Экспорт в Firebase</string>
+    <string name="next_step">Продолжить</string>
 
     <!-- Заголовки -->
     <string name="require_permissions_title">Требуются разрешения</string>
@@ -68,6 +69,9 @@
     <string name="alternative_login">Or</string>
     <string name="no_login">Не совершен вход в профиль</string>
     <string name="get_policy">Примите политику конфиденциальности</string>
+    <string name="text_dialog_choose_export_file">Пожалуйста, выберите файл для экспорта (по умолчанию это файл в памяти телефона - Documents/Context_photo_comment_database.txt). Но если его нет - выберите свой .txt файл.</string>
+    <string name="text_dialog_choose_import_file">Пожалуйста, выберите файл для импорта (по умолчанию это файл в памяти телефона - Documents/Context_photo_comment_database.txt). Но если его нет - выберите свой .txt файл.</string>
+    <string name="select_instruction">Файл выбирается долгим нажатием на него</string>
 
 <!--    Остальное-->
 

@@ -1,7 +1,7 @@
 package com.contextphoto.data.repository
 
 import android.graphics.Bitmap
-import com.contextphoto.data.mediaClasses.Picture
+import com.contextphoto.item.Picture
 import com.contextphoto.data.datasource.MediaCache
 import javax.inject.Inject
 

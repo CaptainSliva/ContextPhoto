@@ -12,15 +12,21 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.GetContent
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.graphics.createBitmap
 import androidx.core.net.toUri
 import com.contextphoto.R
-import com.contextphoto.data.mediaClasses.Album
 import com.contextphoto.data.PERMISSION_DELETE_REQUEST_CODE
-import com.contextphoto.data.mediaClasses.Picture
 import com.contextphoto.data.baseCommentsPath
 import com.contextphoto.data.commentDatabase
+import com.contextphoto.item.Album
+import com.contextphoto.item.Picture
 import com.contextphoto.ui.AlbumViewModel
 import com.contextphoto.utils.FunctionsApp.durationTranslate
 import com.contextphoto.utils.FunctionsBitmap.getThumbnail
@@ -35,6 +41,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -645,37 +652,6 @@ object FunctionsMediaStore {
         return datePhoto.split("\n")
     }
 
-    @Singleton
-    fun deleteCommentsFile() {
-        val folder: File =
-            baseCommentsPath
-        val file = File(folder, "$commentDatabase.txt")
-        file.delete()
-    }
 
-    @Singleton
-    @Provides
-    fun importCommentsFromFile(): List<String> {
-        val folder: File =
-            baseCommentsPath
-        val file = File(folder, "$commentDatabase.txt")
-        return if (file.exists()) {
-            file.readLines()
-        } else {
-            emptyList()
-        }
-    }
-
-    @Singleton
-    inline fun exportCommentsToFile(text: String) {
-        val folder: File =
-            baseCommentsPath
-        val file = File(folder, "$commentDatabase.txt")
-        if (file.exists()) {
-            file.appendText(text+"\n")
-        } else {
-            file.writeText(text+"\n")
-        }
-    }
 }
 

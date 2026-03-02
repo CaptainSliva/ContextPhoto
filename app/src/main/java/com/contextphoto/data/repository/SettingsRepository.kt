@@ -1,16 +1,13 @@
 package com.contextphoto.data.repository
 
 import android.util.Log
-import com.contextphoto.data.datasource.FireBaseSource
 import com.contextphoto.data.datasource.SettingsSource
 import com.contextphoto.db.Comment
-import com.contextphoto.utils.FunctionsMediaStore.deleteCommentsFile
-import com.contextphoto.utils.FunctionsMediaStore.exportCommentsToFile
-import com.contextphoto.utils.FunctionsMediaStore.importCommentsFromFile
+import com.contextphoto.utils.FunctionsFiles.createExportFile
+import com.contextphoto.utils.FunctionsFiles.importCommentsFromFile
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
-import kotlin.jvm.java
 
 class SettingsRepository
     @Inject
@@ -18,34 +15,24 @@ class SettingsRepository
         private val settingsSource: SettingsSource
     )
 {
-    suspend fun exportCommentsToStorage(): Boolean {
-        try {
-            deleteCommentsFile()
-            val listComments = settingsSource.getAllComments()
-            listComments.first().forEach { comment ->
-                val serializeComment = Gson().toJson(comment)
-                Log.d("listComments", comment.toString())
-                Log.d("GsonString", serializeComment)
-                exportCommentsToFile(serializeComment)
-            }
-            return true
-        }
-        catch (e: Exception) {return false}
+    suspend fun exportCommentsToStorage(): List<String> {
+        createExportFile()
+        val listComments = settingsSource.getAllComments()
+        return listComments.first().map { Gson().toJson(it) }
     }
 
-    suspend fun importCommentsFromStorage(): Boolean {
-        try {
-            val listString = importCommentsFromFile()
+    suspend fun importCommentsFromStorage(fileText: List<String>): Boolean {
+//        try {
             val listComments = mutableListOf<Comment>()
-            listString.forEach {
+            fileText.forEach {
                 val comment = Gson().fromJson(it, Comment::class.java)
                 Log.d("resultString", comment.toString())
                 listComments.add(comment)
             }
-            settingsSource.importCommentsFromStorage(listComments)
+            settingsSource.importCommentsToDatabase(listComments)
             return true
-        }
-        catch (e: Exception) {return false}
+//        }
+//        catch (e: Exception) {return false}
     }
 
     suspend fun exportCommentsToFirestore() {

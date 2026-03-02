@@ -1,15 +1,27 @@
 package com.contextphoto.utils
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
+import android.net.Uri
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.edit
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.contextphoto.data.baseFilePath
+import com.contextphoto.data.commentDatabase
+import com.contextphoto.db.CommentDatabase
+import com.contextphoto.ui.SettingsViewModel
+import com.contextphoto.utils.FunctionsFiles.createExportFile
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
-import androidx.core.content.edit
-import com.contextphoto.data.baseFilePath
-import com.contextphoto.db.CommentDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -20,7 +32,7 @@ import java.io.IOException
 object FunctionsApp {
 
     fun generatePictures(width: Int, height: Int, count: Int, delete: Boolean, addName: String) {
-        val path = File(baseFilePath, "Nagruzka album_$addName")
+        val path = File(baseFilePath, "/Nagruzka album_$addName")
 
         if (delete) {
             path.listFiles()?.forEach { file ->
@@ -127,25 +139,26 @@ object FunctionsApp {
         )
     }
 
-    fun espClear(context: Context) {
-        val masterKey =
-            MasterKey
-                .Builder(context)
-                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                .build()
-        val sharedPreferences =
-            EncryptedSharedPreferences.create(
-                context,
-                "secure_prefs",
-                masterKey,
-                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-            )
-        sharedPreferences
-            .edit{
-                putString("email", "")
-                    .putString("jwtToken", "")
-            }
+    @Composable
+    fun FileImportDialog(viewModel: SettingsViewModel)
+    {
+        val context = LocalContext.current
+
+        val readLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent()
+        ) { uri: Uri? ->
+            uri?.let {
+                context.contentResolver.openInputStream(it)?.use { stream ->
+                    val content = stream.bufferedReader().readText().split("\n")
+                    viewModel.setFileText(content)
+                    println("Содержимое файла: $content")
+                    viewModel.changeStateInfo("Импорт из файла завершен")
+                } ?: viewModel.changeStateInfo("Ошибка импорта")
+            } ?: viewModel.changeStateInfo("Ошибка импорта")
+        }
+
+        LaunchedEffect(true) { readLauncher.launch("text/plain") }
     }
+
 }
 

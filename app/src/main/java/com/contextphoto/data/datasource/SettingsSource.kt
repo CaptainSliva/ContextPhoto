@@ -33,7 +33,8 @@ class SettingsSource
 
     fun getAllComments() = db.getAllComments()
 
-    suspend fun importCommentsFromStorage(listComments: List<Comment>) {
+
+    suspend fun importCommentsToDatabase(listComments: List<Comment>) {
 
         db.dropAllComments()
 //        listComments.forEach {
@@ -41,10 +42,10 @@ class SettingsSource
 //        }
         val allMedia = getAllMedia(context)
         val allHashes = listComments.map { it.image_hash }
-        val listPatsh = mutableSetOf<String>()
+        val listPaths = mutableSetOf<String>()
         allMedia.forEach { media ->
             val hash = md5(media.thumbnail)
-            if (hash in allHashes && media.path !in listPatsh) {
+            if (hash in allHashes && media.path !in listPaths) {
                 db.addComment(listComments[allHashes.indexOf(hash)].copy(image_uri = media.uri.toString()))
 //                listComments.forEach { comment ->
 //                    if (comment.image_hash == hash) {
@@ -52,7 +53,7 @@ class SettingsSource
 //                        db.addComment(newComment)
 //                    }
 //                }
-                listPatsh.add(media.path)
+                listPaths.add(media.path)
             }
         }
     }
@@ -86,7 +87,7 @@ class SettingsSource
                 listComments.add(comment)
             }
         }
-        importCommentsFromStorage(listComments)
+        importCommentsToDatabase(listComments)
     }
 
     suspend fun deleteCommentsFromFirestore() {
