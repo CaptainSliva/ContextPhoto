@@ -22,5 +22,4 @@ sealed class Destination(
     class Login : Destination("login", "Логин", R.drawable.ic_launcher_background, "Login")
 
     class Registration : Destination("registration", "Регистрация", R.drawable.ic_launcher_background, "Registration")
-
 }

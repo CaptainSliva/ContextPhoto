@@ -1,8 +1,8 @@
 package com.contextphoto.data.repository
 
 import android.graphics.Bitmap
-import com.contextphoto.item.Picture
 import com.contextphoto.data.datasource.MediaCache
+import com.contextphoto.item.Picture
 import javax.inject.Inject
 
 class MediaRepository
@@ -18,7 +18,11 @@ class MediaRepository
 
         fun getSelectedMediaList() = mediaCache.listSelectedMedia.value
 
-        fun loadPictureList(bID: String, page: Int, rowSize: Int) = mediaCache.loadPictureList(bID, page, rowSize)
+        fun loadPictureList(
+            bID: String,
+            page: Int,
+            rowSize: Int,
+        ) = mediaCache.loadPictureList(bID, page, rowSize)
 
         fun clearPictureList() = mediaCache.clearPictureList()
 
@@ -50,7 +54,10 @@ class MediaRepository
             )
         }
 
-        suspend fun changeStatePictureComment(mediaIndex: Int, mediaThumbnail: Bitmap) {
+        suspend fun changeStatePictureComment(
+            mediaIndex: Int,
+            mediaThumbnail: Bitmap,
+        ) {
             mediaCache.changeStatePictureComment(mediaIndex, mediaThumbnail)
         }
 

@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.Scaffold
-import androidx.compose.material.contentColorFor
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,8 +44,10 @@ import com.contextphoto.ui.AlbumViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AlbumsScreenWithScaffold(navController: NavHostController,
-                             albumViewModel: AlbumViewModel = hiltViewModel()) {
+fun AlbumsScreenWithScaffold(
+    navController: NavHostController,
+    albumViewModel: AlbumViewModel = hiltViewModel(),
+) {
     val loadAlbums = albumViewModel.loadAlbums.collectAsStateWithLifecycle()
     Log.d("LOAD", loadAlbums.value.toString())
     LaunchedEffect(loadAlbums.value) {
@@ -133,11 +134,12 @@ fun AlbumsScreenWithScaffold(navController: NavHostController,
             LazyVerticalGrid(
                 state = listState,
                 columns = GridCells.Fixed(1),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .background(MaterialTheme.colorScheme.background),
-                contentPadding = PaddingValues(bottom = 80.dp)
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .background(MaterialTheme.colorScheme.background),
+                contentPadding = PaddingValues(bottom = 80.dp),
             ) {
                 items(
                     items = albumList,
@@ -146,7 +148,11 @@ fun AlbumsScreenWithScaffold(navController: NavHostController,
                     AlbumItem(
                         album,
                         Modifier.padding(0.dp, 2.dp).animateItem(),
-                        onItemClick = { navController.navigate(Destination.Pictures().route + "/${album.bID}" + "/${album.itemsCount?:1}") },
+                        onItemClick = {
+                            navController.navigate(
+                                Destination.Pictures().route + "/${album.bID}" + "/${album.itemsCount ?: 1}",
+                            )
+                        },
                         albumViewModel,
                     )
                 }

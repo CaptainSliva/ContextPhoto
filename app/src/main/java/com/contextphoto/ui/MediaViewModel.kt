@@ -5,8 +5,8 @@ import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.contextphoto.data.repository.AlbumRepository
 import com.contextphoto.data.navigation.Destination
+import com.contextphoto.data.repository.AlbumRepository
 import com.contextphoto.data.repository.MediaRepository
 import com.contextphoto.item.Picture
 import com.contextphoto.utils.FunctionsDialogs.showDeleteAlbumMessage
@@ -44,8 +44,10 @@ class MediaViewModel
         val albumName = _albumName.asStateFlow()
         val numberFind = _numberFind.asStateFlow()
 
-
-        fun loadPictureList(bID: String, rowSize: Int=3) {
+        fun loadPictureList(
+            bID: String,
+            rowSize: Int = 3,
+        ) {
             viewModelScope.launch {
                 _mutex.withLock {
                     withContext(Dispatchers.IO) {
@@ -172,7 +174,10 @@ class MediaViewModel
             albumRepository.loadAlbumsStateChange(state)
         }
 
-        fun changeStatePictureComment(mediaIndex: Int, mediaThumbnail: Bitmap) {
+        fun changeStatePictureComment(
+            mediaIndex: Int,
+            mediaThumbnail: Bitmap,
+        ) {
             viewModelScope.launch {
                 withContext(Dispatchers.IO) {
                     repository.changeStatePictureComment(mediaIndex, mediaThumbnail)
@@ -210,8 +215,11 @@ class MediaViewModel
             viewModelScope.launch {
                 withContext(Dispatchers.IO) {
                     val albums = albumRepository.getAlbumList()
-                    val index = albumRepository.getAlbumList().map { it.bID }
-                        .indexOf(albumRepository.getAlbumBid())
+                    val index =
+                        albumRepository
+                            .getAlbumList()
+                            .map { it.bID }
+                            .indexOf(albumRepository.getAlbumBid())
                     albumRepository.deleteAlbum(albums[index])
                     showDeleteAlbumMessage(context, albums[index].name, albums[index].path)
                 }

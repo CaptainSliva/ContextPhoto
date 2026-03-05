@@ -67,7 +67,6 @@ import com.contextphoto.ui.theme.ContextPhotoTheme
 import com.contextphoto.utils.RequestPermissions.ComposePermissions
 import dagger.hilt.android.AndroidEntryPoint
 
-
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -85,9 +84,6 @@ class MainActivity : ComponentActivity() {
 //                generatePictures(10000, 10000,count, delete = true, (count).toString())
 //            }
 
-
-
-
             // var selectedDestination by rememberSaveable { mutableIntStateOf(startDestination.ordinal) }
 
 //            firebaseFirestoreDatabaseTest()
@@ -103,7 +99,7 @@ class MainActivity : ComponentActivity() {
             //    }
             //    val db = Room.databaseBuilder(context, CommentDatabase::class.java, "comment_database").addMigrations(MIGRATION_1_2).build()
 
-            ContextPhotoTheme() {
+            ContextPhotoTheme {
                 Scaffold(
                     content = { paddingValues ->
                         AppNavHost(
@@ -197,16 +193,17 @@ fun InfinityScrollableText(
                 listOf(
                     colorResource(R.color.medium_transparant_black),
                     colorResource(R.color.dark_black_overlay),
-                    Color.Black
+                    Color.Black,
                 ),
             )
         val offsetX = remember { mutableStateOf(0f) }
         val offsetY = remember { mutableStateOf(0f) }
         var size by remember { mutableStateOf(Size.Zero) }
         Column(
-            modifier = Modifier
-                .fillMaxHeight()
-                .alpha(alpha = if (visible) 1f else 0f),
+            modifier =
+                Modifier
+                    .fillMaxHeight()
+                    .alpha(alpha = if (visible) 1f else 0f),
             verticalArrangement = Arrangement.Bottom,
         ) {
             println(offsetY.value)
@@ -224,16 +221,16 @@ fun InfinityScrollableText(
                                 val newValue =
                                     Offset(
                                         x = summed.x.coerceIn(0f, size.width),
-                                        y = (original.y - dragAmount.y / 3.3f).coerceIn(
-                                            0f,
-                                            Constraints.Infinity.toFloat()
-                                        ),
+                                        y =
+                                            (original.y - dragAmount.y / 3.3f).coerceIn(
+                                                0f,
+                                                Constraints.Infinity.toFloat(),
+                                            ),
                                     )
                                 offsetX.value = newValue.x
                                 offsetY.value = newValue.y
                             }
-                        }
-                        .clickable(onClick = {
+                        }.clickable(onClick = {
                             onClick()
                             offsetY.value = 0f
                         })
@@ -265,12 +262,12 @@ fun AppNavHost(
         startDestination = startDestination.route,
     ) {
         composable(Destination.Albums().route) {
-            AlbumsScreenWithScaffold( navController)
+            AlbumsScreenWithScaffold(navController)
         }
 
         composable(Destination.Pictures().route + "/{bID}" + "/{itemsCount}") { stackEntry ->
             val bID = stackEntry.arguments?.getString("bID").toString()
-            val itemsCount = stackEntry.arguments?.getString("itemsCount")?.toInt()?:1
+            val itemsCount = stackEntry.arguments?.getString("itemsCount")?.toInt() ?: 1
             PicturesScreenWithScaffold(navController, bID, itemsCount)
         }
 

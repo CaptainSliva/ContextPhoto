@@ -103,7 +103,6 @@ fun AlbumItem(
             }
         }
     }
-
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -155,24 +154,30 @@ fun PictureItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(modifier = Modifier.weight(1f),
-                contentAlignment = Alignment.CenterStart) {
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.CenterStart,
+            ) {
                 Text(
                     text = picture.duration,
                     modifier = Modifier.padding(start = 8.dp, bottom = 8.dp),
                     color = colorResource(R.color.white),
                     fontSize = 12.5.sp,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
-            Box(modifier = Modifier.size(32.dp)
-                .padding(end = 8.dp, bottom = 8.dp),
-                contentAlignment = Alignment.BottomCenter) {
+            Box(
+                modifier =
+                    Modifier
+                        .size(32.dp)
+                        .padding(end = 8.dp, bottom = 8.dp),
+                contentAlignment = Alignment.BottomCenter,
+            ) {
                 androidx.compose.animation.AnimatedVisibility(
                     visible = checkboxVisible.value,
-                    enter = scaleIn()+fadeIn(),
-                    exit = scaleOut()+fadeOut()
+                    enter = scaleIn() + fadeIn(),
+                    exit = scaleOut() + fadeOut(),
                 ) {
                     Checkbox(
                         checked = picture in listSelectedMedia,

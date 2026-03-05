@@ -46,8 +46,10 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FullScreenViewPagerWithScaffold(navController: NavHostController,
-                                    fullScreenViewModel: FullscreenViewModel = hiltViewModel()) {
+fun FullScreenViewPagerWithScaffold(
+    navController: NavHostController,
+    fullScreenViewModel: FullscreenViewModel = hiltViewModel(),
+) {
     fullScreenViewModel.loadPictureList()
 
     val context = LocalContext.current
@@ -84,8 +86,7 @@ fun FullScreenViewPagerWithScaffold(navController: NavHostController,
                                     listMedia[mediaPosotion].date[1],
                                     fontSize = 13.sp,
                                 )
-                            }
-                            else {
+                            } else {
                                 backActions(navController)
                             }
                         }
@@ -101,13 +102,14 @@ fun FullScreenViewPagerWithScaffold(navController: NavHostController,
                         }
                     },
                     modifier = Modifier.background(Color.Black),
-                    colors = TopAppBarColors(
-                        containerColor = Color.Black,
-                        scrolledContainerColor = Color.White,
-                        navigationIconContentColor = Color.White,
-                        titleContentColor = Color.White,
-                        actionIconContentColor = Color.White
-                    )
+                    colors =
+                        TopAppBarColors(
+                            containerColor = Color.Black,
+                            scrolledContainerColor = Color.White,
+                            navigationIconContentColor = Color.White,
+                            titleContentColor = Color.White,
+                            actionIconContentColor = Color.White,
+                        ),
                 )
             }
             LaunchedEffect(visibleMenu.value) {
@@ -147,9 +149,10 @@ fun FullScreenViewPagerWithScaffold(navController: NavHostController,
                 ) {
                     Log.d("convertUri", "uri - ${media.uri}\npath - ${media.path}\nconvertUri- ${convertUri(media.path, media.uri)}")
                     if (pagerState.settledPage == listMedia.size) {
-                        fullScreenViewModel.getImageComment(listMedia[pagerState.settledPage-1].thumbnail)
+                        fullScreenViewModel.getImageComment(listMedia[pagerState.settledPage - 1].thumbnail)
+                    } else {
+                        fullScreenViewModel.getImageComment(listMedia[pagerState.settledPage].thumbnail)
                     }
-                    else fullScreenViewModel.getImageComment(listMedia[pagerState.settledPage].thumbnail)
                     if (convertUri(media.path, media.uri).toString().contains("video")) {
                         CustomVideoUI(
                             media.uri,
@@ -169,14 +172,14 @@ fun FullScreenViewPagerWithScaffold(navController: NavHostController,
                         ImageUI(
                             media.uri,
                             media.path,
-                            { fullScreenViewModel.changeStateBottomMenuFullScreen() })
+                            { fullScreenViewModel.changeStateBottomMenuFullScreen() },
+                        )
                         ShowBottomMenu(
                             Destination.FullScreenImg().route,
                             fullScreenViewModel = fullScreenViewModel,
                             commentText = commentText,
                         )
                     }
-
                 }
             }
 
@@ -186,8 +189,7 @@ fun FullScreenViewPagerWithScaffold(navController: NavHostController,
                         if (mediaPosotion != -1) {
                             pagerState.animateScrollToPage(mediaPosotion)
                             fullScreenViewModel.deleteActionChange()
-                        }
-                        else {
+                        } else {
                             backActions(navController)
                         }
                     }
@@ -200,7 +202,6 @@ fun FullScreenViewPagerWithScaffold(navController: NavHostController,
         },
     )
 }
-
 
 private fun backActions(navController: NavHostController) {
     navController.navigateUp()

@@ -71,7 +71,6 @@ dependencies {
     val nav_version = "2.9.6"
     val material_version = "1.7.4"
     implementation("com.davemorrissey.labs:subsampling-scale-image-view:3.10.0")
-    implementation("com.github.bumptech.glide:glide:4.16.0") //
     implementation("com.google.android.exoplayer:exoplayer:2.19.1")
     implementation("androidx.room:room-runtime:${room_version}")
     ksp("androidx.room:room-compiler:$room_version")
@@ -99,7 +98,4 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-gif:3.0.4")
 
     // comment after set registration
-
 }
-
-

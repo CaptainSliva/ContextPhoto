@@ -53,12 +53,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.contextphoto.R
 import com.contextphoto.data.navigation.Destination
-import com.contextphoto.item.Picture
 import com.contextphoto.dialog.ChooseAlbumDialog
 import com.contextphoto.dialog.CommentateDialog
 import com.contextphoto.dialog.DeleteAlbumDialog
 import com.contextphoto.dialog.DeleteMediaDialog
 import com.contextphoto.dialog.RenameAlbumDialog
+import com.contextphoto.item.Picture
 import com.contextphoto.ui.AlbumViewModel
 import com.contextphoto.ui.FullscreenViewModel
 import com.contextphoto.ui.MediaViewModel
@@ -69,7 +69,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 @Composable
-fun MainDropdownMenu(navController: NavController, onClickEvent: () -> Unit = {}) {
+fun MainDropdownMenu(
+    navController: NavController,
+    onClickEvent: () -> Unit = {},
+) {
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
     Row(
@@ -203,14 +206,15 @@ fun BottomMenuPictureScreen(mediaViewModel: MediaViewModel) {
         enter = slideInVertically(),
         exit = slideOutVertically(),
     ) {
-        if (listSelectedMedia.isNotEmpty())
-        DeleteMediaDialog(
-            {},
-            deleteDialogVisible,
-            Destination.Pictures().route,
-            listSelectedMedia[0].bID,
-            mediaViewModel = mediaViewModel,
-        )
+        if (listSelectedMedia.isNotEmpty()) {
+            DeleteMediaDialog(
+                {},
+                deleteDialogVisible,
+                Destination.Pictures().route,
+                listSelectedMedia[0].bID,
+                mediaViewModel = mediaViewModel,
+            )
+        }
     }
 
     Column(
@@ -239,7 +243,6 @@ fun BottomMenuSearchPictureScreen(mediaViewModel: MediaViewModel) {
     val deleteDialogVisible = rememberSaveable { mutableStateOf(false) }
     val commentsStateDialogVisible = rememberSaveable { mutableStateListOf<MutableState<Boolean>>() }
     val listSelectedMedia by mediaViewModel.listSelectedMedia.collectAsStateWithLifecycle()
-
 
     if (commentateDialogVisible.value) {
         commentsStateDialogVisible.clear()

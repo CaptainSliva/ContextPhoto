@@ -33,7 +33,6 @@ class FullscreenViewModel
         val deleteAction = _deleteAction.asStateFlow()
         val imageComment = _imageComment.asStateFlow()
 
-
         fun loadPictureList() {
             _listMedia.value = repository.getPictureList()
             _mediaPosition.value = repository.getMediaPosition()
@@ -82,5 +81,4 @@ class FullscreenViewModel
                 }
             }
         }
-
     }

@@ -8,7 +8,6 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -33,10 +32,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -63,10 +60,11 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PicturesScreenWithScaffold(navController: NavHostController,
-                               bID: String,
-                               itemsCount: Int,
-                               mediaViewModel: MediaViewModel = hiltViewModel(),
+fun PicturesScreenWithScaffold(
+    navController: NavHostController,
+    bID: String,
+    itemsCount: Int,
+    mediaViewModel: MediaViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(Unit) {
         mediaViewModel.loadPictureList(bID)
@@ -93,7 +91,10 @@ fun PicturesScreenWithScaffold(navController: NavHostController,
     val listState = rememberLazyGridState()
     val shouldLoadMore by remember(listState) {
         derivedStateOf {
-            val lastVisibleItemIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val lastVisibleItemIndex =
+                listState.layoutInfo.visibleItemsInfo
+                    .lastOrNull()
+                    ?.index ?: 0
             val totalItemsCount = listState.layoutInfo.totalItemsCount
             lastVisibleItemIndex >= totalItemsCount - countOfPhotoLine.value
         }
@@ -120,12 +121,14 @@ fun PicturesScreenWithScaffold(navController: NavHostController,
         3 -> {
             fontSize.value = defaultTextSize
         }
-// visible date and divider
+
+        // visible date and divider
         4 -> {
             fontSize.value = 11f
             dateVisible.value = true
         }
-// invisible date and divider
+
+        // invisible date and divider
         5 -> {
             dateVisible.value = false
         }
@@ -139,9 +142,10 @@ fun PicturesScreenWithScaffold(navController: NavHostController,
                 title = {
                     Text(
                         albumName,
-                        modifier = Modifier
-                            .verticalScroll(rememberScrollState())
-                            .padding(end = 32.dp)
+                        modifier =
+                            Modifier
+                                .verticalScroll(rememberScrollState())
+                                .padding(end = 32.dp),
                     )
                 },
                 navigationIcon = {
@@ -155,7 +159,10 @@ fun PicturesScreenWithScaffold(navController: NavHostController,
                     }
                 },
             )
-            MainDropdownMenu(navController, { mediaViewModel.changeStateBottomMenu(false); mediaViewModel.clearSelectedMedia() })
+            MainDropdownMenu(navController, {
+                mediaViewModel.changeStateBottomMenu(false)
+                mediaViewModel.clearSelectedMedia()
+            })
         },
         bottomBar = {
             val stateBottomMenu by mediaViewModel.bottomMenuVisible.collectAsStateWithLifecycle()
@@ -204,14 +211,14 @@ fun PicturesScreenWithScaffold(navController: NavHostController,
             Log.d("fontSize", fontSize.value.toString())
             Log.d("countOfPhotoLine", countOfPhotoLine.value.toString())
 
-
             LazyVerticalGrid(
                 columns = GridCells.Fixed(countOfPhotoLine.value),
                 modifier =
                     Modifier
                         .padding(paddingValues)
                         .background(MaterialTheme.colorScheme.background)
-                        .fillMaxSize().pointerInput(Unit) {
+                        .fillMaxSize()
+                        .pointerInput(Unit) {
                             detectTransformGestures { p1, p2, f1, f2 ->
                                 Log.d("pointerInput", "$p1, $p2, $f1, $f2")
                                 val f = p2.x
@@ -230,7 +237,6 @@ fun PicturesScreenWithScaffold(navController: NavHostController,
                                         }
                                     }
                                 }
-
                             }
                         },
                 state = listState,
@@ -246,9 +252,10 @@ fun PicturesScreenWithScaffold(navController: NavHostController,
                             exit = shrinkVertically(shrinkTowards = Alignment.Top),
                         ) {
                             Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .animateItem(),
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .animateItem(),
                             ) {
                                 Text(
                                     modifier =
@@ -267,7 +274,7 @@ fun PicturesScreenWithScaffold(navController: NavHostController,
 
                     items(items = mediaList, key = { media -> media.hashCode() }) { media ->
                         val mediaIndex = listMedia.indexOf(media)
-                        //val haveComment = remember { mutableStateOf(false) }
+                        // val haveComment = remember { mutableStateOf(false) }
 
                         LaunchedEffect(Unit) {
                             mediaViewModel.changeStatePictureComment(mediaIndex, media.thumbnail)
@@ -300,15 +307,13 @@ fun PicturesScreenWithScaffold(navController: NavHostController,
                     )
                 }
             }
-
         },
     )
 }
 
-
 private fun backActions(
     mediaViewModel: MediaViewModel,
-    navController: NavHostController
+    navController: NavHostController,
 ) {
     mediaViewModel.clearMediaViewModelData()
     mediaViewModel.loadPicturesStateChange(true)

@@ -58,8 +58,10 @@ import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchPhotoScreenWithScaffold(navController: NavHostController,
-                                  mediaViewModel: MediaViewModel = hiltViewModel()) {
+fun SearchPhotoScreenWithScaffold(
+    navController: NavHostController,
+    mediaViewModel: MediaViewModel = hiltViewModel(),
+) {
     val context = LocalContext.current
     val db = CommentDatabase.getDatabse(context).commentDao()
     var commentText by rememberSaveable { mutableStateOf("") }
@@ -133,7 +135,7 @@ fun SearchPhotoScreenWithScaffold(navController: NavHostController,
                         label = { "Enter text" },
                         placeholder = { "Найти" },
                         supportingText = {
-                            Text("Найдено: ${numberFind}")
+                            Text("Найдено: $numberFind")
                         },
                         modifier = Modifier.weight(8f),
                     )
@@ -148,7 +150,7 @@ fun SearchPhotoScreenWithScaffold(navController: NavHostController,
                                         commentText = ""
                                     },
                                 ),
-                        color = colorResource(R.color.light_blue)
+                        color = colorResource(R.color.light_blue),
                     )
                 }
                 Row(
@@ -178,7 +180,7 @@ fun SearchPhotoScreenWithScaffold(navController: NavHostController,
                     state = listState,
                     columns = GridCells.Fixed(3),
                     modifier = Modifier.padding(paddingValues),
-                    contentPadding = PaddingValues(bottom = 80.dp)
+                    contentPadding = PaddingValues(bottom = 80.dp),
                 ) {
                     items(items = listMedia, key = { media -> media.hashCode() }) { media ->
                         val mediaIndex = listMedia.indexOf(media)
@@ -233,8 +235,7 @@ private suspend fun searchPhotoOnComment(
                             )
                         }
                     }
-                }
-                else {
+                } else {
                     db.delete(commentCurrent)
                 }
             }
@@ -242,10 +243,9 @@ private suspend fun searchPhotoOnComment(
     }
 }
 
-
 private fun backActions(
     mediaViewModel: MediaViewModel,
-    navController: NavHostController
+    navController: NavHostController,
 ) {
     mediaViewModel.clearMediaViewModelData()
     mediaViewModel.loadPicturesStateChange(true)

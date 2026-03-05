@@ -4,7 +4,6 @@ import android.util.Log
 import com.contextphoto.data.datasource.SettingsSource
 import com.contextphoto.db.Comment
 import com.contextphoto.utils.FunctionsFiles.createExportFile
-import com.contextphoto.utils.FunctionsFiles.importCommentsFromFile
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -12,16 +11,15 @@ import javax.inject.Inject
 class SettingsRepository
     @Inject
     constructor(
-        private val settingsSource: SettingsSource
-    )
-{
-    suspend fun exportCommentsToStorage(): List<String> {
-        createExportFile()
-        val listComments = settingsSource.getAllComments()
-        return listComments.first().map { Gson().toJson(it) }
-    }
+        private val settingsSource: SettingsSource,
+    ) {
+        suspend fun exportCommentsToStorage(): List<String> {
+            createExportFile()
+            val listComments = settingsSource.getAllComments()
+            return listComments.first().map { Gson().toJson(it) }
+        }
 
-    suspend fun importCommentsFromStorage(fileText: List<String>): Boolean {
+        suspend fun importCommentsFromStorage(fileText: List<String>): Boolean {
 //        try {
             val listComments = mutableListOf<Comment>()
             fileText.forEach {
@@ -33,14 +31,13 @@ class SettingsRepository
             return true
 //        }
 //        catch (e: Exception) {return false}
-    }
+        }
 
-    suspend fun exportCommentsToFirestore() {
-        settingsSource.exportCommentsToFirestore()
-    }
+        suspend fun exportCommentsToFirestore() {
+            settingsSource.exportCommentsToFirestore()
+        }
 
-    suspend fun importCommentsFromFirestore() {
-        settingsSource.importCommentsFromFirestore()
+        suspend fun importCommentsFromFirestore() {
+            settingsSource.importCommentsFromFirestore()
+        }
     }
-
-}

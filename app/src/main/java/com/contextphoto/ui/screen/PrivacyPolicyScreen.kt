@@ -40,7 +40,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.contextphoto.R
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrivacyPolicyScreenWithScaffold(showConfidence: MutableState<Boolean>) {
@@ -63,7 +62,7 @@ fun PrivacyPolicyScreenWithScaffold(showConfidence: MutableState<Boolean>) {
                             contentDescription = null,
                         )
                     }
-                }
+                },
             )
         },
         content = { paddingValues ->
@@ -72,12 +71,13 @@ fun PrivacyPolicyScreenWithScaffold(showConfidence: MutableState<Boolean>) {
             }
 
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
-                    .padding(paddingValues)
-                    .padding(horizontal = 8.dp)
-                    .background(MaterialTheme.colorScheme.background)
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                        .padding(paddingValues)
+                        .padding(horizontal = 8.dp)
+                        .background(MaterialTheme.colorScheme.background),
             ) {
                 val lines = PrivacyPolicyText.FULL_TEXT.split("\n")
 
@@ -89,48 +89,53 @@ fun PrivacyPolicyScreenWithScaffold(showConfidence: MutableState<Boolean>) {
                                 text = line.replace("**", ""),
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
                             )
                         }
 
                         // Обработка ссылок
                         line.contains("[") && line.contains("](https") -> {
-                            val annotatedString = buildAnnotatedString {
-                                var currentIndex = 0
-                                val pattern = "\\[(.*?)\\]\\((.*?)\\)".toRegex()
-                                val matches = pattern.findAll(line)
+                            val annotatedString =
+                                buildAnnotatedString {
+                                    var currentIndex = 0
+                                    val pattern = "\\[(.*?)\\]\\((.*?)\\)".toRegex()
+                                    val matches = pattern.findAll(line)
 
-                                matches.forEach {
-                                    val beforeText = line.substring(currentIndex, it.range.first)
-                                    append(beforeText)
+                                    matches.forEach {
+                                        val beforeText = line.substring(currentIndex, it.range.first)
+                                        append(beforeText)
 
-                                    val linkText = it.groupValues[1]
-                                    val linkUrl = it.groupValues[2]
+                                        val linkText = it.groupValues[1]
+                                        val linkUrl = it.groupValues[2]
 
-                                    pushStringAnnotation(tag = "URL", annotation = linkUrl)
-                                    withStyle(style = SpanStyle(
-                                        color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                        textDecoration = TextDecoration.Underline
-                                    )
-                                    ) {
-                                        append(linkText)
+                                        pushStringAnnotation(tag = "URL", annotation = linkUrl)
+                                        withStyle(
+                                            style =
+                                                SpanStyle(
+                                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                                    textDecoration = TextDecoration.Underline,
+                                                ),
+                                        ) {
+                                            append(linkText)
+                                        }
+                                        pop()
+
+                                        currentIndex = it.range.last + 1
                                     }
-                                    pop()
 
-                                    currentIndex = it.range.last + 1
+                                    // Оставшийся текст
+                                    if (currentIndex < line.length) {
+                                        append(line.substring(currentIndex))
+                                    }
                                 }
-
-                                // Оставшийся текст
-                                if (currentIndex < line.length) {
-                                    append(line.substring(currentIndex))
-                                }
-                            }
 
                             ClickableText(
                                 text = annotatedString,
                                 onClick = { offset ->
-                                    annotatedString.getStringAnnotations("URL", offset, offset)
-                                        .firstOrNull()?.let {
+                                    annotatedString
+                                        .getStringAnnotations("URL", offset, offset)
+                                        .firstOrNull()
+                                        ?.let {
                                             try {
                                                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it.item))
                                                 context.startActivity(intent)
@@ -139,11 +144,12 @@ fun PrivacyPolicyScreenWithScaffold(showConfidence: MutableState<Boolean>) {
                                             }
                                         }
                                 },
-                                style = TextStyle(
-                                    fontSize = 16.sp,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                ),
-                                modifier = Modifier.padding(top = 2.dp, bottom = 2.dp)
+                                style =
+                                    TextStyle(
+                                        fontSize = 16.sp,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                    ),
+                                modifier = Modifier.padding(top = 2.dp, bottom = 2.dp),
                             )
                         }
 
@@ -151,7 +157,7 @@ fun PrivacyPolicyScreenWithScaffold(showConfidence: MutableState<Boolean>) {
                         line.trim().startsWith("•") -> {
                             Text(
                                 text = line,
-                                modifier = Modifier.padding(start = 16.dp, top = 2.dp, bottom = 2.dp)
+                                modifier = Modifier.padding(start = 16.dp, top = 2.dp, bottom = 2.dp),
                             )
                         }
 
@@ -164,24 +170,21 @@ fun PrivacyPolicyScreenWithScaffold(showConfidence: MutableState<Boolean>) {
                         else -> {
                             Text(
                                 text = line,
-                                modifier = Modifier.padding(top = 2.dp, bottom = 2.dp)
+                                modifier = Modifier.padding(top = 2.dp, bottom = 2.dp),
                             )
                         }
                     }
                 }
             }
-        }
+        },
     )
 }
-
 
 private fun backActions(showConfidence: MutableState<Boolean>) {
     showConfidence.value = false
 }
 
-
 object PrivacyPolicyText {
-
     /**
      * Полный текст политики. Ссылки обработаны как Markdown-подобный синтаксис.
      * Для кликабельных ссылок в Compose нужно обработать [текст] и [ссылка].

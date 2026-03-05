@@ -32,8 +32,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.AlertDialog
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -58,21 +56,19 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.contextphoto.R
-import com.contextphoto.data.commentDatabase
-import com.contextphoto.item.Album
+import com.contextphoto.data.COMMENT_DATABASE
 import com.contextphoto.data.navigation.Destination
-import com.contextphoto.item.Picture
 import com.contextphoto.db.Comment
 import com.contextphoto.db.CommentDatabase
+import com.contextphoto.item.Album
+import com.contextphoto.item.Picture
 import com.contextphoto.ui.AlbumViewModel
 import com.contextphoto.ui.FullscreenViewModel
 import com.contextphoto.ui.MediaViewModel
@@ -229,7 +225,6 @@ fun CopyMoveDialog(
                 onClick = {
                     coroutineScope.launch {
                         if (createAlbum) {
-
                             if (albumName in albumList.map { it.name } && createAlbum) {
                                 Toast
                                     .makeText(
@@ -237,8 +232,7 @@ fun CopyMoveDialog(
                                         "Альбом \"$albumName\" уже создан",
                                         Toast.LENGTH_SHORT,
                                     ).show()
-                            }
-                            else {
+                            } else {
                                 Log.i("NEWNAME", "$albumName")
                                 findNewAlbumFlag = true
                             }
@@ -360,59 +354,62 @@ fun ChooseAlbumDialog(
 //            dialogVisibility.value = false
 //        },
 //    ) {
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        modifier =
+            Modifier
                 .fillMaxSize()
                 .clickable(
-                    onClick = { dialogVisibility.value = false }
+                    onClick = { dialogVisibility.value = false },
                 ),
+    ) {
+        BackHandler {
+            dialogVisibility.value = false
+        }
+        LazyColumn(
+            modifier = Modifier.padding(8.dp),
+            contentPadding = PaddingValues(bottom = 80.dp),
         ) {
-            BackHandler {
-                dialogVisibility.value = false
-            }
-            LazyColumn(modifier = Modifier.padding(8.dp),
-                contentPadding = PaddingValues(bottom = 80.dp)) {
-                items(items = albumList) { album ->
-                    Box(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 3.dp)
-                                .clickable(
-                                    onClick = {
-                                        showCopyMoveDialog.value = true
-                                        selectAlbum = album
-                                        // TODO fixme не копируются фотки в альбомы созданные не мной
-                                    },
-                                ),
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
+            items(items = albumList) { album ->
+                Box(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 3.dp)
+                            .clickable(
+                                onClick = {
+                                    showCopyMoveDialog.value = true
+                                    selectAlbum = album
+                                    // TODO fixme не копируются фотки в альбомы созданные не мной
+                                },
+                            ),
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    )
+                    {
+                        Image(
+                            bitmap = album.thumbnail.asImageBitmap(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(65.dp),
                         )
-                        {
-                            Image(
-                                bitmap = album.thumbnail.asImageBitmap(),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.size(65.dp),
+                        Column(
+                            modifier = Modifier.padding(start = 6.dp),
+                        ) {
+                            Text(
+                                text = album.name,
+                                maxLines = 2,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontSize = 14.sp,
                             )
-                            Column(
-                                modifier = Modifier.padding(start = 6.dp),
-                            ) {
-                                Text(
-                                    text = album.name,
-                                    maxLines = 2,
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontSize = 14.sp,
-                                )
-                            }
                         }
                     }
                 }
             }
         }
+    }
 //    }
     AnimatedVisibility(visible = showCopyMoveDialog.value) {
         CopyMoveDialog(
@@ -535,7 +532,6 @@ fun DeleteMediaDialog(
 
                         Destination.FullScreenImg().route -> {
                             if (deleteMediaFile(context, activity, listMediaFullscreen[pos].uri)) {
-
 //                                fullscreenViewModel.deleteActionChange(true)
 //                                fullscreenViewModel.updateMediaPosition()
                                 fullscreenViewModel.deletePicture(listMediaFullscreen[pos])
@@ -544,7 +540,6 @@ fun DeleteMediaDialog(
                         }
                     }
                     mediaViewModel.deleteMediaFromAlbum(bID, listSelectedMedia.size)
-
 
                     mutableState.value = false
                     onDismissRequest()
@@ -658,44 +653,49 @@ fun CommentateDialog(
     }
 
     Surface(
-        modifier = Modifier
-            .fillMaxSize(),
-        color = colorResource(R.color.medium_transparant_black)
+        modifier =
+            Modifier
+                .fillMaxSize(),
+        color = colorResource(R.color.medium_transparant_black),
     ) {
         Box(
             contentAlignment = Alignment.BottomCenter,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         ) {
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(bottom = 70.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(bottom = 70.dp),
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(16.dp),
                 ) {
                     Text(text = context.getString(R.string.commentate))
                     Image(
                         contentDescription = null,
                         bitmap = media.thumbnail.asImageBitmap(),
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .height(170.dp)
-                            .width(170.dp)
+                        modifier =
+                            Modifier
+                                .height(170.dp)
+                                .width(170.dp),
                     )
                     OutlinedTextField(
                         value = commentText,
                         onValueChange = { commentText = it },
-                        modifier = modifier
-                            .heightIn(max = 160.dp)
-                            .padding(horizontal = 16.dp)
+                        modifier =
+                            modifier
+                                .heightIn(max = 160.dp)
+                                .padding(horizontal = 16.dp),
                     )
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = modifier
-                            .padding(horizontal = 16.dp),
+                        modifier =
+                            modifier
+                                .padding(horizontal = 16.dp),
                     ) {
                         Button(onClick = {
                             mutableState.value = false
@@ -751,80 +751,91 @@ fun CommentateDialog(
 @Composable
 fun ExportCommentsDialog(
     onDismissRequest: () -> Unit,
-    settingsViewModel: SettingsViewModel
+    settingsViewModel: SettingsViewModel,
 ) {
     settingsViewModel.changeOperationStatus(false)
     settingsViewModel.exportCommentsToStorage()
 
     val context = LocalContext.current
     val launchExport = remember { mutableStateOf(false) }
-    val textModifier = Modifier
-        .fillMaxWidth()
-        .wrapContentSize(Alignment.Center)
+    val textModifier =
+        Modifier
+            .fillMaxWidth()
+            .wrapContentSize(Alignment.Center)
 
     val fileText = settingsViewModel.fileText.collectAsStateWithLifecycle()
-    val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-        addCategory(Intent.CATEGORY_OPENABLE)
-        type = "text/plain"
-        putExtra(Intent.EXTRA_TITLE, "$commentDatabase.txt")
-    }
-    val writeLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.data?.let { uri ->
-                context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                    outputStream.bufferedWriter().use { writer ->
-                        fileText.value.forEach { line ->
-                            writer.write(line)
-                            writer.newLine()
-                        }
-                    }
-                    println("Файл сохранен: $uri")
-                    settingsViewModel.changeStateInfo("Экспорт в файл завершен")
-                    launchExport.value = false
-                    onDismissRequest()
-                } ?: settingsViewModel.changeStateInfo("Ошибка экспорта")
-            } ?: settingsViewModel.changeStateInfo("Ошибка экспорта")
-        } else {
-            settingsViewModel.changeStateInfo("Ошибка экспорта")
+    val intent =
+        Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TITLE, "$COMMENT_DATABASE.txt")
         }
-    }
+    val writeLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.StartActivityForResult(),
+        ) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                result.data?.data?.let { uri ->
+                    context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                        outputStream.bufferedWriter().use { writer ->
+                            fileText.value.forEach { line ->
+                                writer.write(line)
+                                writer.newLine()
+                            }
+                        }
+                        println("Файл сохранен: $uri")
+                        settingsViewModel.changeStateInfo("Экспорт в файл завершен")
+                        launchExport.value = false
+                        onDismissRequest()
+                    } ?: settingsViewModel.changeStateInfo("Ошибка экспорта")
+                } ?: settingsViewModel.changeStateInfo("Ошибка экспорта")
+            } else {
+                settingsViewModel.changeStateInfo("Ошибка экспорта")
+            }
+        }
 
     Dialog(onDismissRequest = {
         onDismissRequest()
     }) {
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
             shape = RoundedCornerShape(16.dp),
         ) {
-            Column(modifier = Modifier.fillMaxSize()
-                .padding(8.dp)
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(8.dp),
             ) {
                 Text(
                     text = context.getString(R.string.text_dialog_choose_export_file),
                     modifier = textModifier,
                     textAlign = TextAlign.Center,
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
                 )
                 Text(
                     text = context.getString(R.string.select_instruction),
                     modifier = textModifier,
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
                 )
-                Button(modifier = Modifier
-                    .fillMaxWidth(),
+                Button(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth(),
                     onClick = {
                         launchExport.value = true
-                    }
+                    },
                 ) {
-                    Text(text = context.getString(R.string.next_step),
+                    Text(
+                        text = context.getString(R.string.next_step),
                         modifier = textModifier,
-                        textAlign = TextAlign.Center,)
+                        textAlign = TextAlign.Center,
+                    )
                 }
             }
         }
@@ -840,67 +851,81 @@ fun ExportCommentsDialog(
 @Composable
 fun ImportCommentsDialog(
     onDismissRequest: () -> Unit,
-    settingsViewModel: SettingsViewModel
+    settingsViewModel: SettingsViewModel,
 ) {
     settingsViewModel.changeOperationStatus(false)
 
     val context = LocalContext.current
     val launchImport = remember { mutableStateOf(false) }
-    val textModifier = Modifier
-        .fillMaxWidth()
-        .wrapContentSize(Alignment.Center)
+    val textModifier =
+        Modifier
+            .fillMaxWidth()
+            .wrapContentSize(Alignment.Center)
 
-    val readLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            context.contentResolver.openInputStream(it)?.use { stream ->
-                val content = stream.bufferedReader().readText().split("\n").filter { it.isNotBlank() }
-                settingsViewModel.setFileText(content)
-                println("Содержимое файла: $content")
-                settingsViewModel.importCommentsFromStorage()
-                settingsViewModel.changeStateInfo("Импорт из файла завершен")
-                launchImport.value = false
-                onDismissRequest()
+    val readLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.GetContent(),
+        ) { uri: Uri? ->
+            uri?.let {
+                context.contentResolver.openInputStream(it)?.use { stream ->
+                    val content =
+                        stream.bufferedReader().readText().split("\n").filter { line ->
+                            listOf("id", "image_comment", "image_hash", "image_uri").any { line.contains(it) }
+                        }
+                    if (content.isNotEmpty()) {
+                        settingsViewModel.setFileText(content)
+                        println("Содержимое файла: $content")
+                        settingsViewModel.importCommentsFromStorage()
+                        settingsViewModel.changeStateInfo("Импорт из файла завершен")
+                    }
+                    launchImport.value = false
+                    onDismissRequest()
+                } ?: settingsViewModel.changeStateInfo("Ошибка импорта")
             } ?: settingsViewModel.changeStateInfo("Ошибка импорта")
-        } ?: settingsViewModel.changeStateInfo("Ошибка импорта")
-    }
+        }
 
     Dialog(onDismissRequest = {
         onDismissRequest()
     }) {
-
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
             shape = RoundedCornerShape(16.dp),
         ) {
-            Column(modifier = Modifier.fillMaxSize()
-                .padding(8.dp)
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(8.dp),
             ) {
                 Text(
                     text = context.getString(R.string.text_dialog_choose_import_file),
                     modifier = textModifier,
                     textAlign = TextAlign.Center,
-                    fontSize = 14.sp
+                    fontSize = 14.sp,
                 )
                 Text(
                     text = context.getString(R.string.select_instruction),
                     modifier = textModifier,
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
                 )
-                Button(modifier = Modifier
-                    .fillMaxWidth(),
+                Button(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth(),
                     onClick = {
                         launchImport.value = true
-                    }
+                    },
                 ) {
-                    Text(text = context.getString(R.string.next_step),
+                    Text(
+                        text = context.getString(R.string.next_step),
                         modifier = textModifier,
-                        textAlign = TextAlign.Center,)
+                        textAlign = TextAlign.Center,
+                    )
                 }
             }
         }

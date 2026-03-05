@@ -1,6 +1,5 @@
 package com.contextphoto.utils
 
-
 import android.app.Activity
 import android.app.RecoverableSecurityException
 import android.content.ContentUris
@@ -12,19 +11,11 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.contract.ActivityResultContracts.GetContent
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.graphics.createBitmap
 import androidx.core.net.toUri
 import com.contextphoto.R
 import com.contextphoto.data.PERMISSION_DELETE_REQUEST_CODE
-import com.contextphoto.data.baseCommentsPath
-import com.contextphoto.data.commentDatabase
 import com.contextphoto.item.Album
 import com.contextphoto.item.Picture
 import com.contextphoto.ui.AlbumViewModel
@@ -42,7 +33,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-
 @Module
 @InstallIn(SingletonComponent::class)
 object FunctionsMediaStore {
@@ -54,61 +44,67 @@ object FunctionsMediaStore {
 
         val contentUri = MediaStore.Files.getContentUri("external")
         val selection = "${MediaStore.Files.FileColumns.MEDIA_TYPE} = ? OR ${MediaStore.Files.FileColumns.MEDIA_TYPE} = ?"
-        val selectionArgs = arrayOf(
-            MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE.toString(),
-            MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO.toString()
-        )
-        val projection = arrayOf(
-            MediaStore.MediaColumns.BUCKET_ID,
-            MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
-            MediaStore.MediaColumns._ID,
-            MediaStore.MediaColumns.DATE_ADDED,
-            MediaStore.MediaColumns.DATA
-        )
+        val selectionArgs =
+            arrayOf(
+                MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
+                    .toString(),
+                MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO
+                    .toString(),
+            )
+        val projection =
+            arrayOf(
+                MediaStore.MediaColumns.BUCKET_ID,
+                MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
+                MediaStore.MediaColumns._ID,
+                MediaStore.MediaColumns.DATE_ADDED,
+                MediaStore.MediaColumns.DATA,
+            )
         val sortOrder = "${MediaStore.MediaColumns.DATE_ADDED} DESC"
 
-        context.contentResolver.query(
-            contentUri,
-            projection,
-            selection,
-            selectionArgs,
-            sortOrder
-        )?.use { cursor ->
-            val bucketIdColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_ID)
-            val bucketNameColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
-            val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
+        context.contentResolver
+            .query(
+                contentUri,
+                projection,
+                selection,
+                selectionArgs,
+                sortOrder,
+            )?.use { cursor ->
+                val bucketIdColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_ID)
+                val bucketNameColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
+                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+                val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
 
-            while (cursor.moveToNext()) {
-                val bucketId = cursor.getString(bucketIdColumn)
-                val bucketName = cursor.getString(bucketNameColumn)
-                val fileId = cursor.getLong(idColumn)
-                val filePath = cursor.getString(dataColumn)
+                while (cursor.moveToNext()) {
+                    val bucketId = cursor.getString(bucketIdColumn)
+                    val bucketName = cursor.getString(bucketNameColumn)
+                    val fileId = cursor.getLong(idColumn)
+                    val filePath = cursor.getString(dataColumn)
 
-                val album = albumMap[bucketId]
+                    val album = albumMap[bucketId]
 
-                if (album == null) {
-                    val uri = ContentUris.withAppendedId(contentUri, fileId)
-                    val path = filePath.substringBeforeLast("/") + "/"
+                    if (album == null) {
+                        val uri = ContentUris.withAppendedId(contentUri, fileId)
+                        val path = filePath.substringBeforeLast("/") + "/"
 
-                    val thumbnail = getThumbnail(context, uri)
-                        ?: BitmapFactory.decodeResource(context.resources, R.drawable.no_image_96)
+                        val thumbnail =
+                            getThumbnail(context, uri)
+                                ?: BitmapFactory.decodeResource(context.resources, R.drawable.no_image)
 
-                    albums.add(
-                        Album(
-                            bID = bucketId,
-                            name = bucketName,
-                            itemsCount = 1,
-                            thumbnail = thumbnail,
-                            path = File(path)
+                        albums.add(
+                            Album(
+                                bID = bucketId,
+                                name = bucketName,
+                                itemsCount = 1,
+                                thumbnail = thumbnail,
+                                path = File(path),
+                            ),
                         )
-                    )
-                    albumMap[bucketId] = albums.last()
-                } else {
-                    album.itemsCount++
+                        albumMap[bucketId] = albums.last()
+                    } else {
+                        album.itemsCount++
+                    }
                 }
             }
-        }
         return albums
     }
 
@@ -124,73 +120,79 @@ object FunctionsMediaStore {
 
         val contentUri = MediaStore.Files.getContentUri("external")
         val selection = "${MediaStore.MediaColumns.BUCKET_DISPLAY_NAME} = ? AND (${MediaStore.Files.FileColumns.MEDIA_TYPE} = ? OR ${MediaStore.Files.FileColumns.MEDIA_TYPE} = ?)"
-        val selectionArgs = arrayOf(
-            newAlbumName,
-            MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE.toString(),
-            MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO.toString()
-        )
-        val projection = arrayOf(
-            MediaStore.MediaColumns._ID,
-            MediaStore.MediaColumns.BUCKET_ID,
-            MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
-            MediaStore.MediaColumns.DATA,
-            MediaStore.MediaColumns.DATE_ADDED
-        )
+        val selectionArgs =
+            arrayOf(
+                newAlbumName,
+                MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
+                    .toString(),
+                MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO
+                    .toString(),
+            )
+        val projection =
+            arrayOf(
+                MediaStore.MediaColumns._ID,
+                MediaStore.MediaColumns.BUCKET_ID,
+                MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
+                MediaStore.MediaColumns.DATA,
+                MediaStore.MediaColumns.DATE_ADDED,
+            )
         val sortOrder = "${MediaStore.MediaColumns.DATE_ADDED} DESC"
 
         viewModel.changeStateAlbum()
         viewModel.changeStateAlbum()
 
-        context.contentResolver.query(
-            contentUri,
-            projection,
-            selection,
-            selectionArgs,
-            sortOrder
-        )?.use { cursor ->
-            val bucketIdColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_ID)
-            val bucketNameColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
-            val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
+        context.contentResolver
+            .query(
+                contentUri,
+                projection,
+                selection,
+                selectionArgs,
+                sortOrder,
+            )?.use { cursor ->
+                val bucketIdColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_ID)
+                val bucketNameColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
+                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+                val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
 
-            while (cursor.moveToNext()) {
-                val bucketId = cursor.getString(bucketIdColumn)
-                val bucketName = cursor.getString(bucketNameColumn)
-                val fileId = cursor.getLong(idColumn)
-                val filePath = cursor.getString(dataColumn)
+                while (cursor.moveToNext()) {
+                    val bucketId = cursor.getString(bucketIdColumn)
+                    val bucketName = cursor.getString(bucketNameColumn)
+                    val fileId = cursor.getLong(idColumn)
+                    val filePath = cursor.getString(dataColumn)
 
-                val existingAlbum = albumMap[bucketId]
+                    val existingAlbum = albumMap[bucketId]
 
-                if (existingAlbum == null) {
-                    val uri = ContentUris.withAppendedId(contentUri, fileId)
-                    val path = filePath.substringBeforeLast("/") + "/"
-                    val thumbnail = getThumbnail(context, uri)
+                    if (existingAlbum == null) {
+                        val uri = ContentUris.withAppendedId(contentUri, fileId)
+                        val path = filePath.substringBeforeLast("/") + "/"
+                        val thumbnail = getThumbnail(context, uri)
 
-                    if (thumbnail != null) {
-                        val album = Album(
-                            bID = bucketId,
-                            name = bucketName,
-                            itemsCount = 1,
-                            thumbnail = thumbnail,
-                            path = File(path)
-                        )
+                        if (thumbnail != null) {
+                            val album =
+                                Album(
+                                    bID = bucketId,
+                                    name = bucketName,
+                                    itemsCount = 1,
+                                    thumbnail = thumbnail,
+                                    path = File(path),
+                                )
 
-                        albums.add(album)
-                        albumMap[bucketId] = album
-                        viewModel.addAlbum(album)
+                            albums.add(album)
+                            albumMap[bucketId] = album
+                            viewModel.addAlbum(album)
 
-                        Log.d("TAG URI", uri.toString())
-                        println("URI $uri")
-                        println("id - $fileId")
-                        println("bucketId = $bucketId")
-                        println("name = $bucketName")
-                        println("thmb - $thumbnail")
+                            Log.d("TAG URI", uri.toString())
+                            println("URI $uri")
+                            println("id - $fileId")
+                            println("bucketId = $bucketId")
+                            println("name = $bucketName")
+                            println("thmb - $thumbnail")
+                        }
+                    } else {
+                        existingAlbum.itemsCount++
                     }
-                } else {
-                    existingAlbum.itemsCount++
                 }
             }
-        }
 
         return albums
     }
@@ -202,25 +204,26 @@ object FunctionsMediaStore {
         bucketIdArg: String = "",
         offset: Int,
         limit: Int,
-        currentSize: Int
+        currentSize: Int,
     ): List<Picture> {
         var counter = 0
         if (currentSize > offset) return emptyList()
-        if (currentSize < offset) Log.d("Cize", "$currentSize vs ${offset}")
+        if (currentSize < offset) Log.d("Cize", "$currentSize vs $offset")
         val listMedia = mutableListOf<Picture>()
         val contentUri = MediaStore.Files.getContentUri("external")
         val dateFormat = SimpleDateFormat("d MMMM yyyy\nHH:mm:ss", Locale("ru"))
 
-        val projection = arrayOf(
-            MediaStore.MediaColumns._ID,
-            MediaStore.MediaColumns.BUCKET_ID,
-            MediaStore.MediaColumns.DISPLAY_NAME,
-            MediaStore.MediaColumns.DURATION,
-            MediaStore.MediaColumns.SIZE,
-            MediaStore.MediaColumns.DATE_ADDED,
-            MediaStore.MediaColumns.DATA,
-            MediaStore.Files.FileColumns.MEDIA_TYPE
-        )
+        val projection =
+            arrayOf(
+                MediaStore.MediaColumns._ID,
+                MediaStore.MediaColumns.BUCKET_ID,
+                MediaStore.MediaColumns.DISPLAY_NAME,
+                MediaStore.MediaColumns.DURATION,
+                MediaStore.MediaColumns.SIZE,
+                MediaStore.MediaColumns.DATE_ADDED,
+                MediaStore.MediaColumns.DATA,
+                MediaStore.Files.FileColumns.MEDIA_TYPE,
+            )
         val selectionBuilder = StringBuilder()
         val selectionArgsList = mutableListOf<String>()
         if (bucketIdArg.isNotEmpty()) {
@@ -231,8 +234,14 @@ object FunctionsMediaStore {
             selectionBuilder.append(" AND ")
         }
         selectionBuilder.append("(${MediaStore.Files.FileColumns.MEDIA_TYPE} = ? OR ${MediaStore.Files.FileColumns.MEDIA_TYPE} = ?)")
-        selectionArgsList.add(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE.toString())
-        selectionArgsList.add(MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO.toString())
+        selectionArgsList.add(
+            MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
+                .toString(),
+        )
+        selectionArgsList.add(
+            MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO
+                .toString(),
+        )
         val selection = selectionBuilder.toString()
         val selectionArgs = selectionArgsList.toTypedArray()
         val sortOrder = "${MediaStore.MediaColumns.DATE_ADDED} DESC"
@@ -254,8 +263,7 @@ object FunctionsMediaStore {
 
                 if (cursor.count > offset) {
                     cursor.moveToPosition(offset - 1)
-                }
-                else {
+                } else {
                     return emptyList()
                 }
 
@@ -269,27 +277,32 @@ object FunctionsMediaStore {
 
                     counter++
 
-                    val thumbnail = when (mediaType) {
-                        MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO -> {
-                            getThumbnail(
-                                context,
-                                ContentUris.withAppendedId(
-                                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                                    id,
+                    val thumbnail =
+                        when (mediaType) {
+                            MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO -> {
+                                getThumbnail(
+                                    context,
+                                    ContentUris.withAppendedId(
+                                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+                                        id,
+                                    ),
                                 )
-                            )
-                        }
-                        MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE -> {
-                            getThumbnail(
-                                context,
-                                ContentUris.withAppendedId(
-                                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                                    id,
+                            }
+
+                            MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE -> {
+                                getThumbnail(
+                                    context,
+                                    ContentUris.withAppendedId(
+                                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                        id,
+                                    ),
                                 )
-                            )
+                            }
+
+                            else -> {
+                                null
+                            }
                         }
-                        else -> null
-                    }
 
                     if (thumbnail != null) {
                         val uri = ContentUris.withAppendedId(contentUri, id)
@@ -303,8 +316,8 @@ object FunctionsMediaStore {
                                 thumbnail = thumbnail,
                                 date = formattedDate,
                                 duration = if (duration > 0) durationTranslate(duration) else "",
-                                haveComment = mutableStateOf(false)
-                            )
+                                haveComment = mutableStateOf(false),
+                            ),
                         )
                     }
                 }
@@ -320,7 +333,7 @@ object FunctionsMediaStore {
         bucketIdArg: String = "",
         page: Int,
         pageSize: Int,
-        currentSize: Int
+        currentSize: Int,
     ): List<Picture> {
         val offset = page * pageSize
         return getPieceMedia(context, bucketIdArg, offset, pageSize, currentSize)
@@ -424,7 +437,6 @@ object FunctionsMediaStore {
                                 ),
                             )
                         }
-
                     }
                 }
             }
@@ -468,7 +480,6 @@ object FunctionsMediaStore {
                     )
 
                     put(MediaStore.MediaColumns.IS_PENDING, 1)
-
                 }
 
             val collection =
@@ -613,9 +624,10 @@ object FunctionsMediaStore {
                     }
                 }
             }
-        if (mediaFiles.isNotEmpty()) return mediaFiles[0]
-        else {
-            return Picture("", "".toUri(), "", createBitmap(1,1), listOf(), "", mutableStateOf(true))
+        if (mediaFiles.isNotEmpty()) {
+            return mediaFiles[0]
+        } else {
+            return Picture("", "".toUri(), "", createBitmap(1, 1), listOf(), "", mutableStateOf(true))
         }
     }
 
@@ -651,7 +663,4 @@ object FunctionsMediaStore {
 
         return datePhoto.split("\n")
     }
-
-
 }
-

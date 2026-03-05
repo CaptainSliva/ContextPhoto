@@ -7,7 +7,6 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +23,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -44,28 +44,30 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.contextphoto.R
 import com.contextphoto.data.navigation.Destination
+import com.contextphoto.dialog.ExportCommentsDialog
+import com.contextphoto.dialog.ImportCommentsDialog
 import com.contextphoto.ui.SettingsViewModel
 import com.contextphoto.utils.FunctionsApp.espRead
 import com.contextphoto.utils.FunctionsApp.espWrite
-import com.contextphoto.dialog.ExportCommentsDialog
-import com.contextphoto.dialog.ImportCommentsDialog
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreenWithScaffold(navController: NavHostController,
-                               settingsViewModel: SettingsViewModel = hiltViewModel()) {
+fun SettingsScreenWithScaffold(
+    navController: NavHostController,
+    settingsViewModel: SettingsViewModel = hiltViewModel(),
+) {
     val buttonWidth = Modifier.width(300.dp)
     val context = LocalContext.current
     val completedOperation = settingsViewModel.operationCompleted.collectAsStateWithLifecycle()
     val stateInfo = settingsViewModel.stateInfo.collectAsStateWithLifecycle()
     val currentUser = settingsViewModel.currentUser.collectAsStateWithLifecycle()
+    val wheelVisibility = settingsViewModel.wheelVisibility.collectAsStateWithLifecycle()
     currentUser.value?.getIdToken(false)?.addOnCompleteListener { task ->
         if (task.isSuccessful) {
             currentUser.value?.getIdToken(false)?.addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val token = task.result?.token
-                    settingsViewModel.setToken(token?:"")
+                    settingsViewModel.setToken(token ?: "")
                     espWrite(context, espRead(context).first, settingsViewModel.getToken())
                 }
             }
@@ -85,12 +87,13 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
                         )
                         if (currentUser.value?.email != null) {
                             Text(
-                                modifier = Modifier
-                                    .padding(horizontal = 16.dp)
-                                    .weight(1f),
+                                modifier =
+                                    Modifier
+                                        .padding(horizontal = 16.dp)
+                                        .weight(1f),
                                 text = "${currentUser.value!!.email}",
                                 fontSize = 13.sp,
-                                textAlign = TextAlign.End
+                                textAlign = TextAlign.End,
                             )
                         }
                     }
@@ -104,7 +107,7 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
                             contentDescription = null,
                         )
                     }
-                }
+                },
             )
         },
         content = { paddingValues ->
@@ -112,22 +115,24 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
                 backActions(navController)
             }
 
-
-            Row(modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(paddingValues)
-                .padding(horizontal = 8.dp)
-                .padding(top = 8.dp)) {
-
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background)
+                        .padding(paddingValues)
+                        .padding(horizontal = 8.dp)
+                        .padding(top = 8.dp),
+            ) {
                 Column(
-                    modifier = Modifier
-                        .weight(0.7f),
-                    horizontalAlignment = Alignment.Start
-                    )
+                    modifier =
+                        Modifier
+                            .weight(0.7f),
+                    horizontalAlignment = Alignment.Start,
+                )
                 {
                     Row(
-                        horizontalArrangement = Arrangement.Start
+                        horizontalArrangement = Arrangement.Start,
                     ) {
                         Button(
                             onClick = {
@@ -135,16 +140,18 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
                                 fileOperationType.value = "export"
                             },
                             shape = RoundedCornerShape(50.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = colorResource(R.color.light_blue),
-                                contentColor = Color.White,
-                            ),
-                            modifier = buttonWidth
-                                .weight(1f)
+                            colors =
+                                ButtonDefaults.buttonColors(
+                                    containerColor = colorResource(R.color.light_blue),
+                                    contentColor = Color.White,
+                                ),
+                            modifier =
+                                buttonWidth
+                                    .weight(1f),
                         ) {
                             Text(
                                 context.getString(R.string.export_to_file),
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
                             )
                         }
                         Spacer(modifier = Modifier.weight(0.25f))
@@ -154,45 +161,49 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
                                 fileOperationType.value = "import"
                             },
                             shape = RoundedCornerShape(50.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = colorResource(R.color.light_blue),
-                                contentColor = Color.White,
-                            ),
-                            modifier = buttonWidth
-                                .weight(1f)
+                            colors =
+                                ButtonDefaults.buttonColors(
+                                    containerColor = colorResource(R.color.light_blue),
+                                    contentColor = Color.White,
+                                ),
+                            modifier =
+                                buttonWidth
+                                    .weight(1f),
                         ) {
                             Text(
                                 context.getString(R.string.import_from_file),
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
                             )
                         }
                     }
 
                     Spacer(modifier = Modifier.padding(vertical = 16.dp))
-                        Button(
-                            onClick = {
-                                navController.navigate(
-                                    Destination.Login().route
-                                )
-                            },
-                            shape = RoundedCornerShape(50.dp),
-                            colors = ButtonDefaults.buttonColors(
+                    Button(
+                        onClick = {
+                            navController.navigate(
+                                Destination.Login().route,
+                            )
+                        },
+                        shape = RoundedCornerShape(50.dp),
+                        colors =
+                            ButtonDefaults.buttonColors(
                                 containerColor = colorResource(R.color.light_blue),
                                 contentColor = Color.White,
                             ),
-                            modifier = buttonWidth
-                                .fillMaxWidth()
-                        ) {
-                            Text(
-                                context.getString(R.string.enter_in_account),
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                        modifier =
+                            buttonWidth
+                                .fillMaxWidth(),
+                    ) {
+                        Text(
+                            context.getString(R.string.enter_in_account),
+                            textAlign = TextAlign.Center,
+                        )
+                    }
 
                     Spacer(modifier = Modifier.padding(vertical = 8.dp))
 
                     Row(
-                        horizontalArrangement = Arrangement.Start
+                        horizontalArrangement = Arrangement.Start,
                     ) {
                         Button(
                             onClick = {
@@ -202,24 +213,27 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
                                 if (espData.second == idToken && idToken != "") {
                                     settingsViewModel.exportCommentsToFirestore()
                                 } else {
-                                    Toast.makeText(
-                                        context,
-                                        context.getString(R.string.no_login),
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    Toast
+                                        .makeText(
+                                            context,
+                                            context.getString(R.string.no_login),
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
                                 }
                             },
                             shape = RoundedCornerShape(50.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = colorResource(R.color.light_blue),
-                                contentColor = Color.White,
-                            ),
-                            modifier = buttonWidth
-                                .weight(1f)
+                            colors =
+                                ButtonDefaults.buttonColors(
+                                    containerColor = colorResource(R.color.light_blue),
+                                    contentColor = Color.White,
+                                ),
+                            modifier =
+                                buttonWidth
+                                    .weight(1f),
                         ) {
                             Text(
                                 context.getString(R.string.export_to_firebase),
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
                             )
                         }
                         Spacer(modifier = Modifier.weight(0.25f))
@@ -231,80 +245,83 @@ fun SettingsScreenWithScaffold(navController: NavHostController,
                                 if (espData.second == idToken && idToken != "") {
                                     settingsViewModel.importCommentsFromFirestore()
                                 } else {
-                                    Toast.makeText(
-                                        context,
-                                        context.getString(R.string.no_login),
-                                        Toast.LENGTH_SHORT
-                                    ).show()
+                                    Toast
+                                        .makeText(
+                                            context,
+                                            context.getString(R.string.no_login),
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
                                 }
                             },
                             shape = RoundedCornerShape(50.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = colorResource(R.color.light_blue),
-                                contentColor = Color.White,
-                            ),
-                            modifier = buttonWidth
-                                .weight(1f)
+                            colors =
+                                ButtonDefaults.buttonColors(
+                                    containerColor = colorResource(R.color.light_blue),
+                                    contentColor = Color.White,
+                                ),
+                            modifier =
+                                buttonWidth
+                                    .weight(1f),
                         ) {
                             Text(
                                 context.getString(R.string.import_from_firebase),
-                                textAlign = TextAlign.Center
+                                textAlign = TextAlign.Center,
                             )
                         }
                     }
 
+                    Spacer(modifier = Modifier.padding(vertical = 8.dp))
+
                     AnimatedVisibility(
                         visible = completedOperation.value,
                         enter = expandHorizontally(),
-                        exit = shrinkHorizontally()
+                        exit = shrinkHorizontally(),
                     ) {
                         Text(
                             stateInfo.value,
                             fontSize = 18.sp,
-                            color = Color.Green
+                            color = Color.Green,
                         )
 //                        settingsViewModel.changeOperationStatus(false)
-
+                    }
+                    AnimatedVisibility(visible = wheelVisibility.value) {
+                        LinearProgressIndicator(
+                            modifier = Modifier.width(64.dp),
+                            color = MaterialTheme.colorScheme.secondary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                        )
                     }
                 }
-                Spacer(modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(0.2f))
+                Spacer(
+                    modifier =
+                        Modifier
+                            .fillMaxHeight()
+                            .weight(0.2f),
+                )
             }
-        }
+        },
     )
     AnimatedVisibility(visible = dialogVisibility.value) {
-        Box(modifier = Modifier.fillMaxSize().background(Color.Red))
         when (fileOperationType.value) {
             "export" -> {
                 ExportCommentsDialog({ fileOperationType.value = "" }, settingsViewModel)
             }
+
             "import" -> {
                 ImportCommentsDialog({ fileOperationType.value = "" }, settingsViewModel)
             }
         }
-
-//        AutoFilePicker(
-//            onFileContent = { content -> fileContent = content
-//                println(fileContent)},
-//            false
-//        )
     }
-
 }
-
 
 private fun backActions(navController: NavHostController) {
     navController.navigateUp()
 }
 
-
-//@Preview(showBackground = true)
-//@Composable
-//fun GreetngPreview() {
+// @Preview(showBackground = true)
+// @Composable
+// fun GreetngPreview() {
 //    ContextPhotoTheme {
 //        SettingsScreen(modifier = Modifier.fillMaxSize())
 //    }
-//}
-
-
+// }

@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -61,32 +60,38 @@ import com.contextphoto.utils.FunctionsApp.espWrite
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun LoginScreen(navController: NavHostController,
-                loginViewModel: LoginViewModel = hiltViewModel()) {
+fun LoginScreen(
+    navController: NavHostController,
+    loginViewModel: LoginViewModel = hiltViewModel(),
+) {
     val context = LocalContext.current
-    var isShowPassword by rememberSaveable {mutableStateOf(false)}
+    var isShowPassword by rememberSaveable { mutableStateOf(false) }
     val errorMessage = loginViewModel.errorMessage.collectAsStateWithLifecycle()
     val currentUser = loginViewModel.currentUser.collectAsStateWithLifecycle()
     val email = rememberSaveable { mutableStateOf("") }
     val password = rememberSaveable { mutableStateOf("") }
 
     Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
     ) {
-        Box( modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
         ) {
             Column(
                 modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-
                 Text(
                     text = context.getString(R.string.login_title),
-                    style = androidx.compose.ui.text.TextStyle(fontSize = 40.sp)
+                    style =
+                        androidx.compose.ui.text
+                            .TextStyle(fontSize = 40.sp),
                 )
                 OutlinedTextField(
                     modifier = Modifier.fillMaxWidth(),
@@ -94,7 +99,7 @@ fun LoginScreen(navController: NavHostController,
                     value = email.value,
                     onValueChange = { email.value = it },
                     leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
-                    textStyle = TextStyle(fontSize = 20.sp)
+                    textStyle = TextStyle(fontSize = 20.sp),
                 )
                 OutlinedTextField(
                     modifier = Modifier.fillMaxWidth(),
@@ -117,14 +122,14 @@ fun LoginScreen(navController: NavHostController,
                             )
                         }
                     },
-                    textStyle = TextStyle(fontSize = 20.sp)
+                    textStyle = TextStyle(fontSize = 20.sp),
                 )
             }
 
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Bottom
+                verticalArrangement = Arrangement.Bottom,
             ) {
                 Button(
                     onClick = {
@@ -136,42 +141,46 @@ fun LoginScreen(navController: NavHostController,
                                 espWrite(context, currentUser.value!!.email.toString(), token.toString())
                             }
                         }
-
                     },
                     shape = RoundedCornerShape(50.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(R.color.light_blue)
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 14.dp)
-                        .wrapContentHeight(),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = colorResource(R.color.light_blue),
+                        ),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp)
+                            .wrapContentHeight(),
                 ) {
                     Text(
                         text = context.getString(R.string.login),
                         color = Color.White,
                         fontSize = 20.sp,
-                        modifier = Modifier.padding(vertical = 8.dp)
+                        modifier = Modifier.padding(vertical = 8.dp),
                     )
                 }
-                Text(text = errorMessage.value,
-                    modifier = Modifier.clickable(onClick = {
-                        FirebaseAuth.getInstance()
-                        loginViewModel.logout()
-                    })
+                Text(
+                    text = errorMessage.value,
+                    modifier =
+                        Modifier.clickable(onClick = {
+                            FirebaseAuth.getInstance()
+                            loginViewModel.logout()
+                        }),
                 )
 
                 Text(
                     context.getString(R.string.login_bottom_text),
                     color = Color.Cyan,
                     textDecoration = TextDecoration.Underline,
-                    modifier = Modifier
-                        .clickable(onClick = {
-                            navController.popBackStack()
-                            navController.navigate(
-                                Destination.Registration().route
-                            )
-                        })
+                    modifier =
+                        Modifier
+                            .clickable(onClick = {
+                                navController.popBackStack()
+                                navController.navigate(
+                                    Destination.Registration().route,
+                                )
+                            }),
                 )
             }
         }
@@ -179,33 +188,38 @@ fun LoginScreen(navController: NavHostController,
 }
 
 @Composable
-fun RegisterScreen(navController: NavHostController,
-                   loginViewModel: LoginViewModel = hiltViewModel()) {
+fun RegisterScreen(
+    navController: NavHostController,
+    loginViewModel: LoginViewModel = hiltViewModel(),
+) {
     val context = LocalContext.current
     val errorMessage = loginViewModel.errorMessage.collectAsStateWithLifecycle()
     val currentUser = loginViewModel.currentUser.collectAsStateWithLifecycle()
-    var isShowPassword by rememberSaveable {mutableStateOf(false)}
+    var isShowPassword by rememberSaveable { mutableStateOf(false) }
     val email = rememberSaveable { mutableStateOf("") }
     val password = rememberSaveable { mutableStateOf("") }
     val checkedPrivacy = rememberSaveable { mutableStateOf(false) }
     val showConfidence = rememberSaveable { mutableStateOf(false) }
 
     Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
     ) {
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)) {
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+        ) {
             Column(
                 modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-
                 Text(
                     text = context.getString(R.string.register_title),
-                    style = TextStyle(fontSize = 40.sp)
+                    style = TextStyle(fontSize = 40.sp),
                 )
                 OutlinedTextField(
                     modifier = Modifier.fillMaxWidth(),
@@ -213,7 +227,7 @@ fun RegisterScreen(navController: NavHostController,
                     value = email.value,
                     onValueChange = { email.value = it },
                     leadingIcon = { Icon(Icons.Outlined.Email, contentDescription = null) },
-                    textStyle = TextStyle(fontSize = 20.sp)
+                    textStyle = TextStyle(fontSize = 20.sp),
                 )
                 OutlinedTextField(
                     modifier = Modifier.fillMaxWidth(),
@@ -236,11 +250,11 @@ fun RegisterScreen(navController: NavHostController,
                             )
                         }
                     },
-                    textStyle = TextStyle(fontSize = 20.sp)
+                    textStyle = TextStyle(fontSize = 20.sp),
                 )
 
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Checkbox(
                         checked = checkedPrivacy.value,
@@ -252,28 +266,28 @@ fun RegisterScreen(navController: NavHostController,
                                 checkedColor = colorResource(R.color.light_blue),
                                 checkmarkColor = Color.White,
                                 disabledCheckedColor = Color.White,
-                            )
+                            ),
                     )
-                    Text(context.getString(R.string.privacy_policy_text),
+                    Text(
+                        context.getString(R.string.privacy_policy_text),
                         textDecoration = TextDecoration.Underline,
-                        modifier = Modifier.clickable(onClick = {
-                            showConfidence.value = !showConfidence.value
-                        }))
+                        modifier =
+                            Modifier.clickable(onClick = {
+                                showConfidence.value = !showConfidence.value
+                            }),
+                    )
                 }
-
             }
 
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Bottom
+                verticalArrangement = Arrangement.Bottom,
             ) {
                 Button(
                     onClick = {
                         if (checkedPrivacy.value) {
-
-                        }
-                        else {
+                        } else {
                             Toast.makeText(context, getString(context, R.string.get_policy), Toast.LENGTH_LONG).show()
                         }
                         loginViewModel.clearError()
@@ -290,54 +304,57 @@ fun RegisterScreen(navController: NavHostController,
                         }
                     },
                     shape = RoundedCornerShape(50.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colorResource(R.color.light_blue)
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 14.dp)
-                        .wrapContentHeight(),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = colorResource(R.color.light_blue),
+                        ),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp)
+                            .wrapContentHeight(),
                 ) {
                     Text(
                         text = context.getString(R.string.register),
                         color = Color.White,
                         fontSize = 20.sp,
-                        modifier = Modifier.padding(vertical = 8.dp)
+                        modifier = Modifier.padding(vertical = 8.dp),
                     )
                 }
-                Text(text = errorMessage.value,
-                    modifier = Modifier.clickable(onClick = {
-                        FirebaseAuth.getInstance()
-                        loginViewModel.logout()
-                    })
+                Text(
+                    text = errorMessage.value,
+                    modifier =
+                        Modifier.clickable(onClick = {
+                            FirebaseAuth.getInstance()
+                            loginViewModel.logout()
+                        }),
                 )
 
                 Text(
                     context.getString(R.string.register_bottom_text),
                     color = Color.Cyan,
                     textDecoration = TextDecoration.Underline,
-                    modifier = Modifier
-                        .clickable(onClick = {
-                            navController.popBackStack()
-                            navController.navigate(
-                                Destination.Login().route
-                            )
-                        })
+                    modifier =
+                        Modifier
+                            .clickable(onClick = {
+                                navController.popBackStack()
+                                navController.navigate(
+                                    Destination.Login().route,
+                                )
+                            }),
                 )
             }
         }
-
     }
     AnimatedVisibility(
         visible = showConfidence.value,
         enter = expandVertically(),
-        exit = shrinkVertically(
-        )
+        exit =
+            shrinkVertically(),
     ) {
         PrivacyPolicyScreenWithScaffold(showConfidence)
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable

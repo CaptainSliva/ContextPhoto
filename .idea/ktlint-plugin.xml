@@ -2,6 +2,6 @@
 <project version="4">
   <component name="com.nbadal.ktlint.KtlintProjectSettings">
     <ktlintMode>DISTRACT_FREE</ktlintMode>
-    <ktlintRulesetVersion>DEFAULT</ktlintRulesetVersion>
+    <ktlintRulesetVersion>V1_8_0</ktlintRulesetVersion>
   </component>
 </project>
