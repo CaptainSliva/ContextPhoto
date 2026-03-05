@@ -4,7 +4,10 @@ import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -16,6 +19,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
@@ -31,21 +35,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
-import com.contextphoto.data.Destination
+import androidx.navigation.NavHostController
+import com.contextphoto.data.navigation.Destination
 import com.contextphoto.dialog.CreateAlbumDialog
 import com.contextphoto.item.AlbumItem
 import com.contextphoto.menu.MainDropdownMenu
 import com.contextphoto.ui.AlbumViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlbumsScreenWithScaffold(
-    modifier: Modifier = Modifier,
-    navController: NavController,
+    navController: NavHostController,
     albumViewModel: AlbumViewModel = hiltViewModel(),
 ) {
     val loadAlbums = albumViewModel.loadAlbums.collectAsStateWithLifecycle()
@@ -59,6 +59,10 @@ fun AlbumsScreenWithScaffold(
 
     val createAlbumDialogVisible = rememberSaveable { mutableStateOf(false) }
     Log.d("Albums", albumList.toString())
+
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+
+    // Используем цвета в зависимости от темы
 
     Scaffold(
         topBar = {
@@ -130,8 +134,12 @@ fun AlbumsScreenWithScaffold(
             LazyVerticalGrid(
                 state = listState,
                 columns = GridCells.Fixed(1),
-                modifier = modifier.padding(paddingValues),
-                contentPadding = PaddingValues(bottom = 80.dp)
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .background(MaterialTheme.colorScheme.background),
+                contentPadding = PaddingValues(bottom = 80.dp),
             ) {
                 items(
                     items = albumList,
@@ -140,7 +148,11 @@ fun AlbumsScreenWithScaffold(
                     AlbumItem(
                         album,
                         Modifier.padding(0.dp, 2.dp).animateItem(),
-                        onItemClick = { navController.navigate(Destination.Pictures().route + "/${album.bID}" + "/${album.itemsCount?:1}") },
+                        onItemClick = {
+                            navController.navigate(
+                                Destination.Pictures().route + "/${album.bID}" + "/${album.itemsCount ?: 1}",
+                            )
+                        },
                         albumViewModel,
                     )
                 }

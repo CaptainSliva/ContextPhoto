@@ -1,4 +1,4 @@
-package com.contextphoto.data
+package com.contextphoto.data.navigation
 
 import android.support.annotation.DrawableRes
 import com.contextphoto.R

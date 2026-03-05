@@ -1,20 +1,11 @@
 package com.contextphoto.ui.screen
 
-import android.R.attr.navigationIcon
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandIn
 import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,35 +25,29 @@ import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.contextphoto.ShowBottomMenu
-import com.contextphoto.data.Destination
+import com.contextphoto.data.navigation.Destination
 import com.contextphoto.db.CommentDatabase
 import com.contextphoto.item.CustomVideoUI
 import com.contextphoto.item.ImageUI
 import com.contextphoto.ui.FullscreenViewModel
-import com.contextphoto.utils.FunctionsBitmap.md5
-import com.contextphoto.utils.FunctionsFiles.deleteAlbum
 import com.contextphoto.utils.FunctionsUri.convertUri
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FullScreenViewPagerWithScaffold(
-    modifier: Modifier = Modifier,
-    navController: NavController,
+    navController: NavHostController,
     fullScreenViewModel: FullscreenViewModel = hiltViewModel(),
 ) {
     fullScreenViewModel.loadPictureList()
@@ -80,13 +65,6 @@ fun FullScreenViewPagerWithScaffold(
 
     Log.d("ActionDelete", deleteAction.value.toString())
     Log.d("ActionMediaPosotion", mediaPosotion.toString())
-//    LaunchedEffect(Unit) {
-//        val activity = context as Activity
-//        activity?.window?.let { window ->
-//            WindowCompat.setDecorFitsSystemWindows(window, false)
-//
-//        }
-//    }
 
     Scaffold(
         modifier = Modifier.background(Color.Black),
@@ -108,15 +86,14 @@ fun FullScreenViewPagerWithScaffold(
                                     listMedia[mediaPosotion].date[1],
                                     fontSize = 13.sp,
                                 )
-                            }
-                            else {
-                                navController.navigateUp()
+                            } else {
+                                backActions(navController)
                             }
                         }
                     },
                     navigationIcon = {
                         IconButton(onClick = {
-                            navController.navigateUp()
+                            backActions(navController)
                         }) {
                             Icon(
                                 Icons.Default.ArrowBack, // Кнопка назад
@@ -125,13 +102,14 @@ fun FullScreenViewPagerWithScaffold(
                         }
                     },
                     modifier = Modifier.background(Color.Black),
-                    colors = TopAppBarColors(
-                        containerColor = Color.Black,
-                        scrolledContainerColor = Color.White,
-                        navigationIconContentColor = Color.White,
-                        titleContentColor = Color.White,
-                        actionIconContentColor = Color.White
-                    )
+                    colors =
+                        TopAppBarColors(
+                            containerColor = Color.Black,
+                            scrolledContainerColor = Color.White,
+                            navigationIconContentColor = Color.White,
+                            titleContentColor = Color.White,
+                            actionIconContentColor = Color.White,
+                        ),
                 )
             }
             LaunchedEffect(visibleMenu.value) {
@@ -153,6 +131,10 @@ fun FullScreenViewPagerWithScaffold(
             }
         },
         content = { paddingValues ->
+            BackHandler {
+                backActions(navController)
+            }
+
             HorizontalPager(modifier = Modifier.padding(paddingValues), state = pagerState) { page ->
                 val media = listMedia[page]
                 Log.d("URI LOG", media.uri.toString())
@@ -165,11 +147,12 @@ fun FullScreenViewPagerWithScaffold(
                             .fillMaxSize()
                             .background(Color.Black),
                 ) {
-                    println(convertUri(media.path, media.uri).toString())
+                    Log.d("convertUri", "uri - ${media.uri}\npath - ${media.path}\nconvertUri- ${convertUri(media.path, media.uri)}")
                     if (pagerState.settledPage == listMedia.size) {
-                        fullScreenViewModel.getImageComment(listMedia[pagerState.settledPage-1].thumbnail)
+                        fullScreenViewModel.getImageComment(listMedia[pagerState.settledPage - 1].thumbnail)
+                    } else {
+                        fullScreenViewModel.getImageComment(listMedia[pagerState.settledPage].thumbnail)
                     }
-                    else fullScreenViewModel.getImageComment(listMedia[pagerState.settledPage].thumbnail)
                     if (convertUri(media.path, media.uri).toString().contains("video")) {
                         CustomVideoUI(
                             media.uri,
@@ -189,14 +172,14 @@ fun FullScreenViewPagerWithScaffold(
                         ImageUI(
                             media.uri,
                             media.path,
-                            { fullScreenViewModel.changeStateBottomMenuFullScreen() })
+                            { fullScreenViewModel.changeStateBottomMenuFullScreen() },
+                        )
                         ShowBottomMenu(
                             Destination.FullScreenImg().route,
                             fullScreenViewModel = fullScreenViewModel,
                             commentText = commentText,
                         )
                     }
-
                 }
             }
 
@@ -206,9 +189,8 @@ fun FullScreenViewPagerWithScaffold(
                         if (mediaPosotion != -1) {
                             pagerState.animateScrollToPage(mediaPosotion)
                             fullScreenViewModel.deleteActionChange()
-                        }
-                        else {
-                            navController.navigateUp()
+                        } else {
+                            backActions(navController)
                         }
                     }
                 }
@@ -219,4 +201,8 @@ fun FullScreenViewPagerWithScaffold(
             }
         },
     )
+}
+
+private fun backActions(navController: NavHostController) {
+    navController.navigateUp()
 }

@@ -9,8 +9,8 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import com.contextphoto.R
-import com.contextphoto.data.Album
 import com.contextphoto.data.baseFilePath
+import com.contextphoto.item.Album
 import com.contextphoto.utils.FunctionsFiles.deleteAlbum
 import com.contextphoto.utils.FunctionsFiles.renameAlbum
 import java.io.File
@@ -24,8 +24,7 @@ object FunctionsDialogs {
             Log.i("Path base", baseFilePath)
             if (!File(baseFilePath).exists()) {
                 File(baseFilePath).mkdir()
-            }
-            else {
+            } else {
                 File("$baseFilePath/$albumName").mkdir()
             }
         } else {
@@ -41,7 +40,7 @@ object FunctionsDialogs {
         if (albumPath.exists()) {
             deleteAlbum(albumPath)
         } else {
-            Toast.makeText(context, "Альбом ${albumName} не найден", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Альбом $albumName не найден", Toast.LENGTH_SHORT).show()
         }
     }
 

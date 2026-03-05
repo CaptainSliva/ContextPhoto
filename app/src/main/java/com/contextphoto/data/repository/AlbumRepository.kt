@@ -1,7 +1,7 @@
 package com.contextphoto.data.repository
 
-import com.contextphoto.data.Album
 import com.contextphoto.data.datasource.AlbumCache
+import com.contextphoto.item.Album
 import jakarta.inject.Inject
 
 class AlbumRepository

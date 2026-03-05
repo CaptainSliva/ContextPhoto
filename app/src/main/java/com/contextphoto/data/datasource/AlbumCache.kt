@@ -2,7 +2,7 @@ package com.contextphoto.data.datasource
 
 import android.content.Context
 import android.util.Log
-import com.contextphoto.data.Album
+import com.contextphoto.item.Album
 import com.contextphoto.utils.FunctionsMediaStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import jakarta.inject.Inject

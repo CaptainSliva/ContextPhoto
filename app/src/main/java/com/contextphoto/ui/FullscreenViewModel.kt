@@ -1,13 +1,11 @@
 package com.contextphoto.ui
 
-import android.content.Context
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.contextphoto.data.repository.AlbumRepository
 import com.contextphoto.data.repository.MediaRepository
-import com.contextphoto.data.Picture
-import com.contextphoto.utils.FunctionsDialogs.showDeleteAlbumMessage
+import com.contextphoto.item.Picture
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,7 +32,6 @@ class FullscreenViewModel
         val bottomMenuFullScreenVisible = _bottomMenuFullScreenVisible.asStateFlow()
         val deleteAction = _deleteAction.asStateFlow()
         val imageComment = _imageComment.asStateFlow()
-
 
         fun loadPictureList() {
             _listMedia.value = repository.getPictureList()
@@ -84,5 +81,4 @@ class FullscreenViewModel
                 }
             }
         }
-
     }

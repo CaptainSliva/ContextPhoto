@@ -1,43 +1,31 @@
 package com.contextphoto.utils
 
-import android.content.ContentValues
 import android.content.Context
-import android.content.ContextWrapper
 import android.graphics.Bitmap
-import android.net.Uri
-import android.os.Build
-import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
-import android.widget.Toast
-import androidx.activity.ComponentActivity
+import androidx.core.content.edit
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
-import androidx.core.content.edit
-import com.contextphoto.data.Picture
 import com.contextphoto.data.baseFilePath
 import com.contextphoto.db.CommentDatabase
-import com.contextphoto.utils.FunctionsMediaStore.getAllMedia
-import com.davemorrissey.labs.subscaleview.ImageSource.bitmap
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.forEach
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
-import java.io.OutputStream
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 object FunctionsApp {
-
-    fun generatePictures(width: Int, height: Int, count: Int, delete: Boolean, addName: String) {
-        val path = File(baseFilePath, "Nagruzka album_$addName")
+    fun generatePictures(
+        width: Int,
+        height: Int,
+        count: Int,
+        delete: Boolean,
+        addName: String,
+    ) {
+        val path = File(baseFilePath, "/Nagruzka album_$addName")
 
         if (delete) {
             path.listFiles()?.forEach { file ->
@@ -79,7 +67,7 @@ object FunctionsApp {
         }
     }
 
-    fun firebaseFirestoreDatabaseTest(context: Context,) {
+    fun firebaseFirestoreDatabaseTest(context: Context) {
         val TAG = "FireDataTest"
         val fdb = Firebase.firestore
         val db = CommentDatabase.getDatabse(context).commentDao()
@@ -87,7 +75,9 @@ object FunctionsApp {
         CoroutineScope(Dispatchers.IO).launch {
             db.getAllComments().collect {
                 it.forEach { comment ->
-                    fdb.collection(espRead(context).first).add(comment)
+                    fdb
+                        .collection(espRead(context).first)
+                        .add(comment)
                         .addOnSuccessListener { documentReference ->
                             Log.d(TAG, "DocumentSnapshot added with ID: ${documentReference.id}")
                         }.addOnFailureListener { e ->
@@ -140,29 +130,7 @@ object FunctionsApp {
 
         return Pair(
             sharedPreferences.getString("email", "").toString(),
-            sharedPreferences.getString("jwtToken", "").toString()
+            sharedPreferences.getString("jwtToken", "").toString(),
         )
     }
-
-    fun espClear(context: Context) {
-        val masterKey =
-            MasterKey
-                .Builder(context)
-                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                .build()
-        val sharedPreferences =
-            EncryptedSharedPreferences.create(
-                context,
-                "secure_prefs",
-                masterKey,
-                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-            )
-        sharedPreferences
-            .edit{
-                putString("email", "")
-                    .putString("jwtToken", "")
-            }
-    }
 }
-

@@ -4,12 +4,12 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.contextphoto.data.commentDatabase
-import com.contextphoto.data.versionDB
+import com.contextphoto.data.COMMENT_DATABASE
+import com.contextphoto.data.VERSION_DB
 
 @Database(
     entities = [Comment::class],
-    version = versionDB,
+    version = VERSION_DB,
     exportSchema = false,
 )
 abstract class CommentDatabase : RoomDatabase() {
@@ -26,7 +26,7 @@ abstract class CommentDatabase : RoomDatabase() {
                         .databaseBuilder(
                             context.applicationContext,
                             CommentDatabase::class.java,
-                            commentDatabase,
+                            COMMENT_DATABASE,
                         ).build()
                 INSTANCE = instance
                 instance

@@ -40,6 +40,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
 import com.contextphoto.InfinityScrollableText
 import com.contextphoto.R
 import com.contextphoto.ui.FullscreenViewModel
@@ -155,7 +157,7 @@ fun CustomVideoUI(
             slideOutVertically(targetOffsetY = { 600 }) +
                 fadeOut(),
     ) {
-        if (commentText != null) InfinityScrollableText(isVisible.value, commentText, { onClick() }, offset = 47)
+        InfinityScrollableText(isVisible.value, commentText, { onClick() }, offset = 47)
         Column(
             modifier =
                 Modifier
@@ -178,7 +180,7 @@ fun CustomVideoUI(
                     color = Color.White,
                 )
 
-                // Кнопка управления
+                // Кнопка СтартСтоп
                 IconButton(
                     onClick = {
                         if (isPlaying) {
@@ -247,30 +249,45 @@ fun ImageUI(
     path: String,
     onClick: () -> Unit = {},
 ) {
-    AndroidView(
-        factory = { ctx ->
-            SubsamplingScaleImageView(ctx).apply {
-                layoutParams =
-                    ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                    )
-                setImage(ImageSource.uri(Uri.fromFile(File(path))))
+    if (File(path).extension.lowercase().contains("gif")) {
+        AsyncImage(
+            model =
+                ImageRequest
+                    .Builder(LocalContext.current)
+                    .data(uri.toString())
+                    .build(),
+            contentDescription = null,
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .clickable { onClick() },
+        )
+    } else {
+        AndroidView(
+            factory = { ctx ->
+                SubsamplingScaleImageView(ctx).apply {
+                    layoutParams =
+                        ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                        )
+                    setImage(ImageSource.uri(uri))
 
-                val gestureDetector =
-                    GestureDetector(
-                        object : SimpleOnGestureListener() {
-                            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                                onClick()
-                                return true
-                            }
-                        },
-                    )
+                    val gestureDetector =
+                        GestureDetector(
+                            object : SimpleOnGestureListener() {
+                                override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                                    onClick()
+                                    return true
+                                }
+                            },
+                        )
 
-                setOnTouchListener { v, event ->
-                    gestureDetector.onTouchEvent(event)
+                    setOnTouchListener { v, event ->
+                        gestureDetector.onTouchEvent(event)
+                    }
                 }
-            }
-        },
-    )
+            },
+        )
+    }
 }

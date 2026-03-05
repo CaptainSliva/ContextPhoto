@@ -1,11 +1,14 @@
 package com.contextphoto.ui.screen
 
 import android.content.Context
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -20,22 +23,19 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -44,30 +44,22 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.contextphoto.R
 import com.contextphoto.ShowBottomMenu
-import com.contextphoto.data.Destination
+import com.contextphoto.data.navigation.Destination
 import com.contextphoto.db.CommentDao
 import com.contextphoto.db.CommentDatabase
 import com.contextphoto.item.PictureItem
-import com.contextphoto.menu.MainDropdownMenu
 import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.utils.FunctionsMediaStore.getPictureFromUri
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchPhotoScreenWithScaffold(
-    modifier: Modifier = Modifier,
-    navController: NavController,
+    navController: NavHostController,
     mediaViewModel: MediaViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -90,7 +82,7 @@ fun SearchPhotoScreenWithScaffold(
 
     LaunchedEffect(clearFlag.value) {
         if (clearFlag.value) {
-            mediaViewModel.clearPictureList()
+            mediaViewModel.clearMediaViewModelData()
             clearFlag.value = false
         }
     }
@@ -105,9 +97,7 @@ fun SearchPhotoScreenWithScaffold(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
-                        mediaViewModel.clearPictureList()
-                        mediaViewModel.loadPicturesStateChange(true)
-                        navController.navigateUp()
+                        backActions(mediaViewModel, navController)
                     }) {
                         Icon(
                             Icons.Default.ArrowBack, // Кнопка назад
@@ -118,10 +108,14 @@ fun SearchPhotoScreenWithScaffold(
             )
         },
         content = { paddingValues ->
+            BackHandler {
+                backActions(mediaViewModel, navController)
+            }
             Column(
                 modifier =
                     Modifier
-                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.background)
+                        .fillMaxSize()
                         .padding(paddingValues),
             ) {
                 Row(
@@ -141,7 +135,7 @@ fun SearchPhotoScreenWithScaffold(
                         label = { "Enter text" },
                         placeholder = { "Найти" },
                         supportingText = {
-                            Text("Найдено: ${numberFind}")
+                            Text("Найдено: $numberFind")
                         },
                         modifier = Modifier.weight(8f),
                     )
@@ -156,7 +150,7 @@ fun SearchPhotoScreenWithScaffold(
                                         commentText = ""
                                     },
                                 ),
-                        color = colorResource(R.color.light_blue)
+                        color = colorResource(R.color.light_blue),
                     )
                 }
                 Row(
@@ -172,6 +166,7 @@ fun SearchPhotoScreenWithScaffold(
                         colors =
                             CheckboxDefaults.colors(
                                 checkedColor = colorResource(R.color.light_blue),
+                                checkmarkColor = Color.White,
                                 disabledCheckedColor = Color.White,
                             ),
                     )
@@ -185,7 +180,7 @@ fun SearchPhotoScreenWithScaffold(
                     state = listState,
                     columns = GridCells.Fixed(3),
                     modifier = Modifier.padding(paddingValues),
-                    contentPadding = PaddingValues(bottom = 80.dp)
+                    contentPadding = PaddingValues(bottom = 80.dp),
                 ) {
                     items(items = listMedia, key = { media -> media.hashCode() }) { media ->
                         val mediaIndex = listMedia.indexOf(media)
@@ -218,35 +213,41 @@ private suspend fun searchPhotoOnComment(
     db: CommentDao,
     context: Context,
 ) {
-//    CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-        if (comment.trim() != "") {
-            db.findImageByComment(comment).collect {
-                it.forEach { commentCurrent ->
-                    println(commentCurrent.image_comment)
-                    val imageByUri = getPictureFromUri(context, commentCurrent.image_uri.toUri())
-                    if (imageByUri.path != "") {
-                        println(imageByUri.path)
-                        when (checkRegister) {
-                            true -> {
-                                if (commentCurrent.image_comment.contains(comment)) {
-                                    mediaViewModel.addFoundedPicture(
-                                        imageByUri,
-                                    )
-                                }
-                            }
-
-                            false -> {
+    if (comment.trim() != "") {
+        db.findImageByComment(comment).collect {
+            it.forEach { commentCurrent ->
+                println(commentCurrent.image_comment)
+                val imageByUri = getPictureFromUri(context, commentCurrent.image_uri.toUri())
+                if (imageByUri.path != "") {
+                    println(imageByUri.path)
+                    when (checkRegister) {
+                        true -> {
+                            if (commentCurrent.image_comment.contains(comment)) {
                                 mediaViewModel.addFoundedPicture(
                                     imageByUri,
                                 )
                             }
                         }
+
+                        false -> {
+                            mediaViewModel.addFoundedPicture(
+                                imageByUri,
+                            )
+                        }
                     }
-                    else {
-                        db.delete(commentCurrent)
-                    }
+                } else {
+                    db.delete(commentCurrent)
                 }
             }
         }
-//    }
+    }
+}
+
+private fun backActions(
+    mediaViewModel: MediaViewModel,
+    navController: NavHostController,
+) {
+    mediaViewModel.clearMediaViewModelData()
+    mediaViewModel.loadPicturesStateChange(true)
+    navController.navigateUp()
 }

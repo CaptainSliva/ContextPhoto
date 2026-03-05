@@ -10,6 +10,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Add
@@ -50,17 +52,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.contextphoto.R
-import com.contextphoto.data.Destination
-import com.contextphoto.data.Picture
+import com.contextphoto.data.navigation.Destination
 import com.contextphoto.dialog.ChooseAlbumDialog
 import com.contextphoto.dialog.CommentateDialog
 import com.contextphoto.dialog.DeleteAlbumDialog
 import com.contextphoto.dialog.DeleteMediaDialog
 import com.contextphoto.dialog.RenameAlbumDialog
+import com.contextphoto.item.Picture
 import com.contextphoto.ui.AlbumViewModel
 import com.contextphoto.ui.FullscreenViewModel
 import com.contextphoto.ui.MediaViewModel
-import com.contextphoto.utils.FunctionsBitmap.getThumbnail
 import com.contextphoto.utils.FunctionsBitmap.md5
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -68,7 +69,10 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 @Composable
-fun MainDropdownMenu(navController: NavController, onClickEvent: () -> Unit = {}) {
+fun MainDropdownMenu(
+    navController: NavController,
+    onClickEvent: () -> Unit = {},
+) {
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
     Row(
@@ -202,14 +206,15 @@ fun BottomMenuPictureScreen(mediaViewModel: MediaViewModel) {
         enter = slideInVertically(),
         exit = slideOutVertically(),
     ) {
-        if (listSelectedMedia.isNotEmpty())
-        DeleteMediaDialog(
-            {},
-            deleteDialogVisible,
-            Destination.Pictures().route,
-            listSelectedMedia[0].bID,
-            mediaViewModel = mediaViewModel,
-        )
+        if (listSelectedMedia.isNotEmpty()) {
+            DeleteMediaDialog(
+                {},
+                deleteDialogVisible,
+                Destination.Pictures().route,
+                listSelectedMedia[0].bID,
+                mediaViewModel = mediaViewModel,
+            )
+        }
     }
 
     Column(
@@ -220,7 +225,8 @@ fun BottomMenuPictureScreen(mediaViewModel: MediaViewModel) {
             modifier =
                 Modifier
                     .background(Color.Black)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.Center,
         ) {
             ButtonShare(listSelectedMedia)
@@ -237,7 +243,6 @@ fun BottomMenuSearchPictureScreen(mediaViewModel: MediaViewModel) {
     val deleteDialogVisible = rememberSaveable { mutableStateOf(false) }
     val commentsStateDialogVisible = rememberSaveable { mutableStateListOf<MutableState<Boolean>>() }
     val listSelectedMedia by mediaViewModel.listSelectedMedia.collectAsStateWithLifecycle()
-
 
     if (commentateDialogVisible.value) {
         commentsStateDialogVisible.clear()
@@ -280,7 +285,8 @@ fun BottomMenuSearchPictureScreen(mediaViewModel: MediaViewModel) {
             modifier =
                 Modifier
                     .background(Color.Black)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.Center,
         ) {
             ButtonShare(listSelectedMedia)
@@ -305,7 +311,7 @@ fun BottomMenuFullScreen(fullscreenViewModel: FullscreenViewModel) {
             CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
                 commentText.value =
                     fullscreenViewModel.db
-                        .findImageByHash(md5(getThumbnail(context, listMedia[pos.value].uri)))
+                        .findImageByHash(md5(listMedia[pos.value].thumbnail))
                         ?.image_comment
                         ?.trim()
                         ?: commentText.value.trim()
@@ -343,7 +349,8 @@ fun BottomMenuFullScreen(fullscreenViewModel: FullscreenViewModel) {
             modifier =
                 Modifier
                     .background(Color.Black)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.Center,
         ) {
             ButtonShare(listOf(listMedia[pos.value]), commentText.value)
@@ -369,7 +376,7 @@ fun BottomMenuFullScreenVideo(fullscreenViewModel: FullscreenViewModel) {
             CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
                 commentText.value =
                     fullscreenViewModel.db
-                        .findImageByHash(md5(getThumbnail(context, listMedia[pos.value].uri)))
+                        .findImageByHash(md5(listMedia[pos.value].thumbnail))
                         ?.image_comment
                         ?.trim()
                         ?: commentText.value.trim()
@@ -406,7 +413,8 @@ fun BottomMenuFullScreenVideo(fullscreenViewModel: FullscreenViewModel) {
             modifier =
                 Modifier
                     .background(Color.Black)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.Center,
         ) {
             ButtonShare(listOf(listMedia[pos.value]), commentText.value)
