@@ -91,7 +91,6 @@ class MediaCache
                 when {
                     currentSize == currentPos -> _mediaPosition.value -= 1
                     currentSize == 1 -> _mediaPosition.value = 0
-                    currentSize > currentPos -> _mediaPosition.value += 1
                 }
             }
         }
