@@ -24,13 +24,11 @@ class FullscreenViewModel
         private val _listMedia = MutableStateFlow<List<Picture>>(emptyList())
         private val _mediaPosition = MutableStateFlow(0)
         private val _bottomMenuFullScreenVisible = MutableStateFlow(false)
-        private val _deleteAction = MutableStateFlow(false)
         private val _imageComment = MutableStateFlow("")
         val db = repository.getDB()
         val listMedia = _listMedia.asStateFlow()
         val mediaPosition = _mediaPosition.asStateFlow()
         val bottomMenuFullScreenVisible = _bottomMenuFullScreenVisible.asStateFlow()
-        val deleteAction = _deleteAction.asStateFlow()
         val imageComment = _imageComment.asStateFlow()
 
         fun loadPictureList() {
@@ -63,14 +61,6 @@ class FullscreenViewModel
                 _bottomMenuFullScreenVisible.value = state
             } else {
                 _bottomMenuFullScreenVisible.value = !bottomMenuFullScreenVisible.value
-            }
-        }
-
-        fun deleteActionChange(state: Boolean? = null) {
-            if (state != null) {
-                _deleteAction.value = state
-            } else {
-                _deleteAction.value = !_deleteAction.value
             }
         }
 

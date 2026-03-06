@@ -56,7 +56,7 @@
     <string name="delete_album_text">Удалить альбом</string>
     <string name="email">Почта</string>
     <string name="password">Пароль</string>
-    <string name="privacy_policy_text">Политика конфиденциальности</string>
+    <string name="privacy_policy_text">Согласие с политикой конфиденциальности</string>
 
     <!-- Текста -->
     <string name="register_check">Поиск с учётом регистра</string>

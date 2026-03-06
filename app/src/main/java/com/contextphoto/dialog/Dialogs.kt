@@ -532,8 +532,7 @@ fun DeleteMediaDialog(
 
                         Destination.FullScreenImg().route -> {
                             if (deleteMediaFile(context, activity, listMediaFullscreen[pos].uri)) {
-//                                fullscreenViewModel.deleteActionChange(true)
-//                                fullscreenViewModel.updateMediaPosition()
+                                fullscreenViewModel.updateMediaPosition()
                                 fullscreenViewModel.deletePicture(listMediaFullscreen[pos])
                                 if (listMediaFullscreen.size == 1) mediaViewModel.deleteAlbum(context)
                             }

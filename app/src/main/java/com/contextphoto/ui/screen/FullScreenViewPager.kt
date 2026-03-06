@@ -28,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -37,7 +36,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.contextphoto.ShowBottomMenu
 import com.contextphoto.data.navigation.Destination
-import com.contextphoto.db.CommentDatabase
 import com.contextphoto.item.CustomVideoUI
 import com.contextphoto.item.ImageUI
 import com.contextphoto.ui.FullscreenViewModel
@@ -52,19 +50,15 @@ fun FullScreenViewPagerWithScaffold(
 ) {
     fullScreenViewModel.loadPictureList()
 
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val db = CommentDatabase.getDatabse(LocalContext.current).commentDao()
     val listMedia by fullScreenViewModel.listMedia.collectAsStateWithLifecycle()
-    val mediaPosotion by fullScreenViewModel.mediaPosition.collectAsStateWithLifecycle()
-    val pagerState = rememberPagerState(initialPage = mediaPosotion, pageCount = { listMedia.size })
+    val mediaPosition by fullScreenViewModel.mediaPosition.collectAsStateWithLifecycle()
+    val pagerState = rememberPagerState(initialPage = mediaPosition, pageCount = { listMedia.size })
     val commentText by fullScreenViewModel.imageComment.collectAsStateWithLifecycle()
-    val deleteAction = fullScreenViewModel.deleteAction.collectAsStateWithLifecycle()
     val window = LocalActivity.current!!.window
     val visibleMenu = fullScreenViewModel.bottomMenuFullScreenVisible.collectAsStateWithLifecycle()
 
-    Log.d("ActionDelete", deleteAction.value.toString())
-    Log.d("ActionMediaPosotion", mediaPosotion.toString())
+    Log.d("ActionMediaPosotion", mediaPosition.toString())
 
     Scaffold(
         modifier = Modifier.background(Color.Black),
@@ -79,11 +73,11 @@ fun FullScreenViewPagerWithScaffold(
                         Column {
                             if (listMedia.size != 0) {
                                 Text(
-                                    listMedia[mediaPosotion].date[0],
+                                    listMedia[mediaPosition].date[0],
                                     fontSize = 20.sp,
                                 )
                                 Text(
-                                    listMedia[mediaPosotion].date[1],
+                                    listMedia[mediaPosition].date[1],
                                     fontSize = 13.sp,
                                 )
                             } else {
@@ -119,13 +113,11 @@ fun FullScreenViewPagerWithScaffold(
                     insetsController.apply {
                         hide(WindowInsetsCompat.Type.statusBars())
                         hide(WindowInsetsCompat.Type.navigationBars())
-//                        systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                     }
                 } else {
                     insetsController.apply {
                         show(WindowInsetsCompat.Type.statusBars())
                         show(WindowInsetsCompat.Type.navigationBars())
-//                        systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
                     }
                 }
             }
@@ -135,11 +127,12 @@ fun FullScreenViewPagerWithScaffold(
                 backActions(navController)
             }
 
-            HorizontalPager(modifier = Modifier.padding(paddingValues), state = pagerState) { page ->
+            HorizontalPager(modifier = Modifier.padding(paddingValues), state = pagerState, key = { index -> listMedia[index].hashCode() }) { page ->
                 val media = listMedia[page]
+                val settedMedia = pagerState.settledPage
                 Log.d("URI LOG", media.uri.toString())
                 Log.d("page LOG", page.toString())
-                Log.d("pagerState LOG", pagerState.settledPage.toString())
+                Log.d("pagerState LOG", settedMedia.toString())
 
                 Box(
                     modifier =
@@ -148,10 +141,10 @@ fun FullScreenViewPagerWithScaffold(
                             .background(Color.Black),
                 ) {
                     Log.d("convertUri", "uri - ${media.uri}\npath - ${media.path}\nconvertUri- ${convertUri(media.path, media.uri)}")
-                    if (pagerState.settledPage == listMedia.size) {
-                        fullScreenViewModel.getImageComment(listMedia[pagerState.settledPage - 1].thumbnail)
+                    if (settedMedia == listMedia.size) {
+                        fullScreenViewModel.getImageComment(listMedia[settedMedia - 1].thumbnail)
                     } else {
-                        fullScreenViewModel.getImageComment(listMedia[pagerState.settledPage].thumbnail)
+                        fullScreenViewModel.getImageComment(listMedia[settedMedia].thumbnail)
                     }
                     if (convertUri(media.path, media.uri).toString().contains("video")) {
                         CustomVideoUI(
@@ -182,25 +175,26 @@ fun FullScreenViewPagerWithScaffold(
                     }
                 }
             }
-
-            LaunchedEffect(deleteAction.value) {
-                if (deleteAction.value) {
-                    coroutineScope.launch {
-                        if (mediaPosotion != -1) {
-                            pagerState.animateScrollToPage(mediaPosotion)
-                            fullScreenViewModel.deleteActionChange()
-                        } else {
-                            backActions(navController)
-                        }
-                    }
-                }
-            }
-
-            LaunchedEffect(pagerState.settledPage) {
-                fullScreenViewModel.updateMediaPosition(pagerState.settledPage) // pagerState.settledPage
-            }
         },
     )
+
+    LaunchedEffect(listMedia.size) {
+        coroutineScope.launch {
+            if (mediaPosition != -1) {
+                pagerState.animateScrollToPage(mediaPosition)
+                Log.d("Scroll", mediaPosition.toString())
+            } else {
+                backActions(navController)
+            }
+        }
+    }
+
+
+
+
+    LaunchedEffect(pagerState.settledPage) {
+        fullScreenViewModel.updateMediaPosition(pagerState.settledPage) // setedMedia
+    }
 }
 
 private fun backActions(navController: NavHostController) {
