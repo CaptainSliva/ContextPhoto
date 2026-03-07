@@ -205,7 +205,7 @@ fun PicturesScreenWithScaffold(
         },
         content = { paddingValues ->
             BackHandler {
-//                backActions(mediaViewModel, navController)
+                backActions(mediaViewModel, navController)
             }
 
             Log.d("fontSize", fontSize.value.toString())

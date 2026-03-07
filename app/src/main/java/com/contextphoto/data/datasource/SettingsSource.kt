@@ -36,13 +36,8 @@ class SettingsSource
             allMedia.forEach { media ->
                 val hash = md5(media.thumbnail)
                 if (hash in allHashes && media.path !in listPaths) {
+                    Log.d("addComment", "${listComments[allHashes.indexOf(hash)].copy(image_uri = media.uri.toString())}")
                     db.addComment(listComments[allHashes.indexOf(hash)].copy(image_uri = media.uri.toString()))
-//                listComments.forEach { comment ->
-//                    if (comment.image_hash == hash) {
-//                        val newComment = comment.copy(image_uri = media.uri.toString())
-//                        db.addComment(newComment)
-//                    }
-//                }
                     listPaths.add(media.path)
                 }
             }

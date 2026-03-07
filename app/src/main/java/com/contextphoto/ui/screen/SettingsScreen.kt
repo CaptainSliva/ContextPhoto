@@ -286,7 +286,7 @@ fun SettingsScreenWithScaffold(
                     }
                     AnimatedVisibility(visible = wheelVisibility.value) {
                         LinearProgressIndicator(
-                            modifier = Modifier.width(64.dp),
+                            modifier = Modifier.fillMaxWidth(),
                             color = MaterialTheme.colorScheme.secondary,
                             trackColor = MaterialTheme.colorScheme.surfaceVariant,
                         )

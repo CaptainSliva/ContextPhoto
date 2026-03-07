@@ -2,6 +2,7 @@ package com.contextphoto.ui.screen
 
 import android.content.Context
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -23,12 +25,14 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -36,7 +40,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
@@ -54,6 +60,7 @@ import com.contextphoto.item.PictureItem
 import com.contextphoto.ui.MediaViewModel
 import com.contextphoto.utils.FunctionsMediaStore.getPictureFromUri
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,12 +78,14 @@ fun SearchPhotoScreenWithScaffold(
     val coroutineScope = rememberCoroutineScope()
     val clearFlag = rememberSaveable { mutableStateOf(false) }
     val listState = rememberLazyGridState()
+    val progressBarVisibility = rememberSaveable {mutableStateOf(false)}
 
     LaunchedEffect(commentText, checkRegister.value) {
-        clearFlag.value = true
-        delay(300)
         withContext(coroutineScope.coroutineContext) {
-            searchPhotoOnComment(mediaViewModel, commentText, checkRegister.value, db, context)
+            clearFlag.value = true
+            if (commentText.trim() != "") progressBarVisibility.value = true
+            delay(100)
+            searchPhotoOnComment(mediaViewModel, commentText, checkRegister.value, progressBarVisibility, db, context)
         }
     }
 
@@ -135,7 +144,17 @@ fun SearchPhotoScreenWithScaffold(
                         label = { "Enter text" },
                         placeholder = { "Найти" },
                         supportingText = {
-                            Text("Найдено: $numberFind")
+                            Row (verticalAlignment = Alignment.CenterVertically) {
+                                Text("Найдено: $numberFind")
+                                AnimatedVisibility(visible = progressBarVisibility.value) {
+                                    LinearProgressIndicator(
+                                        modifier = Modifier.padding(start = 8.dp).width(64.dp),
+                                        color = MaterialTheme.colorScheme.secondary,
+                                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    )
+                                }
+                            }
+
                         },
                         modifier = Modifier.weight(8f),
                     )
@@ -210,6 +229,7 @@ private suspend fun searchPhotoOnComment(
     mediaViewModel: MediaViewModel,
     comment: String,
     checkRegister: Boolean,
+    progressBarVisibility: MutableState<Boolean>,
     db: CommentDao,
     context: Context,
 ) {
@@ -227,12 +247,14 @@ private suspend fun searchPhotoOnComment(
                                     imageByUri,
                                 )
                             }
+                            progressBarVisibility.value = false
                         }
 
                         false -> {
                             mediaViewModel.addFoundedPicture(
                                 imageByUri,
                             )
+                            progressBarVisibility.value = false
                         }
                     }
                 } else {
