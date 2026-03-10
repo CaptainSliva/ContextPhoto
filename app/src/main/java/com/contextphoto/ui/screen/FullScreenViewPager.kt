@@ -59,6 +59,7 @@ fun FullScreenViewPagerWithScaffold(
     val window = LocalActivity.current!!.window
     val visibleMenu = fullScreenViewModel.bottomMenuFullScreenVisible.collectAsStateWithLifecycle()
 
+    Log.d("listMedia", listMedia.toString())
     Log.d("ActionMediaPosotion", mediaPosition.toString())
 
     Scaffold(

@@ -388,41 +388,61 @@ object FunctionsMediaStore {
                         )
                     val duration = cursor.getInt(durationColumn).toLong()
                     val dateAdded = cursor.getLong(dateAddedColumn)
-                    val thumbnail =
-                        if (duration > 0) {
+                    if (duration > 0) {
+                        val thumbnail =
                             getThumbnail(
                                 context,
                                 ContentUris.withAppendedId(
-                                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
                                     id,
                                 ),
                             )
+                        Log.d("video", "video $n $id $uri, $path $bucketId $dateAdded")
+                        if (thumbnail != null) {
+                            if (md5(thumbnail) in hashList) {
+                                listMedia.add(
+                                    Picture(
+                                        bucketId,
+                                        uri,
+                                        path,
+                                        thumbnail,
+                                        dateFormat.format(Date(dateAdded * 1000)).toString()
+                                            .split("\n"),
+                                        durationTranslate(duration),
+                                        mutableStateOf(false),
+                                    ),
+                                )
+                            }
                         }
-                        else {
-                            getThumbnail(
-                                context,
-                                ContentUris.withAppendedId(
-                                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                                    id,
-                                ),
-                            )
-                        }
-                    n++
 
-                    if (thumbnail != null && md5(thumbnail) in hashList) {
-                        listMedia.add(
-                            Picture(
-                                bucketId,
-                                uri,
-                                path,
-                                thumbnail,
-                                dateFormat.format(Date(dateAdded * 1000)).toString().split("\n"),
-                                "",
-                                mutableStateOf(false),
-                            ),
-                        )
+                    } else {
+                        val thumbnail =
+                            getThumbnail(
+                                context,
+                                ContentUris.withAppendedId(
+                                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                    id,
+                                ),
+                            )
+                        Log.d("image", "image $n $id $uri, $path $bucketId $dateAdded")
+                        if (thumbnail != null) {
+                            if (md5(thumbnail) in hashList) {
+                                listMedia.add(
+                                    Picture(
+                                        bucketId,
+                                        uri,
+                                        path,
+                                        thumbnail,
+                                        dateFormat.format(Date(dateAdded * 1000)).toString().split("\n"),
+                                        "",
+                                        mutableStateOf(false),
+                                    ),
+                                )
+                            }
+                        }
+
                     }
-                    Log.d("pic", "pic $n $id $uri, $path $bucketId $dateAdded")
+                    n++
                 }
             }
         return listMedia
