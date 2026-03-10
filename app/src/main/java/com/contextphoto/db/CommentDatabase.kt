@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.contextphoto.data.COMMENT_DATABASE
 import com.contextphoto.data.VERSION_DB
+import javax.inject.Singleton
 
 @Database(
     entities = [Comment::class],
@@ -19,7 +20,7 @@ abstract class CommentDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: CommentDatabase? = null
 
-        fun getDatabse(context: Context): CommentDatabase =
+        fun getDatabase(context: Context): CommentDatabase =
             INSTANCE ?: synchronized(this) {
                 val instance =
                     Room

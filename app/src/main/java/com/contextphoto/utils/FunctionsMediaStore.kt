@@ -339,7 +339,6 @@ object FunctionsMediaStore {
         return getPieceMedia(context, bucketIdArg, offset, pageSize, currentSize)
     }
 
-    @Singleton
     @Provides
     fun getAllMedia(
         context: Context,
@@ -402,7 +401,7 @@ object FunctionsMediaStore {
                                     id,
                                 ),
                             )
-                        println("video $n $id $uri, $path $bucketId $dateAdded")
+                        Log.d("video", "video $n $id $uri, $path $bucketId $dateAdded")
                         listMedia.add(
                             Picture(
                                 bucketId,
@@ -423,7 +422,7 @@ object FunctionsMediaStore {
                                     id,
                                 ),
                             )
-                        println("image $n $id $uri, $path $bucketId $dateAdded")
+                        Log.d("image", "image $n $id $uri, $path $bucketId $dateAdded")
                         if (thumbnail != null) {
                             listMedia.add(
                                 Picture(

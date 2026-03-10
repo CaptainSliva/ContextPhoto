@@ -70,7 +70,7 @@ fun SearchPhotoScreenWithScaffold(
     mediaViewModel: MediaViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    val db = CommentDatabase.getDatabse(context).commentDao()
+    val db = CommentDatabase.getDatabase(context).commentDao()
     var commentText by rememberSaveable { mutableStateOf("") }
     val checkRegister = rememberSaveable { mutableStateOf(false) }
     val listMedia by mediaViewModel.listMedia.collectAsStateWithLifecycle()
@@ -83,7 +83,7 @@ fun SearchPhotoScreenWithScaffold(
     LaunchedEffect(commentText, checkRegister.value) {
         withContext(coroutineScope.coroutineContext) {
             clearFlag.value = true
-            if (commentText.trim() != "") progressBarVisibility.value = true
+            if (commentText.trim() != "") progressBarVisibility.value = true else progressBarVisibility.value = false
             delay(100)
             searchPhotoOnComment(mediaViewModel, commentText, checkRegister.value, progressBarVisibility, db, context)
         }

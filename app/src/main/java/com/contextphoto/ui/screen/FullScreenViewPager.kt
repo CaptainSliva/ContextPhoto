@@ -1,6 +1,7 @@
 package com.contextphoto.ui.screen
 
 import android.util.Log
+import android.view.Window
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
@@ -39,6 +40,7 @@ import com.contextphoto.data.navigation.Destination
 import com.contextphoto.item.CustomVideoUI
 import com.contextphoto.item.ImageUI
 import com.contextphoto.ui.FullscreenViewModel
+import com.contextphoto.ui.screen.backActions
 import com.contextphoto.utils.FunctionsUri.convertUri
 import kotlinx.coroutines.launch
 
@@ -81,13 +83,13 @@ fun FullScreenViewPagerWithScaffold(
                                     fontSize = 13.sp,
                                 )
                             } else {
-                                backActions(navController)
+                                backActions(navController, window)
                             }
                         }
                     },
                     navigationIcon = {
                         IconButton(onClick = {
-                            backActions(navController)
+                            backActions(navController, window)
                         }) {
                             Icon(
                                 Icons.Default.ArrowBack, // Кнопка назад
@@ -124,7 +126,7 @@ fun FullScreenViewPagerWithScaffold(
         },
         content = { paddingValues ->
             BackHandler {
-                backActions(navController)
+                backActions(navController, window)
             }
 
             HorizontalPager(modifier = Modifier.padding(paddingValues), state = pagerState, key = { index -> listMedia[index].hashCode() }) { page ->
@@ -184,7 +186,7 @@ fun FullScreenViewPagerWithScaffold(
                 pagerState.animateScrollToPage(mediaPosition)
                 Log.d("Scroll", mediaPosition.toString())
             } else {
-                backActions(navController)
+                backActions(navController, window)
             }
         }
     }
@@ -197,6 +199,11 @@ fun FullScreenViewPagerWithScaffold(
     }
 }
 
-private fun backActions(navController: NavHostController) {
+private fun backActions(navController: NavHostController, window: Window) {
+    val insetsController = WindowCompat.getInsetsController(window, window!!.decorView)
+    insetsController.apply {
+        show(WindowInsetsCompat.Type.statusBars())
+        show(WindowInsetsCompat.Type.navigationBars())
+    }
     navController.navigateUp()
 }

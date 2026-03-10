@@ -641,7 +641,7 @@ fun CommentateDialog(
     var commentText by rememberSaveable { mutableStateOf("") }
     val modifier = Modifier.fillMaxWidth()
 
-    val db = CommentDatabase.getDatabse(context).commentDao()
+    val db = CommentDatabase.getDatabase(context).commentDao()
     println(commentText)
 
     LaunchedEffect(Unit) {

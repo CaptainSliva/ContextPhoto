@@ -21,7 +21,7 @@ class SettingsSource
     constructor(
         @param:ApplicationContext private val context: Context,
     ) {
-        val db = CommentDatabase.getDatabse(context).commentDao()
+        val db = CommentDatabase.getDatabase(context).commentDao()
 
         fun getAllComments() = db.getAllComments()
 
@@ -30,11 +30,14 @@ class SettingsSource
 //        listComments.forEach {
 //            println(it)
 //        }
-            val allMedia = getAllMedia(context)
             val allHashes = listComments.map { it.image_hash }
+            Log.d("import_allHashes", "$allHashes")
             val listPaths = mutableSetOf<String>()
-            allMedia.forEach { media ->
+            Log.d("import_listPaths", "$listPaths")
+            getAllMedia(context).forEach { media ->
+                Log.d("currentMedia", media.toString())
                 val hash = md5(media.thumbnail)
+                Log.d("if", "(if $hash in $allHashes\n&& ${media.path} !in $listPaths)\nresult: ${(hash in allHashes && media.path !in listPaths)}")
                 if (hash in allHashes && media.path !in listPaths) {
                     Log.d("addComment", "${listComments[allHashes.indexOf(hash)].copy(image_uri = media.uri.toString())}")
                     db.addComment(listComments[allHashes.indexOf(hash)].copy(image_uri = media.uri.toString()))
