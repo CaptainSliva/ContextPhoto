@@ -59,9 +59,9 @@ import com.contextphoto.dialog.DeleteAlbumDialog
 import com.contextphoto.dialog.DeleteMediaDialog
 import com.contextphoto.dialog.RenameAlbumDialog
 import com.contextphoto.item.Picture
-import com.contextphoto.ui.AlbumViewModel
-import com.contextphoto.ui.FullscreenViewModel
-import com.contextphoto.ui.MediaViewModel
+import com.contextphoto.ui.vm.AlbumViewModel
+import com.contextphoto.ui.vm.FullscreenViewModel
+import com.contextphoto.ui.vm.MediaViewModel
 import com.contextphoto.utils.FunctionsBitmap.md5
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

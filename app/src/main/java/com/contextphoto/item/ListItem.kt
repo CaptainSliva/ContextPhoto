@@ -43,8 +43,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.contextphoto.FunBottomMenu
 import com.contextphoto.R
 import com.contextphoto.menu.PopupMenuAlbumScreen
-import com.contextphoto.ui.AlbumViewModel
-import com.contextphoto.ui.MediaViewModel
+import com.contextphoto.ui.vm.AlbumViewModel
+import com.contextphoto.ui.vm.MediaViewModel
 import com.contextphoto.ui.theme.ContextPhotoTheme
 
 @OptIn(ExperimentalFoundationApi::class)

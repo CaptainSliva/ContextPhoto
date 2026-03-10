@@ -70,7 +70,7 @@ object FunctionsApp {
     fun firebaseFirestoreDatabaseTest(context: Context) {
         val TAG = "FireDataTest"
         val fdb = Firebase.firestore
-        val db = CommentDatabase.getDatabse(context).commentDao()
+        val db = CommentDatabase.getDatabase(context).commentDao()
 
         CoroutineScope(Dispatchers.IO).launch {
             db.getAllComments().collect {

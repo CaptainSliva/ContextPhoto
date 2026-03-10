@@ -7,6 +7,7 @@ import com.contextphoto.db.CommentDatabase
 import com.contextphoto.utils.FunctionsApp.espRead
 import com.contextphoto.utils.FunctionsBitmap.md5
 import com.contextphoto.utils.FunctionsMediaStore.getAllMedia
+import com.contextphoto.utils.FunctionsMediaStore.getListMediaByHashes
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -21,7 +22,7 @@ class SettingsSource
     constructor(
         @param:ApplicationContext private val context: Context,
     ) {
-        val db = CommentDatabase.getDatabse(context).commentDao()
+        val db = CommentDatabase.getDatabase(context).commentDao()
 
         fun getAllComments() = db.getAllComments()
 
@@ -30,11 +31,14 @@ class SettingsSource
 //        listComments.forEach {
 //            println(it)
 //        }
-            val allMedia = getAllMedia(context)
             val allHashes = listComments.map { it.image_hash }
+            Log.d("import_allHashes", "$allHashes")
             val listPaths = mutableSetOf<String>()
-            allMedia.forEach { media ->
+            Log.d("import_listPaths", "$listPaths")
+            getListMediaByHashes(context, allHashes).forEach { media ->
+                Log.d("currentMedia", media.toString())
                 val hash = md5(media.thumbnail)
+                Log.d("if", "(if $hash in $allHashes\n&& ${media.path} !in $listPaths)\nresult: ${(hash in allHashes && media.path !in listPaths)}")
                 if (hash in allHashes && media.path !in listPaths) {
                     Log.d("addComment", "${listComments[allHashes.indexOf(hash)].copy(image_uri = media.uri.toString())}")
                     db.addComment(listComments[allHashes.indexOf(hash)].copy(image_uri = media.uri.toString()))

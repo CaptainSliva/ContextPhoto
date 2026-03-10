@@ -54,7 +54,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.contextphoto.R
 import com.contextphoto.data.navigation.Destination
-import com.contextphoto.ui.LoginViewModel
+import com.contextphoto.ui.vm.LoginViewModel
 import com.contextphoto.ui.theme.ContextPhotoTheme
 import com.contextphoto.utils.FunctionsApp.espWrite
 import com.google.firebase.auth.FirebaseAuth

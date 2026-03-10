@@ -55,7 +55,7 @@ import com.contextphoto.ShowBottomMenu
 import com.contextphoto.data.navigation.Destination
 import com.contextphoto.item.PictureItem
 import com.contextphoto.menu.MainDropdownMenu
-import com.contextphoto.ui.MediaViewModel
+import com.contextphoto.ui.vm.MediaViewModel
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)

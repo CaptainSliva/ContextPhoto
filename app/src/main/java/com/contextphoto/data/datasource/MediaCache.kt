@@ -33,7 +33,7 @@ class MediaCache
         val mediaPosition = _mediaPosition.asStateFlow()
         val imageComment = _imageComment.asStateFlow()
         val listSelectedMedia = _listSelectedMedia.asStateFlow()
-        val db = CommentDatabase.Companion.getDatabse(context).commentDao()
+        val db = CommentDatabase.Companion.getDatabase(context).commentDao()
 
         fun loadPictureList(
             bID: String,

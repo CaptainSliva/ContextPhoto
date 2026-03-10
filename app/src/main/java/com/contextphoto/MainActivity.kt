@@ -54,8 +54,8 @@ import com.contextphoto.menu.BottomMenuFullScreen
 import com.contextphoto.menu.BottomMenuFullScreenVideo
 import com.contextphoto.menu.BottomMenuPictureScreen
 import com.contextphoto.menu.BottomMenuSearchPictureScreen
-import com.contextphoto.ui.FullscreenViewModel
-import com.contextphoto.ui.MediaViewModel
+import com.contextphoto.ui.vm.FullscreenViewModel
+import com.contextphoto.ui.vm.MediaViewModel
 import com.contextphoto.ui.screen.AlbumsScreenWithScaffold
 import com.contextphoto.ui.screen.FullScreenViewPagerWithScaffold
 import com.contextphoto.ui.screen.LoginScreen
@@ -79,9 +79,9 @@ class MainActivity : ComponentActivity() {
             val context = LocalContext.current
             val activity = context as Activity
 
-//            for (i in 1..20) {
-//                val count = i*100
-//                generatePictures(10000, 10000,count, delete = true, (count).toString())
+//            for (i in 1..3) {
+//                val count = i*10
+//                generatePictures(5000, 10000,count, delete = false, (count).toString())
 //            }
 
             // var selectedDestination by rememberSaveable { mutableIntStateOf(startDestination.ordinal) }

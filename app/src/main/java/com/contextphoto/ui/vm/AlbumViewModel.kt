@@ -1,4 +1,4 @@
-package com.contextphoto.ui
+package com.contextphoto.ui.vm
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -44,11 +44,6 @@ class AlbumViewModel
             repository.loadAlbumsStateChange(false)
         }
 
-        fun loadAlbumsStateChange(state: Boolean) {
-            repository.loadAlbumsStateChange(state)
-            _loadAlbums.value = repository.getLoadAlbumsState()
-        }
-
         fun addAlbum(album: Album) {
             viewModelScope.launch {
                 withContext(Dispatchers.IO) {
@@ -90,8 +85,15 @@ class AlbumViewModel
             _selectedAlbum.value = album
         }
 
-        fun changeStateAlbum() {
-            repository.loadAlbumsStateChange()
-            _loadAlbums.value = repository.getLoadAlbumsState()
+        fun loadAlbumsStateChange(state: Boolean? = null) {
+            if (state != null) {
+                repository.loadAlbumsStateChange(state)
+                _loadAlbums.value = repository.getLoadAlbumsState()
+            }
+            else {
+                repository.loadAlbumsStateChange()
+                _loadAlbums.value = repository.getLoadAlbumsState()
+            }
+
         }
     }
