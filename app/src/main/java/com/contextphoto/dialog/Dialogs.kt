@@ -69,10 +69,10 @@ import com.contextphoto.db.Comment
 import com.contextphoto.db.CommentDatabase
 import com.contextphoto.item.Album
 import com.contextphoto.item.Picture
-import com.contextphoto.ui.AlbumViewModel
-import com.contextphoto.ui.FullscreenViewModel
-import com.contextphoto.ui.MediaViewModel
-import com.contextphoto.ui.SettingsViewModel
+import com.contextphoto.ui.vm.AlbumViewModel
+import com.contextphoto.ui.vm.FullscreenViewModel
+import com.contextphoto.ui.vm.MediaViewModel
+import com.contextphoto.ui.vm.SettingsViewModel
 import com.contextphoto.utils.FunctionsBitmap.md5
 import com.contextphoto.utils.FunctionsDialogs.mediaPicker
 import com.contextphoto.utils.FunctionsDialogs.showCreateAlbumMessage

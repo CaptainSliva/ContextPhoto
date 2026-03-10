@@ -40,9 +40,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
@@ -57,10 +55,9 @@ import com.contextphoto.data.navigation.Destination
 import com.contextphoto.db.CommentDao
 import com.contextphoto.db.CommentDatabase
 import com.contextphoto.item.PictureItem
-import com.contextphoto.ui.MediaViewModel
+import com.contextphoto.ui.vm.MediaViewModel
 import com.contextphoto.utils.FunctionsMediaStore.getPictureFromUri
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)

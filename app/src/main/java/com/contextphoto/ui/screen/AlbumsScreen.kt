@@ -40,7 +40,7 @@ import com.contextphoto.data.navigation.Destination
 import com.contextphoto.dialog.CreateAlbumDialog
 import com.contextphoto.item.AlbumItem
 import com.contextphoto.menu.MainDropdownMenu
-import com.contextphoto.ui.AlbumViewModel
+import com.contextphoto.ui.vm.AlbumViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

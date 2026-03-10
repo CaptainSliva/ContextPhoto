@@ -7,6 +7,7 @@ import com.contextphoto.db.CommentDatabase
 import com.contextphoto.utils.FunctionsApp.espRead
 import com.contextphoto.utils.FunctionsBitmap.md5
 import com.contextphoto.utils.FunctionsMediaStore.getAllMedia
+import com.contextphoto.utils.FunctionsMediaStore.getListMediaByHashes
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -34,7 +35,7 @@ class SettingsSource
             Log.d("import_allHashes", "$allHashes")
             val listPaths = mutableSetOf<String>()
             Log.d("import_listPaths", "$listPaths")
-            getAllMedia(context).forEach { media ->
+            getListMediaByHashes(context, allHashes).forEach { media ->
                 Log.d("currentMedia", media.toString())
                 val hash = md5(media.thumbnail)
                 Log.d("if", "(if $hash in $allHashes\n&& ${media.path} !in $listPaths)\nresult: ${(hash in allHashes && media.path !in listPaths)}")

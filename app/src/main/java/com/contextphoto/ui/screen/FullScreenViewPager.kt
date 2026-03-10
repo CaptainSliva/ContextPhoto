@@ -39,8 +39,7 @@ import com.contextphoto.ShowBottomMenu
 import com.contextphoto.data.navigation.Destination
 import com.contextphoto.item.CustomVideoUI
 import com.contextphoto.item.ImageUI
-import com.contextphoto.ui.FullscreenViewModel
-import com.contextphoto.ui.screen.backActions
+import com.contextphoto.ui.vm.FullscreenViewModel
 import com.contextphoto.utils.FunctionsUri.convertUri
 import kotlinx.coroutines.launch
 

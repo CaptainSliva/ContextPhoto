@@ -46,7 +46,7 @@ import com.contextphoto.R
 import com.contextphoto.data.navigation.Destination
 import com.contextphoto.dialog.ExportCommentsDialog
 import com.contextphoto.dialog.ImportCommentsDialog
-import com.contextphoto.ui.SettingsViewModel
+import com.contextphoto.ui.vm.SettingsViewModel
 import com.contextphoto.utils.FunctionsApp.espRead
 import com.contextphoto.utils.FunctionsApp.espWrite
 

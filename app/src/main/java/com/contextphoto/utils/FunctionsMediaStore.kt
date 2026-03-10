@@ -1,5 +1,6 @@
 package com.contextphoto.utils
 
+import android.R.attr.thumbnail
 import android.app.Activity
 import android.app.RecoverableSecurityException
 import android.content.ContentUris
@@ -18,9 +19,10 @@ import com.contextphoto.R
 import com.contextphoto.data.PERMISSION_DELETE_REQUEST_CODE
 import com.contextphoto.item.Album
 import com.contextphoto.item.Picture
-import com.contextphoto.ui.AlbumViewModel
+import com.contextphoto.ui.vm.AlbumViewModel
 import com.contextphoto.utils.FunctionsApp.durationTranslate
 import com.contextphoto.utils.FunctionsBitmap.getThumbnail
+import com.contextphoto.utils.FunctionsBitmap.md5
 import com.contextphoto.utils.FunctionsUri.convertUri
 import com.contextphoto.utils.FunctionsUri.getRealPathFromUri
 import dagger.Module
@@ -138,8 +140,7 @@ object FunctionsMediaStore {
             )
         val sortOrder = "${MediaStore.MediaColumns.DATE_ADDED} DESC"
 
-        viewModel.changeStateAlbum()
-        viewModel.changeStateAlbum()
+        viewModel.loadAlbumsStateChange()
 
         context.contentResolver
             .query(
@@ -337,6 +338,94 @@ object FunctionsMediaStore {
     ): List<Picture> {
         val offset = page * pageSize
         return getPieceMedia(context, bucketIdArg, offset, pageSize, currentSize)
+    }
+
+    @Provides
+    fun getListMediaByHashes(
+        context: Context,
+        hashList: List<String>,
+    ): List<Picture> {
+        val listMedia = mutableListOf<Picture>()
+        val contentUri = MediaStore.Files.getContentUri("external")
+        val dateFormat = SimpleDateFormat("d MMMM yyyy\nHH:mm:ss", Locale("ru"))
+        var n = 0
+        val projection =
+            arrayOf(
+                MediaStore.MediaColumns._ID,
+                MediaStore.MediaColumns.BUCKET_ID,
+                MediaStore.MediaColumns.DISPLAY_NAME,
+                MediaStore.MediaColumns.DURATION,
+                MediaStore.MediaColumns.SIZE,
+                MediaStore.MediaColumns.DATE_ADDED,
+                MediaStore.MediaColumns.DATA,
+            )
+        var selection: String? = null
+        var selectionArgs: Array<String>? = null
+        val sortOrder = "${MediaStore.MediaColumns.DATE_ADDED} DESC" // DATE_MODIFIED // DATE_TAKEN
+
+        context.applicationContext.contentResolver
+            .query(
+                contentUri,
+                projection,
+                selection,
+                selectionArgs,
+                sortOrder,
+            )?.use { cursor ->
+                val bucketIdColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_ID)
+                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+                val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
+                val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DURATION)
+                val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED)
+
+                while (cursor.moveToNext()) {
+                    val bucketId = cursor.getString(bucketIdColumn)
+                    val id = cursor.getLong(idColumn)
+                    val path = cursor.getString(pathColumn)
+                    val uri =
+                        ContentUris.withAppendedId(
+                            contentUri,
+                            id,
+                        )
+                    val duration = cursor.getInt(durationColumn).toLong()
+                    val dateAdded = cursor.getLong(dateAddedColumn)
+                    val thumbnail =
+                        if (duration > 0) {
+                            getThumbnail(
+                                context,
+                                ContentUris.withAppendedId(
+                                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                    id,
+                                ),
+                            )
+                        }
+                        else {
+                            getThumbnail(
+                                context,
+                                ContentUris.withAppendedId(
+                                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                                    id,
+                                ),
+                            )
+                        }
+                    n++
+
+                    if (thumbnail != null && md5(thumbnail) in hashList) {
+                        listMedia.add(
+                            Picture(
+                                bucketId,
+                                uri,
+                                path,
+                                thumbnail,
+                                dateFormat.format(Date(dateAdded * 1000)).toString().split("\n"),
+                                "",
+                                mutableStateOf(false),
+                            ),
+                        )
+                    }
+                    Log.d("pic", "pic $n $id $uri, $path $bucketId $dateAdded")
+                }
+            }
+        return listMedia
     }
 
     @Provides

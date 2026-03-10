@@ -43,8 +43,6 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -56,8 +54,8 @@ import com.contextphoto.menu.BottomMenuFullScreen
 import com.contextphoto.menu.BottomMenuFullScreenVideo
 import com.contextphoto.menu.BottomMenuPictureScreen
 import com.contextphoto.menu.BottomMenuSearchPictureScreen
-import com.contextphoto.ui.FullscreenViewModel
-import com.contextphoto.ui.MediaViewModel
+import com.contextphoto.ui.vm.FullscreenViewModel
+import com.contextphoto.ui.vm.MediaViewModel
 import com.contextphoto.ui.screen.AlbumsScreenWithScaffold
 import com.contextphoto.ui.screen.FullScreenViewPagerWithScaffold
 import com.contextphoto.ui.screen.LoginScreen
@@ -66,7 +64,6 @@ import com.contextphoto.ui.screen.RegisterScreen
 import com.contextphoto.ui.screen.SearchPhotoScreenWithScaffold
 import com.contextphoto.ui.screen.SettingsScreenWithScaffold
 import com.contextphoto.ui.theme.ContextPhotoTheme
-import com.contextphoto.utils.FunctionsApp.generatePictures
 import com.contextphoto.utils.RequestPermissions.ComposePermissions
 import dagger.hilt.android.AndroidEntryPoint
 

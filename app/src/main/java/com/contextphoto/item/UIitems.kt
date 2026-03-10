@@ -44,7 +44,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import com.contextphoto.InfinityScrollableText
 import com.contextphoto.R
-import com.contextphoto.ui.FullscreenViewModel
+import com.contextphoto.ui.vm.FullscreenViewModel
 import com.contextphoto.utils.FunctionsApp.durationTranslate
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView

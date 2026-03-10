@@ -1,4 +1,4 @@
-package com.contextphoto.ui
+package com.contextphoto.ui.vm
 
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
