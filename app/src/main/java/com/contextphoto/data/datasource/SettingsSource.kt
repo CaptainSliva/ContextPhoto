@@ -32,10 +32,12 @@ class SettingsSource
 //            println(it)
 //        }
             val allHashes = listComments.map { it.image_hash }
+            val listMedia = getListMediaByHashes(context, allHashes)
+            Log.d("import_listMedia", "$listMedia")
             Log.d("import_allHashes", "$allHashes")
             val listPaths = mutableSetOf<String>()
             Log.d("import_listPaths", "$listPaths")
-            getListMediaByHashes(context, allHashes).forEach { media ->
+            listMedia.forEach { media ->
                 Log.d("currentMedia", media.toString())
                 val hash = md5(media.thumbnail)
                 Log.d("if", "(if $hash in $allHashes\n&& ${media.path} !in $listPaths)\nresult: ${(hash in allHashes && media.path !in listPaths)}")
