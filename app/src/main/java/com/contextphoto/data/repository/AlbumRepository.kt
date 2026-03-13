@@ -41,6 +41,13 @@ class AlbumRepository
             )
         }
 
+        fun deleteAlbumByName(albumName: String) {
+            albumCache.updateAlbumList(
+                albumCache.listAlbums.value
+                    .filter { it.name != albumName },
+            )
+        }
+
         fun updateAlbum(album: Album) {
             albumCache.updateAlbumList(
                 albumCache.listAlbums.value.toMutableList().map

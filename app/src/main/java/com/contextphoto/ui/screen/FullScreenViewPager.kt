@@ -2,6 +2,7 @@ package com.contextphoto.ui.screen
 
 import android.util.Log
 import android.view.Window
+import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.animation.AnimatedVisibility
@@ -59,7 +60,9 @@ fun FullScreenViewPagerWithScaffold(
     val window = LocalActivity.current!!.window
     val visibleMenu = fullScreenViewModel.bottomMenuFullScreenVisible.collectAsStateWithLifecycle()
 
+    Log.d("listMedia", listMedia.toString())
     Log.d("ActionMediaPosotion", mediaPosition.toString())
+    window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
     Scaffold(
         modifier = Modifier.background(Color.Black),

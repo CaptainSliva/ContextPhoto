@@ -28,9 +28,9 @@ object FunctionsFiles {
     ) {
         try {
             val stringPath = albumPath.toString()
-            println("Old dest! " + stringPath)
+            Log.d("println", "Old dest! " + stringPath)
             val newDest = stringPath.slice(0..stringPath.lastIndexOf("/")) + newName
-            println("New dest! " + newDest)
+            Log.d("println", "New dest! " + newDest)
             albumPath.renameTo(File(newDest))
         } catch (e: Exception) {
         }

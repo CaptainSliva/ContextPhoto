@@ -69,7 +69,7 @@ class SettingsSource
             val listComments = mutableListOf<Comment>()
             val collectionComment = fdb.collection(espRead(context).first).get().await()
             collectionComment.documents.forEach {
-                println(it)
+                Log.d("println", it.toString())
                 val comment =
                     Comment(
                         id = 0,

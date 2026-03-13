@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.contextphoto.R
 import com.contextphoto.data.COMMENT_DATABASE
 import com.contextphoto.data.navigation.Destination
@@ -198,12 +199,6 @@ fun CopyMoveDialog(
     val modifier = Modifier.fillMaxWidth()
     var findNewAlbumFlag = false
     val coroutineScope = rememberCoroutineScope()
-
-//    LaunchedEffect({}) {
-//        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-//            getListAlbums(context, albumViewModel)
-//        }
-//    }
     val albumList by albumViewModel.albumList.collectAsStateWithLifecycle()
 
     ModalBottomSheet(
@@ -252,7 +247,6 @@ fun CopyMoveDialog(
                             listUri.forEach { copyMediaToAlbum(context, it, albumName) }
                             mediaViewModel.copyMediaToAlbum(toAlbumBId, listUri.size - 1)
                         }
-
                         mutableState.value = false
                         onDismissRequest()
                         createAlbumState.value = false
@@ -298,14 +292,16 @@ fun CopyMoveDialog(
                             }
                             if (findNewAlbumFlag) getNewAlbum(context, albumName, albumViewModel)
                         } else {
-                            listUri.forEach { moveMediaToAlbum(context, activity, it, albumName) }
+                            listUri.forEach {
+                                mediaViewModel.deletePictureByUri(it)
+                                moveMediaToAlbum(context, activity, it, albumName)
+                            }
                             mediaViewModel.moveMediaToAlbum(
                                 toAlbumBId,
                                 fromAlbumBid,
                                 listUri.size - 1,
                             )
                         }
-
                         mutableState.value = false
                         onDismissRequest()
                         createAlbumState.value = false
@@ -348,12 +344,7 @@ fun ChooseAlbumDialog(
     val showCopyMoveDialog = remember { mutableStateOf(false) }
 
     Log.d("TAG_LIST", albumList.toString())
-//    Dialog(
-//        onDismissRequest = {
-//            onDismissRequest()
-//            dialogVisibility.value = false
-//        },
-//    ) {
+
     Surface(
         shape = RoundedCornerShape(12.dp),
         modifier =
@@ -410,7 +401,6 @@ fun ChooseAlbumDialog(
             }
         }
     }
-//    }
     AnimatedVisibility(visible = showCopyMoveDialog.value) {
         CopyMoveDialog(
             onDismissRequest,
@@ -453,7 +443,7 @@ fun DeleteAlbumDialog(
             modifier = modifier,
         ) {
             Text(text = context.getString(R.string.delete))
-            Text(text = "${context.getString(R.string.delete_album_text)} $albumName}?")
+            Text(text = "${context.getString(R.string.delete_album_text)} $albumName?")
             Button(
                 onClick = {
                     showDeleteAlbumMessage(context, albumName, albumPath)
@@ -568,11 +558,12 @@ fun DeleteMediaDialog(
 fun RenameAlbumDialog( // TODO fixme (не работает с альбомами которые не мои)
     onDismissRequest: () -> Unit,
     mutableState: MutableState<Boolean>,
-    viewModel: AlbumViewModel,
+    albumViewModel: AlbumViewModel,
 ) {
     val context = LocalContext.current
-    val album by viewModel.selectedAlbum.collectAsStateWithLifecycle()
+    val album by albumViewModel.selectedAlbum.collectAsStateWithLifecycle()
     var albumName by rememberSaveable { mutableStateOf(album!!.name) }
+    val oldAlbumName = remember { albumName }
     val modifier = Modifier.fillMaxWidth()
 
     ModalBottomSheet(
@@ -614,7 +605,8 @@ fun RenameAlbumDialog( // TODO fixme (не работает с альбомам�
                 Button(onClick = {
                     if (albumName.isNotEmpty()) {
                         showRenameAlbumMessage(context, album!!, albumName)
-                        viewModel.updateAlbum(Album(album!!.bID, albumName, album!!.itemsCount, album!!.thumbnail, album!!.path))
+                        albumViewModel.deleteAlbumByName(oldAlbumName)
+                        getNewAlbum(context, albumName, albumViewModel)
                         mutableState.value = false
                         onDismissRequest()
                     } else {
@@ -642,7 +634,7 @@ fun CommentateDialog(
     val modifier = Modifier.fillMaxWidth()
 
     val db = CommentDatabase.getDatabase(context).commentDao()
-    println(commentText)
+    Log.d("println", commentText)
 
     LaunchedEffect(Unit) {
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
@@ -782,7 +774,7 @@ fun ExportCommentsDialog(
                                 writer.newLine()
                             }
                         }
-                        println("Файл сохранен: $uri")
+                        Log.d("println", "Файл сохранен: $uri")
                         settingsViewModel.changeStateInfo("Экспорт в файл завершен")
                         launchExport.value = false
                         onDismissRequest()
@@ -873,7 +865,7 @@ fun ImportCommentsDialog(
                         }
                     if (content.isNotEmpty()) {
                         settingsViewModel.setFileText(content)
-                        println("Содержимое файла: $content")
+                        Log.d("println", "Содержимое файла: $content")
                         settingsViewModel.importCommentsFromStorage()
                         settingsViewModel.changeStateInfo("Импорт из файла завершен")
                     }

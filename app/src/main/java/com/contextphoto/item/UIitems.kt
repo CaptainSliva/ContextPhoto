@@ -1,6 +1,7 @@
 package com.contextphoto.item
 
 import android.net.Uri
+import android.util.Log
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
@@ -46,6 +47,7 @@ import com.contextphoto.InfinityScrollableText
 import com.contextphoto.R
 import com.contextphoto.ui.vm.FullscreenViewModel
 import com.contextphoto.utils.FunctionsApp.durationTranslate
+import com.davemorrissey.labs.subscaleview.BuildConfig
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.google.android.exoplayer2.ExoPlayer
@@ -224,7 +226,7 @@ fun CustomVideoUI(
                     onValueChangeFinished = {
                         exoPlayer.seekTo(currentPosition)
                         if (currentPosition + 1 >= totalDuration.value) currentPosition = totalDuration.value
-                        println("Перемотано на: $currentPosition")
+                        Log.d("println", "Перемотано на: $currentPosition")
                     },
                     modifier =
                         Modifier
@@ -284,7 +286,32 @@ fun ImageUI(
                         )
 
                     setOnTouchListener { v, event ->
+                        v.onTouchEvent(event)
                         gestureDetector.onTouchEvent(event)
+
+                        // Минимальный масштаб, при котором считаем, что картинка "увеличена"
+                        val ZOOM_THRESHOLD = 1.01f
+                        val currentScale = scale
+
+                        val isSignificantlyZoomed = currentScale > ZOOM_THRESHOLD
+                        val isMultiTouch = event.pointerCount > 1
+
+                        when (event.action) {
+                            MotionEvent.ACTION_DOWN -> {
+                                parent?.requestDisallowInterceptTouchEvent(false)
+                            }
+                            MotionEvent.ACTION_MOVE -> {
+                                if (isSignificantlyZoomed || isMultiTouch) {
+                                    parent?.requestDisallowInterceptTouchEvent(true)
+                                } else {
+                                    parent?.requestDisallowInterceptTouchEvent(false)
+                                }
+                            }
+                            else -> {
+                                parent?.requestDisallowInterceptTouchEvent(false)
+                            }
+                        }
+                        true
                     }
                 }
             },

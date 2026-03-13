@@ -100,8 +100,8 @@ fun PicturesScreenWithScaffold(
         }
     }
     LaunchedEffect(shouldLoadMore) {
-        println("end")
-        println(shouldLoadMore)
+        Log.d("println", "end")
+        Log.d("println", shouldLoadMore.toString())
         if (shouldLoadMore) {
             mediaViewModel.loadPicturesStateChange(true)
             mediaViewModel.loadPictureList(bID, countOfPhotoLine.value)
@@ -299,7 +299,7 @@ fun PicturesScreenWithScaffold(
 
             LaunchedEffect(mediaPosition.value) {
                 coroutineScope.launch {
-                    println("New index photo ${mediaPosition.value}")
+                    Log.d("println", "New index photo ${mediaPosition.value}")
                     newPosition.scrollToItem(
                         mediaPosition.value,
 //                        index = mediaPosition.value,

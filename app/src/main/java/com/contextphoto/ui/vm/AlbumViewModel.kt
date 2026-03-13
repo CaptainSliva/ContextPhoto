@@ -63,6 +63,16 @@ class AlbumViewModel
             _selectedAlbum.value = null
         }
 
+        fun deleteAlbumByName(albumName: String) {
+            viewModelScope.launch {
+                withContext(Dispatchers.IO) {
+                    repository.deleteAlbumByName(albumName)
+                    _albumList.value = repository.getAlbumList()
+                }
+            }
+            _selectedAlbum.value = null
+        }
+
         fun updateAlbum(album: Album) {
             viewModelScope.launch {
                 withContext(Dispatchers.IO) {
