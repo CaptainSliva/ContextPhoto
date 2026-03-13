@@ -15,14 +15,14 @@ object FunctionsUri {
         val singleUri = data?.data
         if (singleUri != null) {
             uris.add(singleUri)
-            println(singleUri)
+            Log.d("println", singleUri.toString())
         } else {
             val clipData = data?.clipData
             if (clipData != null) {
                 for (i in 0 until clipData.itemCount) {
                     val uri = clipData.getItemAt(i).uri
                     uris.add(uri)
-                    println(uri)
+                    Log.d("println", uri.toString())
                 }
             }
         }

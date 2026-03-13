@@ -15,8 +15,8 @@ android {
         applicationId = "com.contextphoto"
         minSdk = 29
         targetSdk = 36
-        versionCode = 12
-        versionName = "1.3.6"
+        versionCode = 14
+        versionName = "1.3.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -90,7 +90,6 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("com.google.android.gms:play-services-auth:21.5.0")
-
     implementation("com.google.firebase:firebase-firestore")
 
     implementation("androidx.security:security-crypto:1.1.0")

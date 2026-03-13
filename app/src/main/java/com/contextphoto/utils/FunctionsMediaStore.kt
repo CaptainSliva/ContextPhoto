@@ -183,18 +183,18 @@ object FunctionsMediaStore {
                             viewModel.addAlbum(album)
 
                             Log.d("TAG URI", uri.toString())
-                            println("URI $uri")
-                            println("id - $fileId")
-                            println("bucketId = $bucketId")
-                            println("name = $bucketName")
-                            println("thmb - $thumbnail")
+                            Log.d("println", "URI $uri")
+                            Log.d("println", "id - $fileId")
+                            Log.d("println", "bucketId = $bucketId")
+                            Log.d("println", "name = $bucketName")
+                            Log.d("println", "thmb - $thumbnail")
                         }
                     } else {
                         existingAlbum.itemsCount++
                     }
                 }
             }
-
+        viewModel.loadAlbumsStateChange(false)
         return albums
     }
 
@@ -624,9 +624,9 @@ object FunctionsMediaStore {
     ): Boolean {
         val path = getRealPathFromUri(context, sourceUri)!!
         try {
-            println("URI - $sourceUri")
-            println("PATH - $path")
-            println("URL - ${convertUri(path, sourceUri)}")
+            Log.d("println", "URI - $sourceUri")
+            Log.d("println", "PATH - $path")
+            Log.d("println", "URL - ${convertUri(path, sourceUri)}")
             context.contentResolver.delete(convertUri(path, sourceUri), null, null)
             return true
         } catch (recoverableSecurityException: RecoverableSecurityException) {

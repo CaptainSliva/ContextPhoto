@@ -1,6 +1,7 @@
 package com.contextphoto.ui.screen
 
 import android.content.Context
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -233,10 +234,10 @@ private suspend fun searchPhotoOnComment(
     if (comment.trim() != "") {
         db.findImageByComment(comment).collect {
             it.forEach { commentCurrent ->
-                println(commentCurrent.image_comment)
+                Log.d("println", commentCurrent.image_comment)
                 val imageByUri = getPictureFromUri(context, commentCurrent.image_uri.toUri())
                 if (imageByUri.path != "") {
-                    println(imageByUri.path)
+                    Log.d("println", imageByUri.path)
                     when (checkRegister) {
                         true -> {
                             if (commentCurrent.image_comment.contains(comment)) {

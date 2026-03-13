@@ -1,6 +1,7 @@
 package com.contextphoto.data.repository
 
 import android.graphics.Bitmap
+import android.net.Uri
 import com.contextphoto.data.datasource.MediaCache
 import com.contextphoto.item.Picture
 import javax.inject.Inject
@@ -51,6 +52,13 @@ class MediaRepository
                 mediaCache.listPicture.value
                     .toMutableList()
                     .apply { remove(picture) },
+            )
+        }
+
+        fun deletePictureByUri(uri: Uri) {
+            mediaCache.updatePictureList(
+                mediaCache.listPicture.value
+                    .filter { it.uri != uri },
             )
         }
 

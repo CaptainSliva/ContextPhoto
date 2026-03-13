@@ -2,6 +2,7 @@ package com.contextphoto
 
 import android.app.Activity
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -206,7 +207,7 @@ fun InfinityScrollableText(
                     .alpha(alpha = if (visible) 1f else 0f),
             verticalArrangement = Arrangement.Bottom,
         ) {
-            println(offsetY.value)
+            Log.d("println", offsetY.value.toString())
             Box(
                 modifier =
                     Modifier

@@ -1,9 +1,13 @@
 package com.contextphoto.menu
 
+import android.R.attr.action
+import android.R.attr.mimeType
 import android.app.Activity
+import android.app.Notification
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -48,7 +52,10 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.startActivity
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.contextphoto.R
@@ -63,6 +70,8 @@ import com.contextphoto.ui.vm.AlbumViewModel
 import com.contextphoto.ui.vm.FullscreenViewModel
 import com.contextphoto.ui.vm.MediaViewModel
 import com.contextphoto.utils.FunctionsBitmap.md5
+import com.contextphoto.utils.FunctionsUri.convertUri
+import com.davemorrissey.labs.subscaleview.ImageSource.uri
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -442,28 +451,47 @@ fun ButtonShare(
                         if (listSelectedMedia.isNotEmpty()) {
                             when (commentText != "") {
                                 true -> {
-                                    val sendIntent = Intent()
-                                    sendIntent.setAction(Intent.ACTION_SEND)
-                                    sendIntent.setType("*/*")
-                                    sendIntent.putExtra(
-                                        Intent.EXTRA_STREAM,
-                                        listSelectedMedia[0].uri,
-                                    )
-                                    sendIntent.putExtra(
-                                        Intent.EXTRA_TEXT,
-                                        commentText,
-                                    )
+                                    val mimeType = context.contentResolver.getType(listSelectedMedia[0].uri)
+                                    Log.d("Type", mimeType.toString())
+                                    val sendIntent = Intent().apply {
+                                        action = Intent.ACTION_SEND
+                                        putExtra(
+                                            Intent.EXTRA_STREAM,
+                                            listSelectedMedia[0].uri,
+                                        )
+                                        putExtra(
+                                            Intent.EXTRA_TEXT,
+                                            "commentText",
+                                        )
+                                        type = mimeType
+                                    }
                                     context.startActivity(Intent.createChooser(sendIntent, null))
                                 }
 
                                 else -> {
+                                    val mimeType = context.contentResolver.getType(listSelectedMedia[0].uri)
                                     val sendIntent = Intent()
-                                    sendIntent.setAction(Intent.ACTION_SEND_MULTIPLE)
-                                    sendIntent.setType("*/*")
-                                    sendIntent.putParcelableArrayListExtra(
-                                        Intent.EXTRA_STREAM,
-                                        ArrayList(listSelectedMedia.map { it.uri }),
-                                    )
+                                    if (listSelectedMedia.all { media -> context.contentResolver.getType(media.uri) == mimeType }) {
+                                        sendIntent.apply {
+                                            action = Intent.ACTION_SEND_MULTIPLE
+                                            putParcelableArrayListExtra(
+                                                Intent.EXTRA_STREAM,
+                                                ArrayList(listSelectedMedia.map { it.uri }),
+                                            )
+                                            type = mimeType
+                                        }
+                                    }
+                                    else {
+                                        sendIntent.apply {
+                                            action = Intent.ACTION_SEND_MULTIPLE
+                                            putParcelableArrayListExtra(
+                                                Intent.EXTRA_STREAM,
+                                                ArrayList(listSelectedMedia.map { it.uri }),
+                                            )
+                                            type = "*/*"
+                                        }
+                                    }
+
                                     context.startActivity(Intent.createChooser(sendIntent, null))
                                 }
                             }
