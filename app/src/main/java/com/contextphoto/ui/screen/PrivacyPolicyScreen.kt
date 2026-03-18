@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
@@ -77,6 +78,7 @@ fun PrivacyPolicyScreenWithScaffold(showConfidence: MutableState<Boolean>) {
                         .verticalScroll(scrollState)
                         .padding(paddingValues)
                         .padding(horizontal = 8.dp)
+                        .navigationBarsPadding()
                         .background(MaterialTheme.colorScheme.background),
             ) {
                 val lines = PrivacyPolicyText.FULL_TEXT.split("\n")

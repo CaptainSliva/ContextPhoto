@@ -10,9 +10,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -75,7 +82,12 @@ fun LoginScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
+                .background(MaterialTheme.colorScheme.background)
+                .padding(WindowInsets.systemBars
+                    .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
+                    .asPaddingValues())
+                .navigationBarsPadding()
+                .imePadding(),
     ) {
         Box(
             modifier =
@@ -205,7 +217,12 @@ fun RegisterScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
+                .background(MaterialTheme.colorScheme.background)
+                .padding(WindowInsets.systemBars
+                    .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
+                    .asPaddingValues())
+                .navigationBarsPadding()
+                .imePadding(),
     ) {
         Box(
             modifier =

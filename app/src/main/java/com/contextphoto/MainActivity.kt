@@ -4,7 +4,9 @@ import android.app.Activity
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -37,6 +39,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -55,8 +58,6 @@ import com.contextphoto.menu.BottomMenuFullScreen
 import com.contextphoto.menu.BottomMenuFullScreenVideo
 import com.contextphoto.menu.BottomMenuPictureScreen
 import com.contextphoto.menu.BottomMenuSearchPictureScreen
-import com.contextphoto.ui.vm.FullscreenViewModel
-import com.contextphoto.ui.vm.MediaViewModel
 import com.contextphoto.ui.screen.AlbumsScreenWithScaffold
 import com.contextphoto.ui.screen.FullScreenViewPagerWithScaffold
 import com.contextphoto.ui.screen.LoginScreen
@@ -65,6 +66,8 @@ import com.contextphoto.ui.screen.RegisterScreen
 import com.contextphoto.ui.screen.SearchPhotoScreenWithScaffold
 import com.contextphoto.ui.screen.SettingsScreenWithScaffold
 import com.contextphoto.ui.theme.ContextPhotoTheme
+import com.contextphoto.ui.vm.FullscreenViewModel
+import com.contextphoto.ui.vm.MediaViewModel
 import com.contextphoto.utils.RequestPermissions.ComposePermissions
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -100,7 +103,26 @@ class MainActivity : ComponentActivity() {
             //    }
             //    val db = Room.databaseBuilder(context, CommentDatabase::class.java, "comment_database").addMigrations(MIGRATION_1_2).build()
 
+
             ContextPhotoTheme {
+                enableEdgeToEdge(
+//                    statusBarStyle = SystemBarStyle.dark(
+//                        Color.Transparent.toArgb()
+//                    ),
+//                    navigationBarStyle = SystemBarStyle.dark(
+//                        Color.Transparent.toArgb()
+//                    )
+
+                    statusBarStyle = SystemBarStyle.auto(
+                        Color.Transparent.toArgb(),
+                        Color.Transparent.toArgb()
+                    ),
+                    navigationBarStyle = SystemBarStyle.auto(
+                        Color.Transparent.toArgb(),
+                        Color.Transparent.toArgb()
+                    )
+                )
+
                 Scaffold(
                     content = { paddingValues ->
                         AppNavHost(

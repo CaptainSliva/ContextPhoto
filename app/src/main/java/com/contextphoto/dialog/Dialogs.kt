@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -62,7 +64,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.contextphoto.R
 import com.contextphoto.data.COMMENT_DATABASE
 import com.contextphoto.data.navigation.Destination
@@ -89,6 +90,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
+val modifier = Modifier.fillMaxWidth().navigationBarsPadding().imePadding().padding(8.dp)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateAlbumDialog(
@@ -96,7 +98,6 @@ fun CreateAlbumDialog(
     mutableState: MutableState<Boolean>,
 ) {
     val context = LocalContext.current
-    val modifier = Modifier.fillMaxWidth()
     val showCopyMoveDialog = rememberSaveable { mutableStateOf(false) }
     var albumName by rememberSaveable { mutableStateOf("") }
     var listUri by rememberSaveable { mutableStateOf<List<Uri>?>(null) }
@@ -196,7 +197,6 @@ fun CopyMoveDialog(
 ) {
     val context = LocalContext.current
     val activity = LocalActivity.current!!
-    val modifier = Modifier.fillMaxWidth()
     var findNewAlbumFlag = false
     val coroutineScope = rememberCoroutineScope()
     val albumList by albumViewModel.albumList.collectAsStateWithLifecycle()
@@ -209,7 +209,7 @@ fun CopyMoveDialog(
                 createAlbumState.value = false
                 createAlbumDismiss()
             },
-        modifier = modifier,
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -253,7 +253,7 @@ fun CopyMoveDialog(
                         createAlbumDismiss()
                     }
                 },
-                modifier = modifier,
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(text = LocalContext.current.getString(R.string.copy))
             }
@@ -308,7 +308,7 @@ fun CopyMoveDialog(
                         createAlbumDismiss()
                     }
                 },
-                modifier = modifier,
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(text = LocalContext.current.getString(R.string.move))
             }
@@ -319,7 +319,7 @@ fun CopyMoveDialog(
                     createAlbumState.value = false
                     createAlbumDismiss()
                 },
-                modifier = modifier,
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
                     text = LocalContext.current.getString(R.string.cancel),
@@ -347,9 +347,7 @@ fun ChooseAlbumDialog(
 
     Surface(
         shape = RoundedCornerShape(12.dp),
-        modifier =
-            Modifier
-                .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
                 .clickable(
                     onClick = { dialogVisibility.value = false },
                 ),
@@ -358,7 +356,7 @@ fun ChooseAlbumDialog(
             dialogVisibility.value = false
         }
         LazyColumn(
-            modifier = Modifier.padding(8.dp),
+            modifier = modifier,
             contentPadding = PaddingValues(bottom = 80.dp),
         ) {
             items(items = albumList) { album ->
@@ -423,7 +421,6 @@ fun DeleteAlbumDialog(
     viewModel: AlbumViewModel,
 ) {
     val context = LocalContext.current
-    val modifier = Modifier.fillMaxWidth()
 
     val selectAlbum by viewModel.selectedAlbum.collectAsStateWithLifecycle()
     val album = remember { selectAlbum?.copy() }
@@ -451,7 +448,7 @@ fun DeleteAlbumDialog(
                     mutableState.value = false
                     onDismissRequest()
                 },
-                modifier = modifier,
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
                     text = context.getString(R.string.delete),
@@ -463,7 +460,7 @@ fun DeleteAlbumDialog(
                     mutableState.value = false
                     onDismissRequest()
                 },
-                modifier = modifier,
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(text = context.getString(R.string.cancel))
             }
@@ -483,7 +480,6 @@ fun DeleteMediaDialog(
 ) {
     val context = LocalContext.current
     val activity = LocalActivity.current!!
-    val modifier = Modifier.fillMaxWidth()
     val listSelectedMedia by mediaViewModel.listSelectedMedia.collectAsStateWithLifecycle()
     val listMedia by mediaViewModel.listMedia.collectAsStateWithLifecycle()
     val listMediaFullscreen by fullscreenViewModel.listMedia.collectAsStateWithLifecycle()
@@ -533,7 +529,7 @@ fun DeleteMediaDialog(
                     mutableState.value = false
                     onDismissRequest()
                 },
-                modifier = modifier,
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
                     text = context.getString(R.string.delete),
@@ -545,7 +541,7 @@ fun DeleteMediaDialog(
                     mutableState.value = false
                     onDismissRequest()
                 },
-                modifier = modifier,
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(text = context.getString(R.string.cancel))
             }
@@ -564,7 +560,6 @@ fun RenameAlbumDialog( // TODO fixme (не работает с альбомам�
     val album by albumViewModel.selectedAlbum.collectAsStateWithLifecycle()
     var albumName by rememberSaveable { mutableStateOf(album!!.name) }
     val oldAlbumName = remember { albumName }
-    val modifier = Modifier.fillMaxWidth()
 
     ModalBottomSheet(
         onDismissRequest =
@@ -631,7 +626,6 @@ fun CommentateDialog(
     val oldComment = remember { mutableStateOf("") }
     val context = LocalContext.current
     var commentText by rememberSaveable { mutableStateOf("") }
-    val modifier = Modifier.fillMaxWidth()
 
     val db = CommentDatabase.getDatabase(context).commentDao()
     Log.d("println", commentText)
@@ -662,7 +656,7 @@ fun CommentateDialog(
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(16.dp),
+                    modifier = modifier,
                 ) {
                     Text(text = context.getString(R.string.commentate))
                     Image(
@@ -678,14 +672,14 @@ fun CommentateDialog(
                         value = commentText,
                         onValueChange = { commentText = it },
                         modifier =
-                            modifier
+                            Modifier.fillMaxWidth()
                                 .heightIn(max = 160.dp)
                                 .padding(horizontal = 16.dp),
                     )
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier =
-                            modifier
+                            Modifier.fillMaxWidth()
                                 .padding(horizontal = 16.dp),
                     ) {
                         Button(onClick = {
@@ -790,9 +784,7 @@ fun ExportCommentsDialog(
     }) {
         Card(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+                    modifier
                     .verticalScroll(rememberScrollState()),
             shape = RoundedCornerShape(16.dp),
         ) {
@@ -880,9 +872,7 @@ fun ImportCommentsDialog(
     }) {
         Card(
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+                    modifier
                     .verticalScroll(rememberScrollState()),
             shape = RoundedCornerShape(16.dp),
         ) {

@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -218,6 +220,8 @@ fun PicturesScreenWithScaffold(
                         .padding(paddingValues)
                         .background(MaterialTheme.colorScheme.background)
                         .fillMaxSize()
+                        .navigationBarsPadding()
+                        .imePadding()
                         .pointerInput(Unit) {
                             detectTransformGestures { p1, p2, f1, f2 ->
                                 Log.d("pointerInput", "$p1, $p2, $f1, $f2")
