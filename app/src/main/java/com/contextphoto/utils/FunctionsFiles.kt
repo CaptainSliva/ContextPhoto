@@ -8,7 +8,6 @@ import com.contextphoto.data.COMMENT_DATABASE
 import com.contextphoto.data.baseCommentsPath
 import com.contextphoto.utils.FunctionsMediaStore.copyMediaToAlbum
 import com.contextphoto.utils.FunctionsMediaStore.deleteMediaFile
-import jakarta.inject.Singleton
 import java.io.File
 
 object FunctionsFiles {
@@ -51,31 +50,6 @@ object FunctionsFiles {
             }
         } else {
             return "CopyError"
-        }
-    }
-
-    fun deleteCommentsFile() {
-        val file = File(baseCommentsPath, "/$COMMENT_DATABASE.txt")
-        file.delete()
-    }
-
-    @Singleton
-    fun importCommentsFromFile(): List<String> {
-        val file = File(baseCommentsPath, "/$COMMENT_DATABASE.txt")
-        Log.d("file", baseCommentsPath)
-        return if (file.exists()) {
-            file.readLines()
-        } else {
-            emptyList()
-        }
-    }
-
-    inline fun exportCommentsToFile(text: String) {
-        val file = File(baseCommentsPath, "/$COMMENT_DATABASE.txt")
-        if (file.exists()) {
-            file.appendText(text + "\n")
-        } else {
-            file.writeText(text + "\n")
         }
     }
 

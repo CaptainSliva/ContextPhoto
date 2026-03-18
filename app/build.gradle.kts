@@ -15,8 +15,8 @@ android {
         applicationId = "com.contextphoto"
         minSdk = 29
         targetSdk = 36
-        versionCode = 14
-        versionName = "1.3.8"
+        versionCode = 17
+        versionName = "1.3.11"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -97,5 +97,4 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.0.4")
     implementation("io.coil-kt.coil3:coil-gif:3.0.4")
 
-    // comment after set registration
 }

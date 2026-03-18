@@ -1,6 +1,5 @@
 package com.contextphoto.utils
 
-import android.R.attr.thumbnail
 import android.app.Activity
 import android.app.RecoverableSecurityException
 import android.content.ContentUris
@@ -557,10 +556,12 @@ object FunctionsMediaStore {
         albumName: String,
     ): Boolean {
         Log.d("copyMediaToAlbum", sourceUri.toString())
+
+
+
         val contentResolver = context.contentResolver
-        var filePath = File("1")
-        try {
-            filePath = File(getRealPathFromUri(context, sourceUri))
+        val filePath = try {
+            File(getRealPathFromUri(context, sourceUri))
         } catch (e: Exception) {
             Log.d("copyMediaToAlbum", e.toString())
             return false
@@ -742,7 +743,7 @@ object FunctionsMediaStore {
     inline fun getImageDate(
         context: Context,
         path: String,
-    ): List<String> { // TODO можно любые парметры даостать, если в projection их указать
+    ): Long { // TODO можно любые парметры даостать, если в projection их указать
         val contentUri = MediaStore.Files.getContentUri("external")
         val projection =
             arrayOf(
@@ -759,16 +760,14 @@ object FunctionsMediaStore {
                 selectionArgs,
                 null,
             )
-        var datePhoto = ""
-        val dateFormat = SimpleDateFormat("d MMMM yyyy\nHH:mm:ss", Locale("ru"))
+        var datePhoto = 0L
         cursor?.use { cursor ->
             val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
             if (cursor.moveToFirst()) {
-                val dateAdded = cursor.getLong(dateAddedColumn)
-                datePhoto = dateFormat.format(Date(dateAdded * 1000)).toString()
+                datePhoto = cursor.getLong(dateAddedColumn)
             }
         }
 
-        return datePhoto.split("\n")
+        return datePhoto
     }
 }

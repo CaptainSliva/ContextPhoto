@@ -1,10 +1,13 @@
 package com.contextphoto.item
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
+import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
+import android.view.View
 import android.view.ViewGroup
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -47,15 +50,16 @@ import com.contextphoto.InfinityScrollableText
 import com.contextphoto.R
 import com.contextphoto.ui.vm.FullscreenViewModel
 import com.contextphoto.utils.FunctionsApp.durationTranslate
-import com.davemorrissey.labs.subscaleview.BuildConfig
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.ui.PlayerView
+import com.google.common.math.Quantiles.scale
 import kotlinx.coroutines.delay
 import java.io.File
+import java.io.FileOutputStream
 
 // https://kotlincodes.com/kotlin/jetpack-compose-kotlin/jetpack-compose-media-player-integration/
 // https://gorkemkara.net/responsive-video-playback-jetpack-compose-exoplayer/
@@ -154,10 +158,10 @@ fun CustomVideoUI(
         visible = isVisible.value,
         enter =
             slideInVertically(initialOffsetY = { 500 }) +
-                fadeIn(initialAlpha = 0.3f),
+                    fadeIn(initialAlpha = 0.3f),
         exit =
             slideOutVertically(targetOffsetY = { 600 }) +
-                fadeOut(),
+                    fadeOut(),
     ) {
         InfinityScrollableText(isVisible.value, commentText, { onClick() }, offset = 47)
         Column(
@@ -265,6 +269,7 @@ fun ImageUI(
                     .clickable { onClick() },
         )
     } else {
+
         AndroidView(
             factory = { ctx ->
                 SubsamplingScaleImageView(ctx).apply {
@@ -284,24 +289,26 @@ fun ImageUI(
                                 }
                             },
                         )
+                    val baseScale: Float by lazy { scale }
 
                     setOnTouchListener { v, event ->
                         v.onTouchEvent(event)
                         gestureDetector.onTouchEvent(event)
 
-                        // Минимальный масштаб, при котором считаем, что картинка "увеличена"
-                        val ZOOM_THRESHOLD = 1.01f
-                        val currentScale = scale
 
-                        val isSignificantlyZoomed = currentScale > ZOOM_THRESHOLD
+                        val isZoomed = scale != baseScale
                         val isMultiTouch = event.pointerCount > 1
+                        Log.d("Chch", isZoomed.toString())
+                        Log.d("Chch", "${baseScale}    $scale".toString())
+                        Log.d("Chch", isMultiTouch.toString())
+                        Log.d("Chch", event.pointerCount.toString())
 
                         when (event.action) {
                             MotionEvent.ACTION_DOWN -> {
                                 parent?.requestDisallowInterceptTouchEvent(false)
                             }
                             MotionEvent.ACTION_MOVE -> {
-                                if (isSignificantlyZoomed || isMultiTouch) {
+                                if (isZoomed || isMultiTouch) {
                                     parent?.requestDisallowInterceptTouchEvent(true)
                                 } else {
                                     parent?.requestDisallowInterceptTouchEvent(false)
@@ -318,3 +325,4 @@ fun ImageUI(
         )
     }
 }
+

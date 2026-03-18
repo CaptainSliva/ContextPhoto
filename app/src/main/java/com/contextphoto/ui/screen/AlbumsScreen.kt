@@ -6,9 +6,20 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -31,6 +42,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -60,28 +72,19 @@ fun AlbumsScreenWithScaffold(
     val createAlbumDialogVisible = rememberSaveable { mutableStateOf(false) }
     Log.d("Albums", albumList.toString())
 
-    val isSystemInDarkTheme = isSystemInDarkTheme()
 
     // Используем цвета в зависимости от темы
-
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        Destination.Albums().label,
+//                        modifier = Modifier.padding(WindowInsets.systemBars
+//                            .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
+//                            .asPaddingValues()),
+                        text = Destination.Albums().label,
                     )
                 },
-//                navigationIcon = {
-//                    IconButton(onClick = {
-//                        navController.navigateUp()
-//                    }) {
-//                        Icon(
-//                            Icons.Default.ArrowBack, // Кнопка назад
-//                            contentDescription = null,
-//                        )
-//                    }
-//                },
             )
             MainDropdownMenu(navController)
         },

@@ -1,9 +1,6 @@
 package com.contextphoto.menu
 
-import android.R.attr.action
-import android.R.attr.mimeType
 import android.app.Activity
-import android.app.Notification
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
@@ -19,9 +16,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
@@ -52,10 +54,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
-import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.contextphoto.R
@@ -70,8 +69,6 @@ import com.contextphoto.ui.vm.AlbumViewModel
 import com.contextphoto.ui.vm.FullscreenViewModel
 import com.contextphoto.ui.vm.MediaViewModel
 import com.contextphoto.utils.FunctionsBitmap.md5
-import com.contextphoto.utils.FunctionsUri.convertUri
-import com.davemorrissey.labs.subscaleview.ImageSource.uri
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -84,11 +81,15 @@ fun MainDropdownMenu(
 ) {
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
+
     Row(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
+                .padding(8.dp)
+                .padding(WindowInsets.systemBars
+                    .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
+                    .asPaddingValues()),
         horizontalArrangement = Arrangement.End,
     ) {
         Box {
@@ -415,7 +416,7 @@ fun BottomMenuFullScreenVideo(fullscreenViewModel: FullscreenViewModel) {
     }
 
     Column(
-        modifier = Modifier.fillMaxWidth(), // if (!isVideo.value) Modifier.fillMaxHeight() else Modifier,
+        modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.Bottom,
     ) {
         Row(

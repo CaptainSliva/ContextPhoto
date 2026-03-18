@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -122,7 +123,8 @@ fun SettingsScreenWithScaffold(
                         .background(MaterialTheme.colorScheme.background)
                         .padding(paddingValues)
                         .padding(horizontal = 8.dp)
-                        .padding(top = 8.dp),
+                        .padding(top = 8.dp)
+                        .navigationBarsPadding(),
             ) {
                 Column(
                     modifier =
