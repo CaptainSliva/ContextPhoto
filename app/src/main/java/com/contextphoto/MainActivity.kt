@@ -106,13 +106,6 @@ class MainActivity : ComponentActivity() {
 
             ContextPhotoTheme {
                 enableEdgeToEdge(
-//                    statusBarStyle = SystemBarStyle.dark(
-//                        Color.Transparent.toArgb()
-//                    ),
-//                    navigationBarStyle = SystemBarStyle.dark(
-//                        Color.Transparent.toArgb()
-//                    )
-
                     statusBarStyle = SystemBarStyle.auto(
                         Color.Transparent.toArgb(),
                         Color.Transparent.toArgb()
@@ -288,10 +281,9 @@ fun AppNavHost(
             AlbumsScreenWithScaffold(navController)
         }
 
-        composable(Destination.Pictures().route + "/{bID}" + "/{itemsCount}") { stackEntry ->
+        composable(Destination.Pictures().route + "/{bID}") { stackEntry ->
             val bID = stackEntry.arguments?.getString("bID").toString()
-            val itemsCount = stackEntry.arguments?.getString("itemsCount")?.toInt() ?: 1
-            PicturesScreenWithScaffold(navController, bID, itemsCount)
+            PicturesScreenWithScaffold(navController, bID)
         }
 
         composable(Destination.FullScreenImg().route) { stackEntry ->

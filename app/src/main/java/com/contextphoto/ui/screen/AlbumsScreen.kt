@@ -43,6 +43,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -100,7 +102,7 @@ fun AlbumsScreenWithScaffold(
 //                                }
 
                                 is Destination.Pictures -> {
-                                    navController.navigate(Destination.Pictures().route + "/" + "/1")
+                                    navController.navigate(Destination.Pictures().route + "/")
                                 }
 
                                 else -> {}
@@ -125,7 +127,7 @@ fun AlbumsScreenWithScaffold(
             ) {
                 FloatingActionButton(onClick = {
                     createAlbumDialogVisible.value = true
-                }) {
+                }, modifier = Modifier.testTag("fabAddAlbum")) {
                     Icon(
                         Icons.Default.Add,
                         contentDescription = null,
@@ -153,7 +155,7 @@ fun AlbumsScreenWithScaffold(
                         Modifier.padding(0.dp, 2.dp).animateItem(),
                         onItemClick = {
                             navController.navigate(
-                                Destination.Pictures().route + "/${album.bID}" + "/${album.itemsCount ?: 1}",
+                                Destination.Pictures().route + "/${album.bID}",
                             )
                         },
                         albumViewModel,

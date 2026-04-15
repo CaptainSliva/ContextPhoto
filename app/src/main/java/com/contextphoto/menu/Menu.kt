@@ -53,6 +53,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -89,7 +90,8 @@ fun MainDropdownMenu(
                 .padding(8.dp)
                 .padding(WindowInsets.systemBars
                     .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
-                    .asPaddingValues()),
+                    .asPaddingValues())
+                .testTag("mainDropdownMenu"),
         horizontalArrangement = Arrangement.End,
     ) {
         Box {
