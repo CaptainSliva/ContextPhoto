@@ -65,7 +65,6 @@ import kotlinx.coroutines.launch
 fun PicturesScreenWithScaffold(
     navController: NavHostController,
     bID: String,
-    itemsCount: Int,
     mediaViewModel: MediaViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(Unit) {
