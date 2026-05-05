@@ -88,9 +88,11 @@ fun MainDropdownMenu(
             Modifier
                 .fillMaxWidth()
                 .padding(8.dp)
-                .padding(WindowInsets.systemBars
-                    .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
-                    .asPaddingValues())
+                .padding(
+                    WindowInsets.systemBars
+                        .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
+                        .asPaddingValues()
+                )
                 .testTag("mainDropdownMenu"),
         horizontalArrangement = Arrangement.End,
     ) {
@@ -185,6 +187,17 @@ fun BottomMenuPictureScreen(mediaViewModel: MediaViewModel) {
     val deleteDialogVisible = rememberSaveable { mutableStateOf(false) }
     val commentsStateDialogVisible = rememberSaveable { mutableStateListOf<MutableState<Boolean>>() }
     val listSelectedMedia by mediaViewModel.listSelectedMedia.collectAsStateWithLifecycle()
+    val pos = mediaViewModel.mediaPosition.collectAsStateWithLifecycle()
+    val commentText = remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            commentText.value =
+                mediaViewModel.db
+                    .findImageByHash(md5(listSelectedMedia[pos.value].thumbnail))
+                    ?.image_comment?:""
+        }
+    }
 
     AnimatedVisibility(
         visible = toAlbumDialogVisible.value,
@@ -241,7 +254,12 @@ fun BottomMenuPictureScreen(mediaViewModel: MediaViewModel) {
                     .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.Center,
         ) {
-            ButtonShare(listSelectedMedia)
+            if (listSelectedMedia.size > 1) {
+                ButtonShare(listSelectedMedia)
+            }
+            else {
+                ButtonShare(listSelectedMedia, commentText.value)
+            }
             ButtonToAlbum(toAlbumDialogVisible)
             ButtonCommentate(commentateDialogVisible)
             ButtonDelete(deleteDialogVisible)
@@ -255,6 +273,17 @@ fun BottomMenuSearchPictureScreen(mediaViewModel: MediaViewModel) {
     val deleteDialogVisible = rememberSaveable { mutableStateOf(false) }
     val commentsStateDialogVisible = rememberSaveable { mutableStateListOf<MutableState<Boolean>>() }
     val listSelectedMedia by mediaViewModel.listSelectedMedia.collectAsStateWithLifecycle()
+    val pos = mediaViewModel.mediaPosition.collectAsStateWithLifecycle()
+    val commentText = remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            commentText.value =
+                mediaViewModel.db
+                    .findImageByHash(md5(listSelectedMedia[pos.value].thumbnail))
+                    ?.image_comment?:""
+        }
+    }
 
     if (commentateDialogVisible.value) {
         commentsStateDialogVisible.clear()
@@ -301,7 +330,12 @@ fun BottomMenuSearchPictureScreen(mediaViewModel: MediaViewModel) {
                     .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.Center,
         ) {
-            ButtonShare(listSelectedMedia)
+            if (listSelectedMedia.size > 1) {
+                ButtonShare(listSelectedMedia)
+            }
+            else {
+                ButtonShare(listSelectedMedia, commentText.value)
+            }
             ButtonCommentate(commentateDialogVisible)
             ButtonDelete(deleteDialogVisible)
         }
@@ -310,24 +344,18 @@ fun BottomMenuSearchPictureScreen(mediaViewModel: MediaViewModel) {
 
 @Composable // FullScreen поделиться, повернуть, комментировать, удалить
 fun BottomMenuFullScreen(fullscreenViewModel: FullscreenViewModel) {
-    val shareDialogVisible = rememberSaveable { mutableStateOf(false) }
     val commentateDialogVisible = rememberSaveable { mutableStateOf(false) }
     val deleteDialogVisible = rememberSaveable { mutableStateOf(false) }
     val listMedia by fullscreenViewModel.listMedia.collectAsStateWithLifecycle()
     val pos = fullscreenViewModel.mediaPosition.collectAsStateWithLifecycle()
     val commentText = remember { mutableStateOf("") }
 
-    if (shareDialogVisible.value) {
-        val context = LocalContext.current
-        LaunchedEffect(Unit) {
-            CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-                commentText.value =
-                    fullscreenViewModel.db
-                        .findImageByHash(md5(listMedia[pos.value].thumbnail))
-                        ?.image_comment
-                        ?.trim()
-                        ?: commentText.value.trim()
-            }
+    LaunchedEffect(Unit) {
+        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            commentText.value =
+                fullscreenViewModel.db
+                    .findImageByHash(md5(listMedia[pos.value].thumbnail))
+                    ?.image_comment?:""
         }
     }
 
@@ -375,24 +403,18 @@ fun BottomMenuFullScreen(fullscreenViewModel: FullscreenViewModel) {
 
 @Composable // FullScreen поделиться, повернуть, комментировать, удалить
 fun BottomMenuFullScreenVideo(fullscreenViewModel: FullscreenViewModel) {
-    val shareDialogVisible = rememberSaveable { mutableStateOf(false) }
     val commentateDialogVisible = rememberSaveable { mutableStateOf(false) }
     val deleteDialogVisible = rememberSaveable { mutableStateOf(false) }
     val listMedia by fullscreenViewModel.listMedia.collectAsStateWithLifecycle()
     val pos = fullscreenViewModel.mediaPosition.collectAsStateWithLifecycle()
     val commentText = remember { mutableStateOf("") }
 
-    if (shareDialogVisible.value) {
-        val context = LocalContext.current
-        LaunchedEffect(Unit) {
-            CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-                commentText.value =
-                    fullscreenViewModel.db
-                        .findImageByHash(md5(listMedia[pos.value].thumbnail))
-                        ?.image_comment
-                        ?.trim()
-                        ?: commentText.value.trim()
-            }
+    LaunchedEffect(Unit) {
+        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            commentText.value =
+                fullscreenViewModel.db
+                    .findImageByHash(md5(listMedia[pos.value].thumbnail))
+                    ?.image_comment?:""
         }
     }
 
@@ -454,7 +476,12 @@ fun ButtonShare(
                         if (listSelectedMedia.isNotEmpty()) {
                             when (commentText != "") {
                                 true -> {
-                                    val mimeType = context.contentResolver.getType(listSelectedMedia[0].uri)
+                                    Log.d(
+                                        "Ebag",
+                                        "commentText:$commentText\nlistSelectedMedia:$listSelectedMedia"
+                                    )
+                                    val mimeType =
+                                        context.contentResolver.getType(listSelectedMedia[0].uri)
                                     Log.d("Type", mimeType.toString())
                                     val sendIntent = Intent().apply {
                                         action = Intent.ACTION_SEND
@@ -464,7 +491,7 @@ fun ButtonShare(
                                         )
                                         putExtra(
                                             Intent.EXTRA_TEXT,
-                                            "commentText",
+                                            commentText,
                                         )
                                         type = mimeType
                                     }
@@ -472,9 +499,15 @@ fun ButtonShare(
                                 }
 
                                 else -> {
-                                    val mimeType = context.contentResolver.getType(listSelectedMedia[0].uri)
+                                    Log.d("Ebag", "$commentText\n$listSelectedMedia")
+                                    val mimeType =
+                                        context.contentResolver.getType(listSelectedMedia[0].uri)
                                     val sendIntent = Intent()
-                                    if (listSelectedMedia.all { media -> context.contentResolver.getType(media.uri) == mimeType }) {
+                                    if (listSelectedMedia.all { media ->
+                                            context.contentResolver.getType(
+                                                media.uri
+                                            ) == mimeType
+                                        }) {
                                         sendIntent.apply {
                                             action = Intent.ACTION_SEND_MULTIPLE
                                             putParcelableArrayListExtra(
@@ -483,8 +516,7 @@ fun ButtonShare(
                                             )
                                             type = mimeType
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         sendIntent.apply {
                                             action = Intent.ACTION_SEND_MULTIPLE
                                             putParcelableArrayListExtra(
@@ -614,11 +646,13 @@ fun ButtonRotate() {
                     onClick = {
                         when (configuration.orientation) {
                             Configuration.ORIENTATION_LANDSCAPE -> {
-                                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                                activity.requestedOrientation =
+                                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                             }
 
                             Configuration.ORIENTATION_PORTRAIT -> {
-                                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                                activity.requestedOrientation =
+                                    ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
                             }
                         }
                     },

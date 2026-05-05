@@ -1,5 +1,6 @@
 package com.contextphoto.ui.screen
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -304,21 +305,23 @@ fun RegisterScreen(
                 Button(
                     onClick = {
                         if (checkedPrivacy.value) {
-                        } else {
-                            Toast.makeText(context, getString(context, R.string.get_policy), Toast.LENGTH_LONG).show()
-                        }
-                        loginViewModel.clearError()
-                        loginViewModel.registration(email.value, password.value)
-                        currentUser.value?.getIdToken(false)?.addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                currentUser.value?.getIdToken(false)?.addOnCompleteListener { task ->
-                                    if (task.isSuccessful) {
-                                        val token = task.result?.token
-                                        espWrite(context, currentUser.value!!.email.toString(), token.toString())
+                            loginViewModel.clearError()
+                            loginViewModel.registration(email.value, password.value)
+                            currentUser.value?.getIdToken(false)?.addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    currentUser.value?.getIdToken(false)?.addOnCompleteListener { task ->
+                                        if (task.isSuccessful) {
+                                            val token = task.result?.token
+                                            espWrite(context, currentUser.value!!.email.toString(), token.toString())
+                                        }
                                     }
                                 }
                             }
+                        } else {
+                            Toast.makeText(context, getString(context, R.string.get_policy), Toast.LENGTH_LONG).show()
                         }
+
+
                     },
                     shape = RoundedCornerShape(50.dp),
                     colors =
