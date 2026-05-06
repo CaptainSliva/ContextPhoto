@@ -187,16 +187,20 @@ fun BottomMenuPictureScreen(mediaViewModel: MediaViewModel) {
     val deleteDialogVisible = rememberSaveable { mutableStateOf(false) }
     val commentsStateDialogVisible = rememberSaveable { mutableStateListOf<MutableState<Boolean>>() }
     val listSelectedMedia by mediaViewModel.listSelectedMedia.collectAsStateWithLifecycle()
-    val pos = mediaViewModel.mediaPosition.collectAsStateWithLifecycle()
     val commentText = remember { mutableStateOf("") }
 
-    LaunchedEffect(Unit) {
-        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-            commentText.value =
-                mediaViewModel.db
-                    .findImageByHash(md5(listSelectedMedia[pos.value].thumbnail))
-                    ?.image_comment?:""
+    if (listSelectedMedia.size == 1) {
+        LaunchedEffect(Unit) {
+            CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+                commentText.value =
+                    mediaViewModel.db
+                        .findImageByHash(md5(listSelectedMedia[0].thumbnail))
+                        ?.image_comment?:""
+            }
         }
+    }
+    else {
+        commentText.value = ""
     }
 
     AnimatedVisibility(
@@ -273,16 +277,20 @@ fun BottomMenuSearchPictureScreen(mediaViewModel: MediaViewModel) {
     val deleteDialogVisible = rememberSaveable { mutableStateOf(false) }
     val commentsStateDialogVisible = rememberSaveable { mutableStateListOf<MutableState<Boolean>>() }
     val listSelectedMedia by mediaViewModel.listSelectedMedia.collectAsStateWithLifecycle()
-    val pos = mediaViewModel.mediaPosition.collectAsStateWithLifecycle()
     val commentText = remember { mutableStateOf("") }
 
-    LaunchedEffect(Unit) {
-        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-            commentText.value =
-                mediaViewModel.db
-                    .findImageByHash(md5(listSelectedMedia[pos.value].thumbnail))
-                    ?.image_comment?:""
+    if (listSelectedMedia.size == 1) {
+        LaunchedEffect(Unit) {
+            CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+                commentText.value =
+                    mediaViewModel.db
+                        .findImageByHash(md5(listSelectedMedia[0].thumbnail))
+                        ?.image_comment?:""
+            }
         }
+    }
+    else {
+        commentText.value = ""
     }
 
     if (commentateDialogVisible.value) {
