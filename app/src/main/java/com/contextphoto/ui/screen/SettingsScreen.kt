@@ -282,7 +282,7 @@ fun SettingsScreenWithScaffold(
                         Text(
                             stateInfo.value,
                             fontSize = 18.sp,
-                            color = Color.Green,
+                            color = if ("Ошибка" !in stateInfo.value) Color.Green else Color.Red,
                         )
 //                        settingsViewModel.changeOperationStatus(false)
                     }
