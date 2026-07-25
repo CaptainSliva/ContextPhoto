@@ -145,8 +145,8 @@ fun PictureItem(
         Icon(
             painter = painterResource(R.drawable.text_icon),
             contentDescription = null,
-            modifier = Modifier.size(26.dp).alpha(if (picture.haveComment.value) 1f else 0f).padding(start = 4.dp),
-            tint = Color.White,
+            modifier = Modifier.size(32.dp).alpha(if (picture.haveComment.value) 1f else 0f).padding(start = 4.dp),
+            tint = Color.Unspecified
         )
 
         Row(
