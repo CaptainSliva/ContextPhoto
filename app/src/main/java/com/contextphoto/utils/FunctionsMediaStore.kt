@@ -57,10 +57,10 @@ object FunctionsMediaStore {
                 MediaStore.MediaColumns.BUCKET_ID,
                 MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
                 MediaStore.MediaColumns._ID,
-                MediaStore.MediaColumns.DATE_ADDED,
+                MediaStore.MediaColumns.DATE_MODIFIED,
                 MediaStore.MediaColumns.DATA,
             )
-        val sortOrder = "${MediaStore.MediaColumns.DATE_ADDED} DESC"
+        val sortOrder = "${MediaStore.MediaColumns.DATE_MODIFIED} DESC"
 
         context.contentResolver
             .query(
@@ -135,9 +135,9 @@ object FunctionsMediaStore {
                 MediaStore.MediaColumns.BUCKET_ID,
                 MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
                 MediaStore.MediaColumns.DATA,
-                MediaStore.MediaColumns.DATE_ADDED,
+                MediaStore.MediaColumns.DATE_MODIFIED,
             )
-        val sortOrder = "${MediaStore.MediaColumns.DATE_ADDED} DESC"
+        val sortOrder = "${MediaStore.MediaColumns.DATE_MODIFIED} DESC"
 
         viewModel.loadAlbumsStateChange()
 
@@ -220,7 +220,7 @@ object FunctionsMediaStore {
                 MediaStore.MediaColumns.DISPLAY_NAME,
                 MediaStore.MediaColumns.DURATION,
                 MediaStore.MediaColumns.SIZE,
-                MediaStore.MediaColumns.DATE_ADDED,
+                MediaStore.MediaColumns.DATE_MODIFIED,
                 MediaStore.MediaColumns.DATA,
                 MediaStore.Files.FileColumns.MEDIA_TYPE,
             )
@@ -244,7 +244,7 @@ object FunctionsMediaStore {
         )
         val selection = selectionBuilder.toString()
         val selectionArgs = selectionArgsList.toTypedArray()
-        val sortOrder = "${MediaStore.MediaColumns.DATE_ADDED} DESC"
+        val sortOrder = "${MediaStore.MediaColumns.DATE_MODIFIED} DESC"
 
         context.applicationContext.contentResolver
             .query(
@@ -258,7 +258,7 @@ object FunctionsMediaStore {
                 val idColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
                 val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
                 val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DURATION)
-                val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED)
+                val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED)
                 val mediaTypeColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MEDIA_TYPE)
 
                 if (cursor.count > offset) {
@@ -355,12 +355,12 @@ object FunctionsMediaStore {
                 MediaStore.MediaColumns.DISPLAY_NAME,
                 MediaStore.MediaColumns.DURATION,
                 MediaStore.MediaColumns.SIZE,
-                MediaStore.MediaColumns.DATE_ADDED,
+                MediaStore.MediaColumns.DATE_MODIFIED,
                 MediaStore.MediaColumns.DATA,
             )
         var selection: String? = null
         var selectionArgs: Array<String>? = null
-        val sortOrder = "${MediaStore.MediaColumns.DATE_ADDED} DESC" // DATE_MODIFIED // DATE_TAKEN
+        val sortOrder = "${MediaStore.MediaColumns.DATE_MODIFIED} DESC" // DATE_MODIFIED // DATE_TAKEN
 
         context.applicationContext.contentResolver
             .query(
@@ -374,7 +374,7 @@ object FunctionsMediaStore {
                 val idColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
                 val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
                 val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DURATION)
-                val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED)
+                val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED)
 
                 while (cursor.moveToNext()) {
                     val bucketId = cursor.getString(bucketIdColumn)
@@ -463,7 +463,7 @@ object FunctionsMediaStore {
                 MediaStore.MediaColumns.DISPLAY_NAME,
                 MediaStore.MediaColumns.DURATION,
                 MediaStore.MediaColumns.SIZE,
-                MediaStore.MediaColumns.DATE_ADDED,
+                MediaStore.MediaColumns.DATE_MODIFIED,
                 MediaStore.MediaColumns.DATA,
             )
         var selection: String? = null
@@ -472,7 +472,7 @@ object FunctionsMediaStore {
             selection = "${MediaStore.MediaColumns.BUCKET_ID} = ?"
             selectionArgs = arrayOf(bucketIdArg)
         }
-        val sortOrder = "${MediaStore.MediaColumns.DATE_ADDED} DESC" // DATE_MODIFIED // DATE_TAKEN
+        val sortOrder = "${MediaStore.MediaColumns.DATE_MODIFIED} DESC" // DATE_MODIFIED // DATE_TAKEN
 
         context.applicationContext.contentResolver
             .query(
@@ -486,7 +486,7 @@ object FunctionsMediaStore {
                 val idColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
                 val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
                 val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DURATION)
-                val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED)
+                val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED)
 
                 while (cursor.moveToNext()) {
                     val bucketId = cursor.getString(bucketIdColumn)
@@ -686,10 +686,10 @@ object FunctionsMediaStore {
                 MediaStore.MediaColumns.DISPLAY_NAME,
                 MediaStore.MediaColumns.DURATION,
                 MediaStore.MediaColumns.SIZE,
-                MediaStore.MediaColumns.DATE_ADDED,
+                MediaStore.MediaColumns.DATE_MODIFIED,
                 MediaStore.MediaColumns.DATA,
             )
-        val sortOrder = "${MediaStore.MediaColumns.DATE_ADDED} DESC"
+        val sortOrder = "${MediaStore.MediaColumns.DATE_MODIFIED} DESC"
 
         context.contentResolver
             .query(
@@ -704,7 +704,7 @@ object FunctionsMediaStore {
                     val bucketIdColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_ID)
                     val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
                     val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DURATION)
-                    val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED)
+                    val dateAddedColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED)
 
                     val id = cursor.getLong(idColumn)
                     val bucketId = cursor.getString(bucketIdColumn)
