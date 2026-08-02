@@ -16,8 +16,8 @@ android {
         applicationId = "com.contextphoto"
         minSdk = 29
         targetSdk = 36
-        versionCode = 19
-        versionName = "1.3.13"
+        versionCode = 21
+        versionName = "1.3.15"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

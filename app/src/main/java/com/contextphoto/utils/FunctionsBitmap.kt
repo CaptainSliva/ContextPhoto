@@ -3,9 +3,11 @@ package com.contextphoto.utils
 import android.content.ContentUris
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
 import android.util.Size
+import com.contextphoto.R
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.security.MessageDigest
@@ -34,6 +36,6 @@ object FunctionsBitmap {
                 ContentUris.parseId(uri),
                 MediaStore.Images.Thumbnails.MINI_KIND,
                 null,
-            )
+            ) ?: BitmapFactory.decodeResource(context.resources, R.drawable.no_image)
         }
 }
