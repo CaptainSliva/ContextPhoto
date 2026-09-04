@@ -10,6 +10,7 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +40,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
@@ -58,6 +61,7 @@ import com.contextphoto.ui.vm.AlbumViewModel
 import com.contextphoto.ui.vm.MediaViewModel
 import com.contextphoto.ui.theme.ContextPhotoTheme
 import com.contextphoto.ui.vm.FullscreenViewModel
+import com.contextphoto.utils.FunctionsApp.sizeChange
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -130,8 +134,9 @@ fun PictureItem(
     val checkboxVisible = mediaViewModel.bottomMenuVisible.collectAsStateWithLifecycle()
     val listSelectedMedia by mediaViewModel.listSelectedMedia.collectAsState()
     val countOfPhotoLine by mediaViewModel.countOfPhotoLine.collectAsStateWithLifecycle()
+    val stateCommentPicture by mediaViewModel.stateCommentPicture.collectAsStateWithLifecycle()
 
-    Box( // contentAlignment = Alignment.BottomCenter,
+    Box(
         modifier =
             modifier.fillMaxSize().combinedClickable(
                 onClick = {
@@ -156,21 +161,28 @@ fun PictureItem(
             modifier = Modifier.aspectRatio(1f / 1f),
         )
 
-        Icon(
-            painter = painterResource(R.drawable.text_icon),
-            contentDescription = null,
-            modifier = Modifier.size(32.dp).alpha(if (picture.haveComment.value) 1f else 0f).padding(start = 4.dp),
-            tint = Color.Unspecified
-        )
+        AnimatedVisibility (picture.haveComment.value && !stateCommentPicture) {
+            Icon(
+                painter = painterResource(R.drawable.text_icon),
+                contentDescription = null,
+                modifier = Modifier
+                    .size((sizeChange(countOfPhotoLine) * 2.7).dp)
+                    .alpha(if (picture.haveComment.value) 1f else 0f)
+                    .padding(start = 4.dp)
+                    .clickable(onClick = { mediaViewModel.changeStateCommentPicture() }),
+                tint = Color.Unspecified
+            )
+        }
 
-        AnimatedVisibility (picture.haveComment.value && numberOfPhoto < 3) {
+        AnimatedVisibility (picture.haveComment.value && countOfPhotoLine < 4 && stateCommentPicture) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(1f / 3f)
                     .align(Alignment.BottomCenter)
                     .background(colorResource(R.color.medium_transparant_black))
-                    .padding(4.dp),
+                    .padding(4.dp)
+                    .clickable(onClick = { mediaViewModel.changeStateCommentPicture() }),
                 contentAlignment = Alignment.BottomCenter
             ) {
                 val commentText by fullScreenViewModel.imageComment.collectAsStateWithLifecycle()
@@ -180,7 +192,7 @@ fun PictureItem(
                     color = Color.White,
                     modifier = Modifier.fillMaxWidth(),
                     overflow = TextOverflow.Ellipsis,
-                    maxLines = 6/numberOfPhoto
+                    maxLines = 6/countOfPhotoLine
                 )
             }
         }
@@ -198,7 +210,7 @@ fun PictureItem(
                     text = picture.duration,
                     modifier = Modifier.padding(start = 8.dp, bottom = 8.dp),
                     color = colorResource(R.color.white),
-                    fontSize = (8*(10/countOfPhotoLine)).sp,
+                    fontSize = sizeChange(countOfPhotoLine).sp,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -206,7 +218,7 @@ fun PictureItem(
             Box(
                 modifier =
                     Modifier
-                        .size(32.dp)
+                        .size((sizeChange(countOfPhotoLine)*2).dp)
                         .padding(end = 8.dp, bottom = 8.dp),
                 contentAlignment = Alignment.BottomCenter,
             ) {
@@ -216,6 +228,7 @@ fun PictureItem(
                     exit = scaleOut() + fadeOut(),
                 ) {
                     Checkbox(
+                        modifier = Modifier.size((sizeChange(countOfPhotoLine)*2).dp).scale(sizeChange(countOfPhotoLine)/15),
                         checked = picture in listSelectedMedia,
                         onCheckedChange =
                             {
