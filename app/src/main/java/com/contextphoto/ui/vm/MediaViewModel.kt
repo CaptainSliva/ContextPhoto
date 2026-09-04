@@ -35,6 +35,8 @@ class MediaViewModel
         private val _bottomMenuVisible = MutableStateFlow(false)
         private val _albumName = MutableStateFlow("")
         private val _numberFind = MutableStateFlow(0)
+        private val _countOfPhotoLine = MutableStateFlow(3)
+        private val _stateCommentPicture = MutableStateFlow(false)
         private val _page = MutableStateFlow(0)
         private val _mutex = Mutex()
         val db = repository.getDB()
@@ -44,6 +46,8 @@ class MediaViewModel
         val bottomMenuVisible = _bottomMenuVisible.asStateFlow()
         val albumName = _albumName.asStateFlow()
         val numberFind = _numberFind.asStateFlow()
+        val countOfPhotoLine = _countOfPhotoLine.asStateFlow()
+        val stateCommentPicture = _stateCommentPicture.asStateFlow()
 
         fun loadPictureList(
             bID: String,
@@ -234,5 +238,15 @@ class MediaViewModel
                     showDeleteAlbumMessage(context, albums[index].name, albums[index].path)
                 }
             }
+        }
+
+        fun changeCountOfPhotoLine(newNumber: Int) {
+            if (newNumber > 0) _countOfPhotoLine.value = newNumber
+            if (_countOfPhotoLine.value > 3) changeStateCommentPicture()
+        }
+
+        fun changeStateCommentPicture() {
+            if (_countOfPhotoLine.value > 3) _stateCommentPicture.value = false
+            else _stateCommentPicture.value = !_stateCommentPicture.value
         }
     }

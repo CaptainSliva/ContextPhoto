@@ -6,6 +6,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -44,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
@@ -70,6 +72,7 @@ fun SearchPhotoScreenWithScaffold(
     mediaViewModel: MediaViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
+    val otboinik = 27
     val db = CommentDatabase.getDatabase(context).commentDao()
     var commentText by rememberSaveable { mutableStateOf("") }
     val checkRegister = rememberSaveable { mutableStateOf(false) }
@@ -79,6 +82,8 @@ fun SearchPhotoScreenWithScaffold(
     val clearFlag = rememberSaveable { mutableStateOf(false) }
     val listState = rememberLazyGridState()
     val progressBarVisibility = rememberSaveable {mutableStateOf(false)}
+    val countOfPhotoLine = rememberSaveable { mutableStateOf(3) }
+    val counterFlag = rememberSaveable { mutableStateOf(0) }
 
     LaunchedEffect(commentText, checkRegister.value) {
         withContext(coroutineScope.coroutineContext) {
@@ -198,9 +203,37 @@ fun SearchPhotoScreenWithScaffold(
                 }
 
                 LazyVerticalGrid(
+                    columns = GridCells.Fixed(countOfPhotoLine.value),
+                    modifier =
+                        Modifier
+                            .padding(paddingValues)
+                            .background(MaterialTheme.colorScheme.background)
+                            .fillMaxSize()
+                            .navigationBarsPadding()
+                            .imePadding()
+                            .pointerInput(Unit) {
+                                detectTransformGestures { p1, p2, f1, f2 ->
+                                    Log.d("pointerInput", "$p1, $p2, $f1, $f2")
+                                    val f = p2.x
+                                    if (f != 0F) {
+                                        if (f > 0) { // Уменьшение масштаба
+                                            counterFlag.value += 1
+                                            if (counterFlag.value == otboinik) {
+                                                counterFlag.value = 0
+                                                countOfPhotoLine.value += if (countOfPhotoLine.value < 6) 1 else 0
+                                            }
+                                        } else { // Увеличение масштаба
+                                            counterFlag.value += 1
+                                            if (counterFlag.value == otboinik) {
+                                                counterFlag.value = 0
+                                                countOfPhotoLine.value -= if (countOfPhotoLine.value > 1) 1 else 0
+                                            }
+                                        }
+                                        mediaViewModel.changeCountOfPhotoLine(countOfPhotoLine.value)
+                                    }
+                                }
+                            },
                     state = listState,
-                    columns = GridCells.Fixed(3),
-                    modifier = Modifier.padding(paddingValues),
                     contentPadding = PaddingValues(bottom = 80.dp),
                 ) {
                     items(items = listMedia, key = { media -> media.hashCode() }) { media ->

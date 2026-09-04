@@ -133,4 +133,22 @@ object FunctionsApp {
             sharedPreferences.getString("jwtToken", "").toString(),
         )
     }
+
+    inline fun sizeChange(countOfPhotoLine: Int): Float {
+        return when (countOfPhotoLine) {
+            1 -> 20f
+
+            2 -> 16f
+
+            3 -> 15f
+
+            4 -> 13f
+
+            5 -> 11f
+
+            6 -> 10f
+
+            else -> 0f
+        }
+    }
 }
