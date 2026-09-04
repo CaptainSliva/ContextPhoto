@@ -239,6 +239,7 @@ fun PicturesScreenWithScaffold(
                                             countOfPhotoLine.value -= if (countOfPhotoLine.value > 1) 1 else 0
                                         }
                                     }
+                                    mediaViewModel.changeCountOfPhotoLine(countOfPhotoLine.value)
                                 }
                             }
                         },

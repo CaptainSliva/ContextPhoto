@@ -70,6 +70,7 @@ fun SearchPhotoScreenWithScaffold(
     mediaViewModel: MediaViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
+    val columns = 3
     val db = CommentDatabase.getDatabase(context).commentDao()
     var commentText by rememberSaveable { mutableStateOf("") }
     val checkRegister = rememberSaveable { mutableStateOf(false) }
@@ -199,7 +200,7 @@ fun SearchPhotoScreenWithScaffold(
 
                 LazyVerticalGrid(
                     state = listState,
-                    columns = GridCells.Fixed(3),
+                    columns = GridCells.Fixed(columns),
                     modifier = Modifier.padding(paddingValues),
                     contentPadding = PaddingValues(bottom = 80.dp),
                 ) {

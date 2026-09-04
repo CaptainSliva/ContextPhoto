@@ -36,6 +36,7 @@ class MediaViewModel
         private val _albumName = MutableStateFlow("")
         private val _numberFind = MutableStateFlow(0)
         private val _page = MutableStateFlow(0)
+        private val _countOfPhotoLine = MutableStateFlow(3)
         private val _mutex = Mutex()
         val db = repository.getDB()
         val listMedia = _listMedia.asStateFlow()
@@ -44,6 +45,7 @@ class MediaViewModel
         val bottomMenuVisible = _bottomMenuVisible.asStateFlow()
         val albumName = _albumName.asStateFlow()
         val numberFind = _numberFind.asStateFlow()
+        val countOfPhotoLine = _countOfPhotoLine.asStateFlow()
 
         fun loadPictureList(
             bID: String,
@@ -234,5 +236,9 @@ class MediaViewModel
                     showDeleteAlbumMessage(context, albums[index].name, albums[index].path)
                 }
             }
+        }
+
+        fun changeCountOfPhotoLine(newNumber: Int) {
+            _countOfPhotoLine.value = newNumber
         }
     }

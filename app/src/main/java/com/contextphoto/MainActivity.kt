@@ -2,7 +2,10 @@ package com.contextphoto
 
 import android.app.Activity
 import android.os.Bundle
+import android.text.method.LinkMovementMethod
+import android.text.util.Linkify
 import android.util.Log
+import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -47,6 +50,8 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.text.util.LinkifyCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -54,6 +59,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.contextphoto.data.navigation.Destination
+import com.contextphoto.dialog.modifier
 import com.contextphoto.menu.BottomMenuFullScreen
 import com.contextphoto.menu.BottomMenuFullScreenVideo
 import com.contextphoto.menu.BottomMenuPictureScreen
@@ -252,17 +258,39 @@ fun InfinityScrollableText(
                         })
                         .height(freeSpace.dp + offsetY.value.dp),
                 contentAlignment = Alignment.BottomCenter,
-            ) {
-                Text(
-                    text = commentText,
+            )
+            {
+//                Text(
+//                    text = commentText,
+//                    modifier =
+//                        Modifier
+//                            .fillMaxWidth()
+//                            .padding(top = 12.dp)
+//                            .padding(horizontal = 8.dp)
+//                            .height(freeSpace.dp + offsetY.value.dp),
+//                    color = Color.White,
+//                )
+
+                AndroidView(
                     modifier =
                         Modifier
                             .fillMaxWidth()
                             .padding(top = 12.dp)
                             .padding(horizontal = 8.dp)
                             .height(freeSpace.dp + offsetY.value.dp),
-                    color = Color.White,
+                    factory = { context ->
+                        TextView(context).apply {
+                            setTextColor(Color.White.toArgb())
+                        }
+                    },
+                    update = { textView ->
+                        textView.text = commentText
+                        LinkifyCompat.addLinks(textView, Linkify.WEB_URLS or Linkify.EMAIL_ADDRESSES or Linkify.PHONE_NUMBERS)
+                        textView.movementMethod = LinkMovementMethod.getInstance()
+                        textView.setPadding(0, 0, 0, 0)
+                    }
                 )
+
             }
         }
     }
