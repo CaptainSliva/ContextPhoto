@@ -185,10 +185,12 @@ fun PictureItem(
                     .clickable(onClick = { mediaViewModel.changeStateCommentPicture() }),
                 contentAlignment = Alignment.BottomCenter
             ) {
-                val commentText by fullScreenViewModel.imageComment.collectAsStateWithLifecycle()
-                fullScreenViewModel.getImageComment(picture.thumbnail)
+                val commentText = rememberSaveable {mutableStateOf<String?>("")}
+                LaunchedEffect(Unit) {
+                    commentText.value = fullScreenViewModel.getImageCommentText(picture.thumbnail)
+                }
                 Text(
-                    text = commentText,
+                    text = commentText.value.toString(),
                     color = Color.White,
                     modifier = Modifier.fillMaxWidth(),
                     overflow = TextOverflow.Ellipsis,

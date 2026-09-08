@@ -1,11 +1,14 @@
 package com.contextphoto
 
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
-import android.text.method.LinkMovementMethod
-import android.text.util.Linkify
-import android.util.Log
-import android.widget.TextView
+import android.util.Patterns
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -18,6 +21,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,7 +39,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.Bottom
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
@@ -44,14 +47,20 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.text.util.LinkifyCompat
+import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -59,7 +68,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.contextphoto.data.navigation.Destination
-import com.contextphoto.dialog.modifier
+import com.contextphoto.item.LinkData
 import com.contextphoto.menu.BottomMenuFullScreen
 import com.contextphoto.menu.BottomMenuFullScreenVideo
 import com.contextphoto.menu.BottomMenuPictureScreen
@@ -76,6 +85,8 @@ import com.contextphoto.ui.vm.FullscreenViewModel
 import com.contextphoto.ui.vm.MediaViewModel
 import com.contextphoto.utils.RequestPermissions.ComposePermissions
 import dagger.hilt.android.AndroidEntryPoint
+import java.util.regex.Pattern
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -221,6 +232,79 @@ fun InfinityScrollableText(
         val offsetX = remember { mutableStateOf(0f) }
         val offsetY = remember { mutableStateOf(0f) }
         var size by remember { mutableStateOf(Size.Zero) }
+        val linkColor = colorResource(R.color.light_blue)
+        val context = LocalContext.current
+
+        data class LinkData(val start: Int, val end: Int, val link: String, val type: String)
+
+        val emailPattern = Pattern.compile(
+            "[a-zA-Z0-9\\+\\.\\_\\%\\-\\+]{1,256}" +
+                    "\\@" +
+                    "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,64}" +
+                    "(\\.[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25})+"
+        )
+
+        val annotatedString = remember(commentText) {
+            buildAnnotatedString {
+                append(commentText)
+
+                val links = mutableListOf<LinkData>()
+                // Поиск URL
+                val urlMatcher = Patterns.WEB_URL.matcher(commentText)
+                while (urlMatcher.find()) {
+                    links.add(LinkData(urlMatcher.start(), urlMatcher.end(), urlMatcher.group(), "URL"))
+                }
+                // Поиск Email
+                val emailMatcher = emailPattern.matcher(commentText)
+                while (emailMatcher.find()) {
+                    val email = emailMatcher.group()
+                    if (email.contains("@") && email.contains(".")) {
+                        links.add(LinkData(emailMatcher.start(), emailMatcher.end(), email, "EMAIL"))
+                    }
+                }
+                // Поиск Phone
+                val phoneMatcher = Patterns.PHONE.matcher(commentText)
+                while (phoneMatcher.find()) {
+                    links.add(LinkData(phoneMatcher.start(), phoneMatcher.end(), phoneMatcher.group(), "PHONE"))
+                }
+                links.sortBy { it.start }
+                val uniqueLinks = mutableListOf<LinkData>()
+                var lastEnd = -1
+                links.forEach { link ->
+                    if (link.start > lastEnd) {
+                        uniqueLinks.add(link)
+                        lastEnd = link.end
+                    }
+                }
+                // Стили для каждой ссылки
+                uniqueLinks.forEach { linkData ->
+                    val style = if (linkData.type == "URL") {
+                        SpanStyle(
+                            color = linkColor,
+                            textDecoration = TextDecoration.Underline
+                        )
+                    } else {
+                        SpanStyle(color = linkColor)
+                    }
+
+                    addStyle(style, linkData.start, linkData.end)
+
+                    addStringAnnotation(
+                        tag = "LINK",
+                        annotation = linkData.link,
+                        start = linkData.start,
+                        end = linkData.end
+                    )
+                    addStringAnnotation(
+                        tag = "LINK_TYPE",
+                        annotation = linkData.type,
+                        start = linkData.start,
+                        end = linkData.end
+                    )
+                }
+            }
+        }
+
         Column(
             modifier =
                 Modifier
@@ -228,12 +312,11 @@ fun InfinityScrollableText(
                     .alpha(alpha = if (visible) 1f else 0f),
             verticalArrangement = Arrangement.Bottom,
         ) {
-            Log.d("println", offsetY.value.toString())
             Box(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .wrapContentHeight(unbounded = true, align = Bottom)
+                        .wrapContentHeight(unbounded = true, align = Alignment.Bottom)
                         .onSizeChanged { size = it.toSize() }
                         .background(brush)
                         .pointerInput(Unit) {
@@ -243,54 +326,114 @@ fun InfinityScrollableText(
                                 val newValue =
                                     Offset(
                                         x = summed.x.coerceIn(0f, size.width),
-                                        y =
-                                            (original.y - dragAmount.y / 3.3f).coerceIn(
-                                                0f,
-                                                Constraints.Infinity.toFloat(),
-                                            ),
+                                        y = (original.y - dragAmount.y / 3.3f).coerceIn(
+                                            0f,
+                                            Constraints.Infinity.toFloat(),
+                                        ),
                                     )
                                 offsetX.value = newValue.x
                                 offsetY.value = newValue.y
                             }
-                        }.clickable(onClick = {
+                        }
+                        .clickable(onClick = {
                             onClick()
                             offsetY.value = 0f
                         })
-                        .height(freeSpace.dp + offsetY.value.dp),
+                        .height((freeSpace + offsetY.value).dp),
                 contentAlignment = Alignment.BottomCenter,
-            )
-            {
-//                Text(
-//                    text = commentText,
-//                    modifier =
-//                        Modifier
-//                            .fillMaxWidth()
-//                            .padding(top = 12.dp)
-//                            .padding(horizontal = 8.dp)
-//                            .height(freeSpace.dp + offsetY.value.dp),
-//                    color = Color.White,
-//                )
+            ) {
+                var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
 
-                AndroidView(
+                Text(
+                    text = annotatedString,
                     modifier =
                         Modifier
                             .fillMaxWidth()
                             .padding(top = 12.dp)
                             .padding(horizontal = 8.dp)
-                            .height(freeSpace.dp + offsetY.value.dp),
-                    factory = { context ->
-                        TextView(context).apply {
-                            setTextColor(Color.White.toArgb())
-                        }
-                    },
-                    update = { textView ->
-                        textView.text = commentText
-                        LinkifyCompat.addLinks(textView, Linkify.WEB_URLS or Linkify.EMAIL_ADDRESSES or Linkify.PHONE_NUMBERS)
-                        textView.movementMethod = LinkMovementMethod.getInstance()
-                        textView.setPadding(0, 0, 0, 0)
+                            .height((freeSpace + offsetY.value).dp)
+                            .pointerInput(Unit) {
+                                detectTapGestures { offset ->
+                                    textLayoutResult?.let { layout ->
+                                        val position = layout.getOffsetForPosition(offset)
+
+                                        val linkAnnotation = annotatedString.getStringAnnotations(
+                                            tag = "LINK",
+                                            start = position,
+                                            end = position
+                                        ).firstOrNull()
+
+                                        if (linkAnnotation != null) {
+                                            // Это ссылка - обрабатываем
+                                            val link = linkAnnotation.item
+                                            val linkType = annotatedString.getStringAnnotations(
+                                                tag = "LINK_TYPE",
+                                                start = position,
+                                                end = position
+                                            ).firstOrNull()?.item
+
+                                            when (linkType) {
+                                                "URL" -> {
+                                                    try {
+                                                        val intent = Intent(Intent.ACTION_VIEW, link.toUri())
+                                                        context.startActivity(intent)
+                                                    } catch (e: Exception) {
+                                                        try {
+                                                            val intent = Intent(Intent.ACTION_VIEW, "http://$link".toUri())
+                                                            context.startActivity(intent)
+                                                        } catch (e2: Exception) {
+                                                            Toast.makeText(context, "Не удалось открыть ссылку", Toast.LENGTH_SHORT).show()
+                                                        }
+                                                    }
+                                                }
+                                                "EMAIL" -> {
+                                                    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                                    val clip = ClipData.newPlainText("Email", link)
+                                                    clipboardManager.setPrimaryClip(clip)
+                                                    Toast.makeText(context, "Email скопирован: $link", Toast.LENGTH_SHORT).show()
+                                                }
+                                                "PHONE" -> {
+                                                    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                                    val clip = ClipData.newPlainText("Phone", link)
+                                                    clipboardManager.setPrimaryClip(clip)
+                                                    Toast.makeText(context, "Номер скопирован: $link", Toast.LENGTH_SHORT).show()
+                                                }
+                                                else -> {
+                                                    // Если тип не определен, определяем по содержанию
+                                                    when {
+                                                        link.contains("@") && link.contains(".") -> {
+                                                            val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                                            val clip = ClipData.newPlainText("Email", link)
+                                                            clipboardManager.setPrimaryClip(clip)
+                                                            Toast.makeText(context, "Email скопирован: $link", Toast.LENGTH_SHORT).show()
+                                                        }
+                                                        Patterns.WEB_URL.matcher(link).matches() -> {
+                                                            try {
+                                                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
+                                                                context.startActivity(intent)
+                                                            } catch (e: Exception) {
+                                                                Toast.makeText(context, "Не удалось открыть ссылку", Toast.LENGTH_SHORT).show()
+                                                            }
+                                                        }
+                                                        else -> {
+                                                            // Ничего не делаем
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            // Это не ссылка - вызываем onClick
+                                            onClick()
+                                            offsetY.value = 0f
+                                        }
+                                    }
+                                }
+                            },
+                    color = Color.White,
+                    onTextLayout = { result ->
+                        textLayoutResult = result
                     }
                 )
-
             }
         }
     }

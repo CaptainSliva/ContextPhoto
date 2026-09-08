@@ -71,4 +71,6 @@ class FullscreenViewModel
                 }
             }
         }
+
+        suspend fun getImageCommentText(bitmap: Bitmap) = withContext(Dispatchers.IO) { repository.getImageComment(bitmap) }
     }

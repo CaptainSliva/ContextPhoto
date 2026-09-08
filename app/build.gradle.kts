@@ -10,14 +10,14 @@ plugins {
 
 android {
     namespace = "com.contextphoto"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.contextphoto"
         minSdk = 29
-        targetSdk = 36
-        versionCode = 21
-        versionName = "1.3.15"
+        targetSdk = 37
+        versionCode = 24
+        versionName = "1.3.17"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -50,6 +50,7 @@ android {
 
 dependencies {
 
+    implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
